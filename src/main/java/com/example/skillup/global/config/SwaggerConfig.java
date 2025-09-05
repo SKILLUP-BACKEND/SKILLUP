@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
 
     @Bean
-    //객체의 타입이
     public OpenAPI openAPI() {
 
         String jwtSchemeName = "bearer-jwt";
