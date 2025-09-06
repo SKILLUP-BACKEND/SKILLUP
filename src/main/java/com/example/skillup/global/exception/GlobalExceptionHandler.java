@@ -11,15 +11,15 @@ public class GlobalExceptionHandler
 {
     @ExceptionHandler(GlobalException.class)
     public ResponseEntity<ErrorResponse> handleMyException(GlobalException ex) {
-        log.error("Exception: {}", ex.getErrorCode().getMessage());
+        log.error("Exception: {}", ex.getResultCode().getMessage());
 
         ErrorResponse response = new ErrorResponse(
-                ex.getErrorCode().getCode(),
+                ex.getResultCode().getCode(),
                 ex.getMessage(),
                 ex.getClass().getSimpleName()
         );
 
-        return ResponseEntity.status(ex.getErrorCode().getStatus()).body(response);
+        return ResponseEntity.status(ex.getResultCode().getStatus()).body(response);
     }
 
     public record ErrorResponse(String code, String message, String exception) {}
