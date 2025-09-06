@@ -1,7 +1,6 @@
 package com.example.skillup.domain.user.entity;
 
 
-import com.example.skillup.domain.admin.entity.Admin;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
