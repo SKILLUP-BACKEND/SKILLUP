@@ -76,9 +76,9 @@ public class JwtProvider {
             return new UsernamePasswordAuthenticationToken("admin", null, authorities);
         }
 
-        return new UsernamePasswordAuthenticationToken( new org.springframework.security.core.
-                userdetails.User(claims.getSubject(),"",authorities ),
-                token, authorities);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
+
+        return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
 
     private Claims getClaims(String token)
