@@ -1,0 +1,18 @@
+package com.example.skillup.domain.event.exception;
+
+import com.example.skillup.global.common.ResultCode;
+import com.example.skillup.global.exception.ErrorCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum TargetRoleErrorCode implements ResultCode{
+
+    TARGET_ROLE_NOT_FOUND("TARGET_ROLE_NOT_FOUND", "맞는 추천 대상이 DB 에 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+
+    private final String code;
+    private final String message;
+    private final HttpStatus status;
+}
