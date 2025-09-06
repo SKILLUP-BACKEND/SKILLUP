@@ -1,7 +1,6 @@
 package com.example.skillup.domain.event.exception;
 
 import com.example.skillup.global.common.ResultCode;
-import com.example.skillup.global.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
