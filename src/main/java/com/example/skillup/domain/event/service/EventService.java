@@ -28,7 +28,7 @@ public class EventService {
                 .distinct()
                 .forEach(roleName -> {
                     TargetRole role = targetRoleRepository.findByName(roleName)
-                            .orElseThrow(() -> new GlobalException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND));
+                            .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND , roleName+"에"));
                     event.addTargetRole(role);
                 });
 
