@@ -28,7 +28,7 @@ public class EventController {
     @PostMapping
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
-    @ApiResponse(responseCode = "200", description = "일정 등록 성공",
+    @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
     public ResponseEntity<String> createEvent(
             @RequestBody @Valid EventRequest.CreateEvent request,

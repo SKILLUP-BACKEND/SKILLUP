@@ -21,12 +21,12 @@ public class AdminService {
     {
 
         Admin admin = adminRepository.findByEmail(request.email())
-                .orElseThrow(() -> new AdminException(ErrorCode.DATA_NOT_FOUND,"Email이 "+request.email()+"인"));
+                .orElseThrow(() -> new AdminException(CommonErrorCode.DATA_NOT_FOUND,"Email이 "+request.email()+"인"));
 
         if(admin.isPasswordMatch(request.password()))
             return admin;
         else
-            throw new AdminException(ErrorCode.INVALID_PASSWORD);
+            throw new AdminException(CommonErrorCode.INVALID_PASSWORD);
     }
 
 }
