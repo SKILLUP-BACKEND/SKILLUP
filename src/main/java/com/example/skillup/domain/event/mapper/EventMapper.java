@@ -27,6 +27,7 @@ public class EventMapper {
                 .contact(request.getContact())
                 .description(request.getDescription())
                 .hashtags(request.getHashtags())
+                .status(request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED)
                 .build();
     }
 }

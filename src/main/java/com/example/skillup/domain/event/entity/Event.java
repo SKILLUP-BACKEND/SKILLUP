@@ -50,7 +50,7 @@ public class Event extends BaseEntity {
     private Integer price;
 
     @Builder.Default
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(
             name = "event_target_role",
             joinColumns = @JoinColumn(name = "event_id"),
@@ -64,6 +64,10 @@ public class Event extends BaseEntity {
 
     // 신청 링크
     private String applyLink;
+
+    // 임시저장 or 등록
+    @Enumerated(EnumType.STRING)
+    private EventStatus status;
 
     // 문의 방법
     private String contact;

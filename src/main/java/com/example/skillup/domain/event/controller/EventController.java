@@ -36,6 +36,7 @@ public class EventController {
     ) {
         //Event event = eventService.createEvent(userDetails.getUsers(),request);
         Event event = eventService.createEvent(request);
-        return ResponseEntity.ok("이벤트가 등록되었습니다." + event.getId() + " " + user.getUsername());
+        String message = event.getStatus() == EventStatus.DRAFT ? "행사가 임지저장 되었습니다. " : "행사가 등록되었습니다. ";
+        return ResponseEntity.ok(message + "(EVENT_ID : " + event.getId() + " " + user.getUsername() + " )");
     }
 }
