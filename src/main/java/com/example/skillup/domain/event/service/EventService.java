@@ -34,4 +34,16 @@ public class EventService {
 
         return eventRepository.save(event);
     }
+
+    @Transactional
+    public void deleteEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND,  "EventID 가 " + eventId  + "인"));
+
+        if (event.getDeletedAt() != null) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED,
+                    "EventID가 " + eventId + "는");
+        }
+        event.delete();
+    }
 }
