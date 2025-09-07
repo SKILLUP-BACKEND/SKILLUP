@@ -1,10 +1,14 @@
 package com.example.skillup.global.exception;
 
+import com.example.skillup.global.exception.response.ValidationErrors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
@@ -26,14 +30,14 @@ public class GlobalExceptionHandler
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         ErrorResponse response = new ErrorResponse(
-                ErrorCode.ACCESS_DENIED.getCode(),
-                ErrorCode.ACCESS_DENIED.getMessage(),
+                CommonErrorCode.ACCESS_DENIED.getCode(),
+                CommonErrorCode.ACCESS_DENIED.getMessage(),
                 ex.getClass().getSimpleName()
         );
 
-        System.out.println("권한 부족: " + ex.getMessage());
+        log.error("AccessDeniedException : {}", CommonErrorCode.ACCESS_DENIED.getMessage());
 
-        return ResponseEntity.status(ErrorCode.ACCESS_DENIED.getStatus()).body(response);
+        return ResponseEntity.status(CommonErrorCode.ACCESS_DENIED.getStatus()).body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
