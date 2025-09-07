@@ -5,9 +5,9 @@ import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.service.AdminService;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
+import com.example.skillup.global.common.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +21,7 @@ public class AdminController
     private final AuthService authService;
     private final AdminService adminService;
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(
+    public BaseResponse<TokenResponse> login(
             @RequestBody @Valid AdminLoginRequest request
     )
     {
@@ -29,6 +29,6 @@ public class AdminController
 
         TokenResponse tokenResponse = authService.login(null, admin.getRole().toString());
 
-        return ResponseEntity.ok(tokenResponse);
+        return BaseResponse.success("관리자 로그인에 성공했습니다.",tokenResponse);
     }
 }
