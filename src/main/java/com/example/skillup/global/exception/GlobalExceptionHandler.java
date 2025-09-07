@@ -36,6 +36,27 @@ public class GlobalExceptionHandler
         return ResponseEntity.status(ErrorCode.ACCESS_DENIED.getStatus()).body(response);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrors> handleValidationException(MethodArgumentNotValidException ex) {
+        List<ValidationErrors.FieldErrorDetail> fieldErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> new ValidationErrors.FieldErrorDetail(
+                        error.getField(),
+                        error.getDefaultMessage()
+                ))
+                .toList();
+
+        ValidationErrors response = new ValidationErrors(
+                CommonErrorCode.INVALID_INPUT_VALUE.getCode(),
+                fieldErrors,
+                ex.getClass().getSimpleName()
+        );
+
+        return ResponseEntity.status(CommonErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(response);
+    }
+
     public record ErrorResponse(String code, String message, String exception) {}
 
 }
