@@ -1,5 +1,6 @@
 package com.example.skillup.global.exception;
 
+import com.example.skillup.global.common.BaseResponse;
 import com.example.skillup.global.exception.response.ValidationErrors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,33 +16,23 @@ import java.util.List;
 public class GlobalExceptionHandler
 {
     @ExceptionHandler(GlobalException.class)
-    public ResponseEntity<ErrorResponse> handleMyException(GlobalException ex) {
-        log.error("Exception: {}", ex.getResultCode().getMessage());
+    public ResponseEntity<BaseResponse<String>> handleMyException(GlobalException ex) {
+        log.error("Exception: {}", ex.getMessage());
 
-        ErrorResponse response = new ErrorResponse(
-                ex.getResultCode().getCode(),
-                ex.getMessage(),
-                ex.getClass().getSimpleName()
-        );
-
+        BaseResponse<String> response = BaseResponse.error(ex.getResultCode(), ex.getMessage());
         return ResponseEntity.status(ex.getResultCode().getStatus()).body(response);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        ErrorResponse response = new ErrorResponse(
-                CommonErrorCode.ACCESS_DENIED.getCode(),
-                CommonErrorCode.ACCESS_DENIED.getMessage(),
-                ex.getClass().getSimpleName()
-        );
+    public ResponseEntity<BaseResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
+        log.error("AccessDeniedException: {}", ex.getMessage());
 
-        log.error("AccessDeniedException : {}", CommonErrorCode.ACCESS_DENIED.getMessage());
-
+        BaseResponse<Void> response = BaseResponse.error(CommonErrorCode.ACCESS_DENIED);
         return ResponseEntity.status(CommonErrorCode.ACCESS_DENIED.getStatus()).body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrors> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<BaseResponse<ValidationErrors>> handleValidationException(MethodArgumentNotValidException ex) {
         List<ValidationErrors.FieldErrorDetail> fieldErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -51,11 +42,16 @@ public class GlobalExceptionHandler
                 ))
                 .toList();
 
-        ValidationErrors response = new ValidationErrors(
-                CommonErrorCode.INVALID_INPUT_VALUE.getCode(),
+        fieldErrors.forEach(error ->
+                log.error("Validation error - field: {}, message: {}", error.getField(), error.getMessage())
+        );
+
+        ValidationErrors validationErrors = new ValidationErrors(
                 fieldErrors,
                 ex.getClass().getSimpleName()
         );
+
+        BaseResponse<ValidationErrors> response = BaseResponse.error(CommonErrorCode.INVALID_INPUT_VALUE, validationErrors);
 
         return ResponseEntity.status(CommonErrorCode.INVALID_INPUT_VALUE.getStatus())
                 .body(response);
