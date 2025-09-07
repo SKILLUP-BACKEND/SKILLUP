@@ -8,7 +8,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class ValidationErrors {
-    private String code;
     private List<FieldErrorDetail> errors;
     private String errorType;
     @Getter
