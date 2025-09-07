@@ -1,4 +1,4 @@
-package com.example.skillup.domain.user.entity;
+package com.example.skillup.domain.user.enums;
 
 public enum UserStatus
 {

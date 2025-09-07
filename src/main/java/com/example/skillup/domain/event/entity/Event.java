@@ -1,5 +1,7 @@
 package com.example.skillup.domain.event.entity;
 
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

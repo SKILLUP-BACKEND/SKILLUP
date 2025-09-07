@@ -1,4 +1,4 @@
-package com.example.skillup.domain.admin.entity;
+package com.example.skillup.domain.admin.enums;
 
 public enum AdminRole {
     OWNER,

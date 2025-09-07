@@ -1,12 +1,11 @@
 package com.example.skillup.global.auth;
 
 import com.example.skillup.domain.admin.entity.Admin;
-import com.example.skillup.domain.admin.entity.AdminRole;
+import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.domain.admin.repository.AdminRepository;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.jwt.JwtProvider;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

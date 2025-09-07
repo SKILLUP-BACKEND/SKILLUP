@@ -1,6 +1,6 @@
 package com.example.skillup.global.aop;
 
-import com.example.skillup.global.exception.ErrorCode;
+import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
 
 import java.lang.annotation.ElementType;
@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ThrowIfEmpty {
     Class<? extends RuntimeException> exception() default GlobalException.class;
-    ErrorCode errorCode() default ErrorCode.DATA_NOT_FOUND;
+    CommonErrorCode errorCode() default CommonErrorCode.DATA_NOT_FOUND;
 }

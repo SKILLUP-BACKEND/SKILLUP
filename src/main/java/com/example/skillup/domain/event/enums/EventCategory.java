@@ -1,4 +1,4 @@
-package com.example.skillup.domain.event.entity;
+package com.example.skillup.domain.event.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

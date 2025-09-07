@@ -1,6 +1,6 @@
 package com.example.skillup.domain.event.dto.request;
 
-import com.example.skillup.domain.event.entity.EventCategory;
+import com.example.skillup.domain.event.enums.EventCategory;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;

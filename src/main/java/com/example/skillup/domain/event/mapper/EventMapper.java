@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.mapper;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.enums.EventStatus;
 import org.springframework.stereotype.Component;
 
 @Component
