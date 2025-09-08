@@ -1,6 +1,6 @@
 package com.example.skillup.global.aop;
 
-import com.example.skillup.global.exception.ErrorCode;
+import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,7 +25,7 @@ public class ThrowIfEmptyAspect {
         {
             Class<? extends RuntimeException> exClass = throwIfEmpty.exception();
 
-                Constructor<? extends RuntimeException> ctor = exClass.getConstructor(ErrorCode.class);
+                Constructor<? extends RuntimeException> ctor = exClass.getConstructor(CommonErrorCode.class);
                 throw ctor.newInstance(throwIfEmpty.errorCode());
         }
     return result;

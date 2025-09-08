@@ -9,7 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+
 import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
@@ -19,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtProvider {
     private final JwtProperties jwtProperties;
+    private final UserDetailsService userDetailsService;
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
@@ -59,14 +63,20 @@ public class JwtProvider {
     {
         Claims claims = getClaims(token);
         String role = claims.get("roles", String.class);
+        String subject = claims.getSubject();
 
         List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + role)
         );
+        if ("admin".equals(subject)) {
+            return new UsernamePasswordAuthenticationToken( new org.springframework.security.core.
+                    userdetails.User(claims.getSubject(),"",authorities ),
+                    token, authorities);
+        }
 
-        return new UsernamePasswordAuthenticationToken( new org.springframework.security.core.
-                userdetails.User(claims.getSubject(),"",authorities ),
-                token, authorities);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
+
+        return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
 
     private Claims getClaims(String token)

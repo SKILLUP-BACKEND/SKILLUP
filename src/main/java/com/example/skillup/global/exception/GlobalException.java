@@ -1,19 +1,20 @@
 package com.example.skillup.global.exception;
 
+import com.example.skillup.global.common.ResultCode;
 import lombok.Getter;
 
 @Getter
 public class GlobalException extends RuntimeException{
-    private final ErrorCode errorCode;
+    private final ResultCode resultCode;
 
-    public GlobalException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+    public GlobalException(ResultCode resultCode) {
+        super(resultCode.getMessage());
+        this.resultCode = resultCode;
     }
 
-    public GlobalException(ErrorCode errorCode,String message) {
-        super(message != null ? message + " " + errorCode.getMessage()
-                : errorCode.getMessage());
-        this.errorCode = errorCode;
+    public GlobalException(ResultCode resultCode,String message) {
+        super(message != null ? message + " " + resultCode.getMessage()
+                : resultCode.getMessage());
+        this.resultCode = resultCode;
     }
 }

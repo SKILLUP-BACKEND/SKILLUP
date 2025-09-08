@@ -1,13 +1,11 @@
 package com.example.skillup.domain.admin.entity;
 
 
-import com.example.skillup.global.exception.ErrorCode;
-import com.example.skillup.global.exception.GlobalException;
+import com.example.skillup.domain.admin.enums.AdminRole;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 import static lombok.AccessLevel.PROTECTED;

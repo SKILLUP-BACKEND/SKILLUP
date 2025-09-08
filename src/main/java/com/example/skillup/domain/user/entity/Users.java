@@ -1,5 +1,6 @@
 package com.example.skillup.domain.user.entity;
 
+import com.example.skillup.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

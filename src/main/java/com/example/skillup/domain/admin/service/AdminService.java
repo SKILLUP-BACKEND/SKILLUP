@@ -4,8 +4,7 @@ import com.example.skillup.domain.admin.dto.AdminLoginRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.exception.AdminException;
 import com.example.skillup.domain.admin.repository.AdminRepository;
-import com.example.skillup.global.aop.ThrowIfEmpty;
-import com.example.skillup.global.exception.ErrorCode;
+import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +21,12 @@ public class AdminService {
     {
 
         Admin admin = adminRepository.findByEmail(request.email())
-                .orElseThrow(() -> new AdminException(ErrorCode.DATA_NOT_FOUND,"Email이 "+request.email()+"인"));
+                .orElseThrow(() -> new AdminException(CommonErrorCode.DATA_NOT_FOUND,"Email이 "+request.email()+"인"));
 
         if(admin.isPasswordMatch(request.password()))
             return admin;
         else
-            throw new AdminException(ErrorCode.INVALID_PASSWORD);
+            throw new AdminException(CommonErrorCode.INVALID_PASSWORD);
     }
 
 }
