@@ -1,17 +1,23 @@
 package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
+import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
-import jakarta.transaction.Transactional;
+import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +42,68 @@ public class EventService {
     }
 
     @Transactional
-    public void deleteEvent(Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND,  "EventID 가 " + eventId  + "인"));
+    public EventResponse.CommonEventResponse deleteEvent(Long eventId) {
+        Event event = getEvent(eventId);
 
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
         }
         event.delete();
+
+        return new EventResponse.CommonEventResponse(event.getId());
     }
+
+    @Transactional
+    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request) {
+        Event event = getEvent(eventId);
+
+        event.update(request , targetRoleRepository);
+        return new EventResponse.CommonEventResponse(event.getId());
+    }
+
+
+    @Transactional
+    public EventResponse.CommonEventResponse hideEvent(Long eventId) {
+        Event event = getEvent(eventId);
+
+        if (event.getStatus() == EventStatus.HIDDEN) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_HIDDEN, "EventID가 " + eventId + "는");
+        }
+
+        event.setStatus(EventStatus.HIDDEN);
+
+        return new EventResponse.CommonEventResponse(event.getId());
+    }
+
+    @Transactional
+    public EventResponse.CommonEventResponse publishEvent(Long eventId) {
+        Event event = getEvent(eventId);
+        if (event.getStatus() == EventStatus.PUBLISHED) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED ,"EventID가 " + eventId + "는");
+        }
+
+        return new EventResponse.CommonEventResponse(event.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponse.EventSelectResponse getEventDetail(Long eventId, Collection<? extends GrantedAuthority> authorities) {
+        Event event = getEvent(eventId);
+
+        boolean isAdmin = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+
+        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
+        if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
+            throw new EventException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        return eventMapper.toEventDetailInfo(event);
+    }
+
+    private Event getEvent(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND,  "EventID 가 " + eventId + "인"));
+    }
+
+
 }
