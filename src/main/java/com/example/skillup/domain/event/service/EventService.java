@@ -43,7 +43,7 @@ public class EventService {
 
     @Transactional
     public EventResponse.CommonEventResponse deleteEvent(Long eventId) {
-        Event event = getEvent(eventId);
+        Event event = eventRepository.getEvent(eventId);
 
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
@@ -55,7 +55,7 @@ public class EventService {
 
     @Transactional
     public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request) {
-        Event event = getEvent(eventId);
+        Event event = eventRepository.getEvent(eventId);
 
         event.update(request , targetRoleRepository);
         return new EventResponse.CommonEventResponse(event.getId());
@@ -64,7 +64,7 @@ public class EventService {
 
     @Transactional
     public EventResponse.CommonEventResponse hideEvent(Long eventId) {
-        Event event = getEvent(eventId);
+        Event event = eventRepository.getEvent(eventId);
 
         if (event.getStatus() == EventStatus.HIDDEN) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_HIDDEN, "EventID가 " + eventId + "는");
@@ -77,7 +77,7 @@ public class EventService {
 
     @Transactional
     public EventResponse.CommonEventResponse publishEvent(Long eventId) {
-        Event event = getEvent(eventId);
+        Event event = eventRepository.getEvent(eventId);
         if (event.getStatus() == EventStatus.PUBLISHED) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED ,"EventID가 " + eventId + "는");
         }
@@ -88,7 +88,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId, Collection<? extends GrantedAuthority> authorities) {
-        Event event = getEvent(eventId);
+        Event event = eventRepository.getEvent(eventId);
 
         boolean isAdmin = authorities.stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
@@ -99,11 +99,6 @@ public class EventService {
         }
 
         return eventMapper.toEventDetailInfo(event);
-    }
-
-    private Event getEvent(Long eventId) {
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND,  "EventID 가 " + eventId + "인"));
     }
 
 
