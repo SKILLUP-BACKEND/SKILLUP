@@ -4,16 +4,18 @@ import com.example.skillup.global.auth.jwt.JwtProperties;
 import com.example.skillup.global.auth.jwt.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.time.Duration;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class JwtProviderTest {
 
     private final JwtProperties jwtProperties = new JwtProperties("my-secret-key-my-secret-key-my-secret-key", "U3VwZXJTZWNyZXRLZXlTdHJpbmdGb3JKV1QxMjM0NTY=");
-    private final JwtProvider jwtProvider = new JwtProvider(jwtProperties);
+    private final UserDetailsService userDetailsService = mock(UserDetailsService.class);
+    private final JwtProvider jwtProvider = new JwtProvider(jwtProperties , userDetailsService);
 
     @Test
     void testGenerateAndValidateToken() {
