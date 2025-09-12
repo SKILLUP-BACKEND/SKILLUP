@@ -235,4 +235,41 @@ public class EventServiceTest {
         assertThat(updatedEvent.getStatus()).isEqualTo(EventStatus.DRAFT);
     }
 
+    @Test
+    @WithMockUser(username = "admin", roles = {"OWNER"})
+    void hideEvent_Success_Test() throws Exception {
+        // given
+        Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
+
+        mockMvc.perform(patch("/events/{id}/hide", event.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("행사가 숨김 처리되었습니다."))
+                .andExpect(jsonPath("$.code").value("SUCCESS"));
+
+        Event hiddenEvent = eventRepository.findById(event.getId()).orElseThrow();
+        assertThat(hiddenEvent.getStatus()).isEqualTo(EventStatus.HIDDEN);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"OWNER"})
+    void publishEvent_Success_Test() throws Exception {
+        // given
+        Event event = createEvent("공개용 테스트 행사");
+        // 먼저 숨김 처리 (상태를 맞춰줌)
+        event.setStatus(EventStatus.HIDDEN);
+        Event hidden_event = eventRepository.save(event);
+
+        // when & then
+        mockMvc.perform(patch("/events/{id}/publish", hidden_event.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("행사가 공개되었습니다."))
+                .andExpect(jsonPath("$.code").value("SUCCESS"));
+
+        // DB 검증
+        Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
+        assertThat(publishedEvent.getStatus()).isEqualTo(EventStatus.PUBLISHED);
+    }
+
 }
