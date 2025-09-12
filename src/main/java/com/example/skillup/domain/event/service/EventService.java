@@ -82,6 +82,7 @@ public class EventService {
             throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED ,"EventID가 " + eventId + "는");
         }
 
+        event.setStatus(EventStatus.PUBLISHED);
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
