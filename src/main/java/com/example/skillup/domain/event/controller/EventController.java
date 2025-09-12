@@ -33,7 +33,7 @@ public class EventController {
             @RequestBody @Valid EventRequest.CreateEvent request
     ) {
         Event event = eventService.createEvent(request);
-        String message = event.getStatus() == EventStatus.DRAFT ? "행사가 임지저장 되었습니다." : "행사가 등록되었습니다. ";
+        String message = event.getStatus() == EventStatus.DRAFT ? "행사가 임시저장 되었습니다." : "행사가 등록되었습니다.";
         return BaseResponse.success(message ,new EventResponse.CommonEventResponse(event.getId()));
     }
 
@@ -77,7 +77,7 @@ public class EventController {
     public BaseResponse<EventResponse.CommonEventResponse> deleteEvent(
             @PathVariable Long eventId
     ) {
-        return BaseResponse.success("행사가 삭제되었습니다" , eventService.deleteEvent(eventId));
+        return BaseResponse.success("행사가 삭제되었습니다." , eventService.deleteEvent(eventId));
     }
 
     @GetMapping("/{eventId}")
