@@ -32,7 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-//TODO : 테스트 코드 작성
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -92,7 +91,7 @@ public class EventServiceTest {
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
     void createEvent_Success_Test() throws Exception {
-        // given
+
         EventRequest.CreateEvent request = new EventRequest.CreateEvent(
                 "행사 생성 테스트",
                 "http://example.com/thumb.png",
@@ -114,7 +113,6 @@ public class EventServiceTest {
                 "#스포츠 , #러닝"
         );
 
-        // when & then
         mockMvc.perform(post("/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -210,7 +208,7 @@ public class EventServiceTest {
                 .andExpect(jsonPath("$.message").value("행사가 수정되었습니다."))
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
 
-        Event updatedEvent = eventRepository.findById(event.getId()).get();
+        Event updatedEvent = eventRepository.getEvent(event.getId());
         assertThat(updatedEvent.getTitle()).isEqualTo("수정된 제목");
         assertThat(updatedEvent.getThumbnailUrl()).isEqualTo("http://example.com/new-thumb.png");
         assertThat(updatedEvent.getCategory()).isEqualTo(EventCategory.COMPETITION_HACKATHON);
@@ -238,7 +236,7 @@ public class EventServiceTest {
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
     void hideEvent_Success_Test() throws Exception {
-        // given
+
         Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
 
         mockMvc.perform(patch("/events/{id}/hide", event.getId())
@@ -254,20 +252,19 @@ public class EventServiceTest {
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
     void publishEvent_Success_Test() throws Exception {
-        // given
+
         Event event = createEvent("공개용 테스트 행사");
-        // 먼저 숨김 처리 (상태를 맞춰줌)
+
         event.setStatus(EventStatus.HIDDEN);
         Event hidden_event = eventRepository.save(event);
 
-        // when & then
         mockMvc.perform(patch("/events/{id}/publish", hidden_event.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("행사가 공개되었습니다."))
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
 
-        // DB 검증
+
         Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
         assertThat(publishedEvent.getStatus()).isEqualTo(EventStatus.PUBLISHED);
     }
