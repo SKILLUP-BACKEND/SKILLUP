@@ -1,11 +1,13 @@
 package com.example.skillup.domain.user.entity;
 
 import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +18,8 @@ import static lombok.AccessLevel.PROTECTED;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = PROTECTED)
-public class Users
+@SQLRestriction("deleted_at IS NULL")
+public class Users extends BaseEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
