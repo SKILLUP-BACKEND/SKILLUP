@@ -1,5 +1,6 @@
 package com.example.skillup.domain.user.entity;
 
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -55,7 +56,7 @@ public class Users
 
     private String socialId;
 
-    private String socialName;
+    private SocialLoginType socialName;
 
     public static Users of(String email, String password, String name) {
         return Users.builder()
