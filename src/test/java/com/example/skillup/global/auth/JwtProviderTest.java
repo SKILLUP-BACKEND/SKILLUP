@@ -13,7 +13,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class JwtProviderTest {
 
     private final JwtProperties jwtProperties = new JwtProperties("my-secret-key-my-secret-key-my-secret-key", "U3VwZXJTZWNyZXRLZXlTdHJpbmdGb3JKV1QxMjM0NTY=");
-    private final JwtProvider jwtProvider = new JwtProvider(jwtProperties);
+    private final JwtProvider jwtProvider = new JwtProvider(jwtProperties,null);
 
     @Test
     void testGenerateAndValidateToken() {

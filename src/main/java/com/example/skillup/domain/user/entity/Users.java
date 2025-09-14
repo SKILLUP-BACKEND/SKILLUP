@@ -54,9 +54,6 @@ public class Users
 
     private LocalDateTime lastLoginAt;
 
-    private String socialId;
-
-    private SocialLoginType socialName;
 
     public static Users of(String email, String password, String name) {
         return Users.builder()
