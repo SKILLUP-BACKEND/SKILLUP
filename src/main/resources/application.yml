@@ -17,3 +17,14 @@ spring:
 jwt:
   issuer: ${JWT_ISSUER}
   secret: ${JWT_SECRET}
+
+sns:
+  naver:
+    url: https://nid.naver.com/oauth2.0/authorize
+    client:
+      id: ${NAVER_CLIENT_ID}
+      secret: ${NAVER_CLIENT_SECRET}
+    callback:
+      url: http://localhost:8080/auth/naver/callback # 유저 설정에 따라 변경 가능 (Redirect URI)
+    token:
+      url: https://nid.naver.com/oauth2.0/token # 고정값
