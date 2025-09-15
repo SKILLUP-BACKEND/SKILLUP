@@ -26,9 +26,6 @@ public class Users
     @Column(nullable = false, unique = true, length = 20)
     private String email;
 
-    @Column(nullable = false, length = 15)
-    private String password;
-
     @Column(nullable = false, length = 50)
     private String name;
 
@@ -54,21 +51,24 @@ public class Users
 
     private LocalDateTime lastLoginAt;
 
+    private Long socialId;
 
-    public static Users of(String email, String password, String name) {
+    private SocialLoginType socialLoginType;
+
+
+    public static Users of(String email, String name,Long socialId, SocialLoginType socialLoginType) {
         return Users.builder()
                 .email(email)
-                .password(password)
                 .name(name)
                 .regDatetime(LocalDateTime.now())
                 .role("USER")
                 .status(UserStatus.ACTIVE)
                 .jobGroup("UNKNOWN")
                 .notificationFlag("Y")
+                .lastLoginAt(LocalDateTime.now())
+                .socialId(socialId)
+                .socialLoginType(socialLoginType)
                 .build();
     }
 
-    public boolean isPasswordMatch(String rawPassword) {
-        return this.password.equals(rawPassword);
-    }
 }
