@@ -29,7 +29,7 @@ public class Users
     @Column(nullable = false, length = 50)
     private String name;
 
-    private int age;
+    private String age;
 
     @Column(length = 1)
     private String gender;
@@ -56,7 +56,7 @@ public class Users
     private SocialLoginType socialLoginType;
 
 
-    public static Users of(String email, String name,Long socialId, SocialLoginType socialLoginType) {
+    public static Users of(String email, String name,Long socialId, SocialLoginType socialLoginType,String gender,String age) {
         return Users.builder()
                 .email(email)
                 .name(name)
@@ -68,6 +68,8 @@ public class Users
                 .lastLoginAt(LocalDateTime.now())
                 .socialId(socialId)
                 .socialLoginType(socialLoginType)
+                .gender(gender)
+                .age(age)
                 .build();
     }
 

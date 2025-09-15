@@ -1,13 +1,12 @@
 package com.example.skillup.domain.oauth.service;
 
 
+import com.example.skillup.domain.oauth.dto.OauthInfo;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
-import com.example.skillup.global.auth.oauth.component.GoogleOauth;
-import com.example.skillup.global.auth.oauth.component.KakaoOauth;
 import com.example.skillup.global.auth.oauth.component.NaverOauth;
 import com.example.skillup.global.auth.oauth.component.SocialOauth;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OauthService {
 
     //private final GoogleOauth googleOauth;
@@ -68,7 +69,8 @@ public class OauthService {
     }
 
     // 액세스 토큰을 사용하여 사용자 정보를 가져오고, 사용자 정보가 있으면 저장하는 메서드
-    public Users requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
+    @Transactional
+    public Long requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
 
         String accessTokenJson = requestAccessToken(socialLoginType, code);
         String accessToken = extractAccessTokenFromJson(accessTokenJson);
@@ -79,19 +81,18 @@ public class OauthService {
 
         String userInfo = getUserInfo(socialLoginType, accessToken);
 
-        Users user = parseUserInfo(userInfo, socialLoginType, accessToken);
+        OauthInfo oauthInfo = parseOauthInfo(userInfo, socialLoginType, accessToken);
 
-        Optional<Users> existingUser = userRepository.findBySocialId(user.getSocialId());
-        if (existingUser.isPresent()) {
-            Users existing = existingUser.get();
-            existing.setAccessToken(user.getAccessToken());
-            existing.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-            return userRepository.save(existing);
-        } else {
+        Optional<Users> existingUser = userRepository.findBySocialId(oauthInfo.socialId());
 
-            user.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            return userRepository.save(user);
+
+        if(existingUser.isEmpty())
+        {
+            Users users = Users.of(oauthInfo.email(),oauthInfo.name()
+                    ,oauthInfo.socialId(),oauthInfo.socialLoginType(),oauthInfo.gender(),oauthInfo.age());
+            return userRepository.save(users).getId();
         }
+        return existingUser.get().getId();
     }
 
     private String getUserInfo(SocialLoginType socialLoginType, String accessToken) {
@@ -106,35 +107,60 @@ public class OauthService {
                 throw new OauthException(OauthErrorCode.UNSUPPORTED_SOCIAL_TYPE);
             }
         }
-    private Users parseUserInfo(String userInfo, SocialLoginType socialLoginType, String accessToken) {
+    private OauthInfo parseOauthInfo(String userInfo, SocialLoginType socialLoginType, String accessToken) {
         JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
 
         String socialId = "";
         String name = "";
+        String email = "";
+        String gender = null;
+        String age=null;
 
-        if (socialLoginType == SocialLoginType.GOOGLE)
-        {
+        if (socialLoginType == SocialLoginType.GOOGLE) {
             socialId = jsonObject.get("sub").getAsString();
             name = jsonObject.get("name").getAsString();
+            email = jsonObject.get("email").getAsString();
+
+            if (jsonObject.has("gender") && !jsonObject.get("gender").isJsonNull()) {
+                gender = jsonObject.get("gender").getAsString();
+            }
+            if (jsonObject.has("birthdate") && !jsonObject.get("birthdate").isJsonNull()) {
+                age = jsonObject.get("birthdate").getAsString();
+            }
         }
-        else if (socialLoginType == SocialLoginType.KAKAO)
-        {
+        else if (socialLoginType == SocialLoginType.KAKAO) {
             socialId = jsonObject.get("id").getAsString();
+
+            JsonObject kakaoAccount = jsonObject.getAsJsonObject("kakao_account");
             name = jsonObject.getAsJsonObject("properties").get("nickname").getAsString();
+
+            if (kakaoAccount.has("email") && !kakaoAccount.get("email").isJsonNull()) {
+                email = kakaoAccount.get("email").getAsString();
+            }
+            if (kakaoAccount.has("gender") && !kakaoAccount.get("gender").isJsonNull()) {
+                gender = kakaoAccount.get("gender").getAsString();
+            }
+            if (kakaoAccount.has("age_range") && !kakaoAccount.get("age_range").isJsonNull()) {
+                age = kakaoAccount.get("age_range").getAsString();
+            }
         }
-        else if (socialLoginType == SocialLoginType.NAVER)
-        {
+        else if (socialLoginType == SocialLoginType.NAVER) {
             JsonObject response = jsonObject.getAsJsonObject("response");
             socialId = response.get("id").getAsString();
             name = response.get("name").getAsString();
+
+            if (response.has("email") && !response.get("email").isJsonNull()) {
+                email = response.get("email").getAsString();
+            }
+            if (response.has("gender") && !response.get("gender").isJsonNull()) {
+                gender = response.get("gender").getAsString();
+            }
+            if (response.has("age") && !response.get("age").isJsonNull()) {
+                age = response.get("age").getAsString();
+            }
         }
 
-        Users user = new Users();
-        user.setSocialId(socialId);
-        user.setName(name);
-        user.setProvider(socialLoginType.name());
-        user.setAccessToken(accessToken);
-        return user;
+        return OauthInfo.of(email,name, Long.valueOf(socialId),socialLoginType,gender,age);
     }
 
     private String naverApiCall(String accessToken) {
