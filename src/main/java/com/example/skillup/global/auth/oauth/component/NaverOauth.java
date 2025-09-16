@@ -80,11 +80,11 @@ public class NaverOauth implements SocialOauth {
                     return responseEntity.getBody();
                  }
                 else {
-                    throw new OauthException(OauthErrorCode.NAVER_TOKEN_ERROR);
+                    throw new OauthException(OauthErrorCode.OAUTH_TOKEN_ERROR,"네이버 서버에서 토큰 발급 실패");
                 }
             }
             catch (HttpServerErrorException e) {
-                throw new OauthException(OauthErrorCode.NAVER_SERVER_ERROR);
+                throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR,"네이버 서버 오류");
             }
     }
 

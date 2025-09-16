@@ -34,7 +34,8 @@ public class OauthController {
             })
     @GetMapping(value = "/{socialLoginType}")
     public BaseResponse<String> socialLoginType(
-            @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
+            @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType)
+    {
         String redirectURL = oauthService.request(socialLoginType);
         return BaseResponse.success("리다이렉트 될 소셜 로그인 페이지 주소입니다.","SOCIAL_LOGIN_TYPE : "+redirectURL);
     }

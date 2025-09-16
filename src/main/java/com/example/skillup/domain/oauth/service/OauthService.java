@@ -7,6 +7,8 @@ import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.global.auth.oauth.component.GoogleOauth;
+import com.example.skillup.global.auth.oauth.component.KakaoOauth;
 import com.example.skillup.global.auth.oauth.component.NaverOauth;
 import com.example.skillup.global.auth.oauth.component.SocialOauth;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Optional;
 
 
@@ -31,8 +34,8 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class OauthService {
 
-    //private final GoogleOauth googleOauth;
-    //private final KakaoOauth kakaoOauth;
+    private final GoogleOauth googleOauth;
+    private final KakaoOauth kakaoOauth;
     private final NaverOauth naverOauth;
 
     private final UserRepository userRepository;
@@ -49,9 +52,9 @@ public class OauthService {
 
     private SocialOauth findSocialOauthByType(SocialLoginType socialLoginType) {
         return switch (socialLoginType) {
-            //case GOOGLE -> googleOauth;
-            //case KAKAO  -> kakaoOauth;
-            case NAVER  -> naverOauth;
+            case google -> googleOauth;
+            case kakao  -> kakaoOauth;
+            case naver  -> naverOauth;
             default -> throw new OauthException(OauthErrorCode.UNSUPPORTED_SOCIAL_TYPE);
         };
     }
@@ -68,7 +71,6 @@ public class OauthService {
         }
     }
 
-    // 액세스 토큰을 사용하여 사용자 정보를 가져오고, 사용자 정보가 있으면 저장하는 메서드
     @Transactional
     public Long requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
 
@@ -97,11 +99,11 @@ public class OauthService {
 
     private String getUserInfo(SocialLoginType socialLoginType, String accessToken) {
         switch (socialLoginType) {
-            case GOOGLE:
-                //return googleApiCall(accessToken);
-            case KAKAO:
-                //return kakaoApiCall(accessToken);
-            case NAVER:
+            case google:
+                return googleApiCall(accessToken);
+            case kakao:
+                return kakaoApiCall(accessToken);
+            case naver:
                 return naverApiCall(accessToken);
             default:
                 throw new OauthException(OauthErrorCode.UNSUPPORTED_SOCIAL_TYPE);
@@ -116,7 +118,7 @@ public class OauthService {
         String gender = null;
         String age=null;
 
-        if (socialLoginType == SocialLoginType.GOOGLE) {
+        if (socialLoginType == SocialLoginType.google) {
             socialId = jsonObject.get("sub").getAsString();
             name = jsonObject.get("name").getAsString();
             email = jsonObject.get("email").getAsString();
@@ -128,7 +130,7 @@ public class OauthService {
                 age = jsonObject.get("birthdate").getAsString();
             }
         }
-        else if (socialLoginType == SocialLoginType.KAKAO) {
+        else if (socialLoginType == SocialLoginType.kakao) {
             socialId = jsonObject.get("id").getAsString();
 
             JsonObject kakaoAccount = jsonObject.getAsJsonObject("kakao_account");
@@ -144,7 +146,7 @@ public class OauthService {
                 age = kakaoAccount.get("age_range").getAsString();
             }
         }
-        else if (socialLoginType == SocialLoginType.NAVER) {
+        else if (socialLoginType == SocialLoginType.naver) {
             JsonObject response = jsonObject.getAsJsonObject("response");
             socialId = response.get("id").getAsString();
             name = response.get("name").getAsString();
@@ -186,7 +188,72 @@ public class OauthService {
                 throw new OauthException(OauthErrorCode.FAIL_GET_USER_INFO);
             }
         } catch (IOException e) {
-            throw new OauthException(OauthErrorCode.NAVER_SERVER_ERROR);
+            throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR);
+        }
+    }
+
+    private String kakaoApiCall(String accessToken) {
+        try {
+            String url = "https://kapi.kakao.com/v2/user/me";
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+
+            con.setRequestProperty("Authorization", "Bearer " + accessToken);
+
+            int responseCode = con.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                return response.toString();
+            } else {
+                throw new OauthException(OauthErrorCode.FAIL_GET_USER_INFO);
+            }
+        } catch (IOException e) {
+            throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR);
+        }
+    }
+
+    public String googleApiCall(String accessToken) {
+        try {
+            String encodedAccessToken = URLEncoder.encode(accessToken, "UTF-8");
+
+            String url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + encodedAccessToken;
+
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = con.getResponseCode();
+
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                return response.toString();
+            } else {
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+                String inputLine;
+                StringBuffer errorResponse = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    errorResponse.append(inputLine);
+                }
+                in.close();
+                throw new OauthException(OauthErrorCode.FAIL_GET_USER_INFO
+                        ,"Google API에서 사용자 정보를 가져오는 데 실패했습니다. 응답 코드: " + responseCode + ", 에러 메시지: " + errorResponse);
+            }
+        } catch (IOException e) {
+            throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR);
         }
     }
 }
