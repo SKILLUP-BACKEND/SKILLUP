@@ -3,9 +3,6 @@ package com.example.skillup.domain.event.entity;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.domain.event.exception.EventException;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,7 +10,6 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static lombok.AccessLevel.PROTECTED;
@@ -99,18 +95,8 @@ public class Event extends BaseEntity {
         role.getEvents().remove(this);
     }
 
-    public void updateTargetRoles(List<String> roleNames, TargetRoleRepository targetRoleRepository) {
-        this.targetRoles.forEach(role -> role.getEvents().remove(this));
-        this.targetRoles.clear();
 
-        roleNames.stream().distinct().forEach(name -> {
-            TargetRole role = targetRoleRepository.findByName(name)
-                    .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, name + "에"));
-            this.addTargetRole(role);
-        });
-    }
-
-    public void update(EventRequest.UpdateEvent request , TargetRoleRepository targetRoleRepository) {
+    public void update(EventRequest.UpdateEvent request) {
         this.title = request.getTitle();
         this.thumbnailUrl = request.getThumbnailUrl();
         this.category = request.getCategory();
@@ -128,9 +114,5 @@ public class Event extends BaseEntity {
         this.contact = request.getContact();
         this.description = request.getDescription();
         this.hashtags = request.getHashtags();
-
-        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
-            updateTargetRoles(request.getTargetRoles(), targetRoleRepository);
-        }
     }
 }

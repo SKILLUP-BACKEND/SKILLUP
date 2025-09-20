@@ -57,7 +57,19 @@ public class EventService {
     public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request) {
         Event event = eventRepository.getEvent(eventId);
 
-        event.update(request , targetRoleRepository);
+        event.update(request);
+
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            event.getTargetRoles().forEach(role -> role.getEvents().remove(event));
+            event.getTargetRoles().clear();
+
+            request.getTargetRoles().stream().distinct().forEach(name -> {
+                TargetRole role = targetRoleRepository.findByName(name)
+                        .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, name + "에"));
+                event.addTargetRole(role);
+            });
+        }
+
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
