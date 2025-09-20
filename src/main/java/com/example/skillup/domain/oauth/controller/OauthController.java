@@ -40,6 +40,8 @@ public class OauthController {
         return BaseResponse.success("리다이렉트 될 소셜 로그인 페이지 주소입니다.","SOCIAL_LOGIN_TYPE : "+redirectURL);
     }
 
+
+
     @Operation(
             summary = "소셜 로그인 콜백 처리",
             description = "소셜 로그인 후 콜백으로 받은 코드로 액세스 토큰을 요청하고, 소셜 서버의 사용자 정보를 기반으로 자체 토큰을 발급해 로그인 처리합니다.",
