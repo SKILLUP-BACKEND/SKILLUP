@@ -1,5 +1,6 @@
 package com.example.skillup.domain.user.entity;
 
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
@@ -28,13 +29,10 @@ public class Users extends BaseEntity
     @Column(nullable = false, unique = true, length = 20)
     private String email;
 
-    @Column(nullable = false, length = 15)
-    private String password;
-
     @Column(nullable = false, length = 50)
     private String name;
 
-    private int age;
+    private String age;
 
     @Column(length = 1)
     private String gender;
@@ -56,21 +54,26 @@ public class Users extends BaseEntity
 
     private LocalDateTime lastLoginAt;
 
+    private Long socialId;
 
-    public static Users of(String email, String password, String name) {
+    private SocialLoginType socialLoginType;
+
+
+    public static Users of(String email, String name,Long socialId, SocialLoginType socialLoginType,String gender,String age) {
         return Users.builder()
                 .email(email)
-                .password(password)
                 .name(name)
                 .regDatetime(LocalDateTime.now())
                 .role("USER")
                 .status(UserStatus.ACTIVE)
                 .jobGroup("UNKNOWN")
                 .notificationFlag("Y")
+                .lastLoginAt(LocalDateTime.now())
+                .socialId(socialId)
+                .socialLoginType(socialLoginType)
+                .gender(gender)
+                .age(age)
                 .build();
     }
 
-    public boolean isPasswordMatch(String rawPassword) {
-        return this.password.equals(rawPassword);
-    }
 }
