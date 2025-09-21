@@ -6,9 +6,4 @@ public record UserResponseDto(
         String name
 )
 {
-    public static UserResponseDto from(Users users) {
-        return new UserResponseDto(
-                users.getName()
-        );
-    }
 }

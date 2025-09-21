@@ -56,21 +56,4 @@ public class Users
     private SocialLoginType socialLoginType;
 
 
-    public static Users of(String email, String name,Long socialId, SocialLoginType socialLoginType,String gender,String age) {
-        return Users.builder()
-                .email(email)
-                .name(name)
-                .regDatetime(LocalDateTime.now())
-                .role("USER")
-                .status(UserStatus.ACTIVE)
-                .jobGroup("UNKNOWN")
-                .notificationFlag("Y")
-                .lastLoginAt(LocalDateTime.now())
-                .socialId(socialId)
-                .socialLoginType(socialLoginType)
-                .gender(gender)
-                .age(age)
-                .build();
-    }
-
 }

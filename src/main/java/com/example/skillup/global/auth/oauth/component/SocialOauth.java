@@ -9,7 +9,7 @@ public interface SocialOauth {
 
     String requestAccessToken(String code);
 
-    default SocialLoginType type() {
+    default SocialLoginType getSocialType () {
         if (this instanceof GoogleOauth) {
             return SocialLoginType.google;
         } else if (this instanceof NaverOauth) {
