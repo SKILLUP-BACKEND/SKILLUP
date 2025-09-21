@@ -4,6 +4,7 @@ package com.example.skillup.domain.user.service;
 import com.example.skillup.domain.user.dto.response.UserResponseDto;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.exception.UserException;
+import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ThrowIfEmpty;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ public class UserService
 {
     final private UserRepository usersRepository;
 
-
     @ThrowIfEmpty(exception = UserException.class)
     public List<UserResponseDto> findAll()
     {
@@ -32,7 +32,7 @@ public class UserService
     private List<UserResponseDto> toDtoList(List<Users> users)
     {
             return users.stream()
-                    .map(UserResponseDto::from)
+                    .map(UserMapper::from)
                     .toList();
     }
 
