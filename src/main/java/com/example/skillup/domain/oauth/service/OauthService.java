@@ -6,6 +6,7 @@ import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.oauth.component.GoogleOauth;
 import com.example.skillup.global.auth.oauth.component.KakaoOauth;
@@ -90,7 +91,7 @@ public class OauthService {
 
         if(existingUser.isEmpty())
         {
-            Users users = Users.of(oauthInfo.email(),oauthInfo.name()
+            Users users = UserMapper.of(oauthInfo.email(),oauthInfo.name()
                     ,oauthInfo.socialId(),oauthInfo.socialLoginType(),oauthInfo.gender(),oauthInfo.age());
             return userRepository.save(users).getId();
         }
