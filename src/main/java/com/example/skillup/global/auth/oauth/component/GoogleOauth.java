@@ -1,7 +1,11 @@
 package com.example.skillup.global.auth.oauth.component;
 
+import com.example.skillup.domain.oauth.component.HttpClientHelper;
+import com.example.skillup.domain.oauth.dto.OauthInfo;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -10,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +33,9 @@ public class GoogleOauth implements SocialOauth {
     private String GOOGLE_SNS_CLIENT_SECRET;
     @Value("${sns.google.token.url}")
     private String GOOGLE_SNS_TOKEN_BASE_URL;
+
+    private final HttpClientHelper httpClientHelper;
+
 
     @Override
     public String getOauthRedirectURL() {
@@ -70,5 +79,33 @@ public class GoogleOauth implements SocialOauth {
         }
     }
 
+    @Override
+    public String getUserInfo(String accessToken) {
+        String url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" +
+                URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+        return httpClientHelper.get(
+                url,
+                Map.of("Content-Type", "application/json")
+        );
+    }
+
+    @Override
+    public OauthInfo parse(String userInfo, String accessToken) {
+        JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
+
+        String socialId = jsonObject.get("sub").getAsString();
+        String name = jsonObject.get("name").getAsString();
+        String email = jsonObject.get("email").getAsString();
+
+        String gender = jsonObject.has("gender") && !jsonObject.get("gender").isJsonNull()
+                ? jsonObject.get("gender").getAsString()
+                : null;
+
+        String age = jsonObject.has("birthdate") && !jsonObject.get("birthdate").isJsonNull()
+                ? jsonObject.get("birthdate").getAsString()
+                : null;
+
+        return OauthInfo.of(email, name, Long.valueOf(socialId), getSocialType(), gender, age);
+    }
 
 }

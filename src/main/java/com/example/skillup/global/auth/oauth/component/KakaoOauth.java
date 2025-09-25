@@ -1,7 +1,11 @@
 package com.example.skillup.global.auth.oauth.component;
 
+import com.example.skillup.domain.oauth.component.HttpClientHelper;
+import com.example.skillup.domain.oauth.dto.OauthInfo;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -29,6 +33,8 @@ public class KakaoOauth implements SocialOauth {
     private String KAKAO_SNS_CLIENT_SECRET;
     @Value("${sns.kakao.token.url}")
     private String KAKAO_SNS_TOKEN_BASE_URL;
+
+    private final HttpClientHelper httpClientHelper;
 
     @Override
     public String getOauthRedirectURL() {
@@ -74,6 +80,37 @@ public class KakaoOauth implements SocialOauth {
         catch (HttpServerErrorException e) {
             throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR,"카카오 서버 에러");
         }
+    }
+
+    @Override
+    public String getUserInfo(String accessToken) {
+        return httpClientHelper.get(
+                "https://kapi.kakao.com/v2/user/me",
+                Map.of("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    @Override
+    public OauthInfo parse(String userInfo, String accessToken) {
+        JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
+
+        String socialId = jsonObject.get("id").getAsString();
+        JsonObject kakaoAccount = jsonObject.getAsJsonObject("kakao_account");
+        String name = jsonObject.getAsJsonObject("properties").get("nickname").getAsString();
+
+        String email = kakaoAccount.has("email") && !kakaoAccount.get("email").isJsonNull()
+                ? kakaoAccount.get("email").getAsString()
+                : null;
+
+        String gender = kakaoAccount.has("gender") && !kakaoAccount.get("gender").isJsonNull()
+                ? kakaoAccount.get("gender").getAsString()
+                : null;
+
+        String age = kakaoAccount.has("age_range") && !kakaoAccount.get("age_range").isJsonNull()
+                ? kakaoAccount.get("age_range").getAsString()
+                : null;
+
+        return OauthInfo.of(email, name, Long.valueOf(socialId), getSocialType(), gender, age);
     }
 
 }
