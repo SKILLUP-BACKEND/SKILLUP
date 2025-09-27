@@ -110,7 +110,7 @@ public class KakaoOauth implements SocialOauth {
                 ? kakaoAccount.get("age_range").getAsString()
                 : null;
 
-        return OauthInfo.of(email, name, Long.valueOf(socialId), getSocialType(), gender, age);
+        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

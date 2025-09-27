@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/auth")
+@RequestMapping(value = "/oauth")
 @Slf4j
 @Tag(name = "OAuth", description = "소셜 로그인 인증을 시작하고 콜백을 처리하는 API를 제공합니다.")
 public class OauthController {
@@ -53,7 +53,8 @@ public class OauthController {
     @GetMapping(value = "/{socialLoginType}/callback")
     public BaseResponse<TokenResponse> callback(
             @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
-            @RequestParam(name = "code") String code) {
+            @RequestParam(name = "code") String code,
+            @RequestParam String state) {
 
 
         Long userId = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);

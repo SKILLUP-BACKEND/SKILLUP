@@ -105,7 +105,7 @@ public class GoogleOauth implements SocialOauth {
                 ? jsonObject.get("birthdate").getAsString()
                 : null;
 
-        return OauthInfo.of(email, name, Long.valueOf(socialId), getSocialType(), gender, age);
+        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

@@ -54,7 +54,7 @@ public class Users extends BaseEntity
 
     private LocalDateTime lastLoginAt;
 
-    private Long socialId;
+    private String socialId;
 
     private SocialLoginType socialLoginType;
 
