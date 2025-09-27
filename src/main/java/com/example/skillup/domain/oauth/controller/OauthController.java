@@ -54,7 +54,7 @@ public class OauthController {
     public BaseResponse<TokenResponse> callback(
             @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
             @RequestParam(name = "code") String code,
-            @RequestParam String state) {
+            @RequestParam(value = "state", required = false) String state) {
 
 
         Long userId = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);

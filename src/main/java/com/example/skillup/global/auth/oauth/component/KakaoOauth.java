@@ -93,20 +93,40 @@ public class KakaoOauth implements SocialOauth {
     @Override
     public OauthInfo parse(String userInfo, String accessToken) {
         JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
-
         String socialId = jsonObject.get("id").getAsString();
-        JsonObject kakaoAccount = jsonObject.getAsJsonObject("kakao_account");
-        String name = jsonObject.getAsJsonObject("properties").get("nickname").getAsString();
 
-        String email = kakaoAccount.has("email") && !kakaoAccount.get("email").isJsonNull()
+        JsonObject kakaoAccount = jsonObject.has("kakao_account")
+                ? jsonObject.getAsJsonObject("kakao_account")
+                : null;
+
+        JsonObject properties = jsonObject.has("properties")
+                ? jsonObject.getAsJsonObject("properties")
+                : null;
+
+        String name = null;
+        if (properties != null && properties.has("nickname")) {
+            name = properties.get("nickname").getAsString();
+        } else if (kakaoAccount != null
+                && kakaoAccount.has("profile")
+                && kakaoAccount.getAsJsonObject("profile").has("nickname")) {
+            name = kakaoAccount.getAsJsonObject("profile").get("nickname").getAsString();
+        }
+
+        String email = (kakaoAccount != null
+                && kakaoAccount.has("email")
+                && !kakaoAccount.get("email").isJsonNull())
                 ? kakaoAccount.get("email").getAsString()
                 : null;
 
-        String gender = kakaoAccount.has("gender") && !kakaoAccount.get("gender").isJsonNull()
+        String gender = (kakaoAccount != null
+                && kakaoAccount.has("gender")
+                && !kakaoAccount.get("gender").isJsonNull())
                 ? kakaoAccount.get("gender").getAsString()
                 : null;
 
-        String age = kakaoAccount.has("age_range") && !kakaoAccount.get("age_range").isJsonNull()
+        String age = (kakaoAccount != null
+                && kakaoAccount.has("age_range")
+                && !kakaoAccount.get("age_range").isJsonNull())
                 ? kakaoAccount.get("age_range").getAsString()
                 : null;
 

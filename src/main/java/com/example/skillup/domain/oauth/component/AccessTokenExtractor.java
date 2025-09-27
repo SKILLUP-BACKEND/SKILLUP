@@ -1,7 +1,5 @@
 package com.example.skillup.domain.oauth.component;
 
-import com.example.skillup.domain.oauth.exception.OauthErrorCode;
-import com.example.skillup.domain.oauth.exception.OauthException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

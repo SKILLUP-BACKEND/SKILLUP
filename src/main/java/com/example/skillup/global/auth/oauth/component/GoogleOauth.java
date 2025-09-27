@@ -40,13 +40,13 @@ public class GoogleOauth implements SocialOauth {
     @Override
     public String getOauthRedirectURL() {
         Map<String, Object> params = new HashMap<>();
-        params.put("scope", "profile");
+        params.put("scope", "openid email profile");
         params.put("response_type", "code");
         params.put("client_id", GOOGLE_SNS_CLIENT_ID);
         params.put("redirect_uri", GOOGLE_SNS_CALLBACK_URL);
 
         String parameterString = params.entrySet().stream()
-                .map(x -> x.getKey() + "=" + x.getValue())
+                .map(entry -> entry.getKey() + "=" + URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
 
         return GOOGLE_SNS_BASE_URL + "?" + parameterString;
