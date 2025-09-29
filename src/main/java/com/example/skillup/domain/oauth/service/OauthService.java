@@ -68,6 +68,7 @@ public class OauthService {
         {
             Users users = UserMapper.of(oauthInfo.email(), oauthInfo.name()
                     , oauthInfo.socialId(), oauthInfo.socialLoginType(), oauthInfo.gender(), oauthInfo.age());
+
             return userRepository.save(users).getId();
         }
         return existingUser.get().getId();
