@@ -33,7 +33,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/user/all").hasAnyRole("OWNER", "VIEWER","OPERATOR")
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/auth/*").permitAll()
+                        .requestMatchers("/oauth/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();

@@ -27,7 +27,12 @@ public class AuthService
         String accessToken = jwtProvider.generateToken(id,role,ACCESS_TOKEN_EXP);
         String refreshToken = jwtProvider.generateToken(id,role,REFRESH_TOKEN_EXP);
 
-        refreshTokenRepository.save(RefreshToken.of(refreshToken));
+        refreshTokenRepository.findByUserId(id)
+                .ifPresentOrElse(
+                        existing -> refreshTokenRepository.updateTokenByUserId(id, refreshToken),
+                        () -> refreshTokenRepository.save(RefreshToken.of(id, refreshToken))
+                );
+
 
         return TokenResponse.of(accessToken,refreshToken);
     }
