@@ -13,11 +13,15 @@ import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,9 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final TargetRoleRepository targetRoleRepository;
+
+    @Value("${event.popularity.recommend-threshold:70}")
+    private double recommendThreshold;
 
     @Transactional
     public Event createEvent(EventRequest.CreateEvent request) {
@@ -113,5 +120,73 @@ public class EventService {
         return eventMapper.toEventDetailInfo(event);
     }
 
+    @Transactional(readOnly = true)
+    public EventResponse.featuredEventResponseList getFeaturedEvents(String tab, int size) {
+        String roleName = resolveRoleName(tab);
 
+        String roleFilter = null;
+
+        if (roleName != null) {
+            roleFilter = targetRoleRepository.findByName(roleName)
+                    .map(TargetRole::getName)
+                    .orElseThrow(()-> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, roleName));
+        }
+
+        List<Event> events = eventRepository.findPopularForHome(
+                roleFilter,
+                LocalDateTime.now(),
+                PageRequest.of(0, Math.max(1, size))
+        );
+
+        // TODO: 북마크 여부 실제 연동 (현재 false 고정)
+        boolean bookmarked = false;
+
+        return  eventMapper.toFeaturedEventResponsList(events.stream()
+                .map(e -> {
+                    double score = calcPopularity(e);
+                    boolean recommended = e.isRecommendedManual() || score >= recommendThreshold;
+                    return eventMapper.toFeaturedEvent(e, bookmarked, recommended, e.isAd(),score);
+                })
+                .toList() , tab );
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime due = now.plusDays(5);
+
+        List<Event> events = eventRepository.findClosingSoonForHome(
+                roleName, now, due, PageRequest.of(0, size)
+        );
+
+        List<EventResponse.FeaturedEventResponse> items = events.stream()
+                .map(e -> {
+                    double score = calcPopularity(e);
+                    return eventMapper.toFeaturedEvent(e, false, false, false, score);
+                })
+                .toList();
+
+        return eventMapper.toFeaturedEventResponsList(items, roleName);
+    }
+
+    private double calcPopularity(Event event) {
+        double views = event.getViewsCount();
+        double likes = event.getLikesCount();
+        double ctr   = (event.getApplyImpressions() > 0)
+                ? (double) event.getApplyClicks() / event.getApplyImpressions()
+                : 0.0;
+        return views * 0.6 + likes * 0.3 + ctr * 0.1;
+    }
+
+    private String resolveRoleName(String tab) {
+        if (tab == null || tab.isBlank() || "IT 전체".equals(tab)) return null;
+        return switch (tab) {
+            case "기획" -> "기획자";
+            case "디자인" -> "디자이너";
+            case "개발" -> "개발자";
+            case "AI" -> "AI 개발자";
+            default -> null;
+        };
+    }
 }
+

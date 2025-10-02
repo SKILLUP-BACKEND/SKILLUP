@@ -7,6 +7,11 @@ import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventStatus;
 import org.springframework.stereotype.Component;
 
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Component
@@ -61,4 +66,56 @@ public class EventMapper {
                         .collect(Collectors.toSet()))
                 .build();
     }
+
+    public EventResponse.FeaturedEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , double score) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        String schedule = formatRange(event.getEventStart(), event.getEventEnd(), fmt);
+        String priceText = event.getIsFree() != null && event.getIsFree()
+                ? "무료"
+                : (event.getPrice() != null
+                ? NumberFormat.getNumberInstance(Locale.KOREA).format(event.getPrice()) + "₩"
+                : null);
+
+        String d_day = calcDdayLabel(event.getRecruitEnd());
+
+        return EventResponse.FeaturedEventResponse.builder()
+                .id(event.getId())
+                .thumbnailUrl(event.getThumbnailUrl())
+                .online(Boolean.TRUE.equals(event.getIsOnline()))
+                .locationText(event.getLocationText())
+                .title(event.getTitle())
+                .scheduleText(schedule)
+                .priceText(priceText)
+                .d_dayLabel(d_day)
+                .recommended(recommended)
+                .ad(ad)
+                .bookmarked(bookmarked)
+                .category(event.getCategory())
+                .recommendedRate(score)
+                .build();
+    }
+
+    public EventResponse.featuredEventResponseList toFeaturedEventResponsList(List<EventResponse.FeaturedEventResponse> events , String tab) {
+        return EventResponse.featuredEventResponseList.builder()
+                .featuredEventResponseList(events)
+                .tab(tab == null ? "IT 전체" : tab)
+                .build();
+    }
+
+    private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
+        if (start == null && end == null) return null;
+        if (start != null && end != null) return start.format(fmt) + " ~ " + end.format(fmt);
+        return (start != null) ? start.format(fmt) : end.format(fmt);
+    }
+
+    private String calcDdayLabel(LocalDateTime recruitEnd) {
+        if (recruitEnd == null) return null;
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(recruitEnd)) return "마감";
+        long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(), recruitEnd.toLocalDate().atStartOfDay()).toDays();
+        if (days <= 0) return "마감 D-0";
+        return "마감 D-" + days;
+    }
+
+
 }

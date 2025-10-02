@@ -5,6 +5,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.service.EventService;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -88,5 +89,33 @@ public class EventController {
     ) {
         EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user.getAuthorities());
         return BaseResponse.success("행사 상세 조회 성공", response);
+    }
+
+    @GetMapping("/featured")
+    @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
+    public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
+            @RequestParam(defaultValue = "IT 전체") String tab,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size));
+    }
+
+    @GetMapping("/closing-soon")
+    @Operation(
+            summary = "곧 종료되는 행사 리스트",
+            description = "신청 종료일까지 D-5 이하인 진행예정/진행중 + 공개 행사 중, 직군 탭과 연관된 이벤트를 인기순으로 반환합니다."
+    )
+    public BaseResponse<EventResponse.featuredEventResponseList> getClosingSoonEvents(
+            @RequestParam(defaultValue = "8") int size,
+            @AuthenticationPrincipal UsersDetails user
+    ) {
+        String jobGroup = (user != null && user.getUser() != null)
+                ? user.getUser().getJobGroup()
+                : null;
+
+        return BaseResponse.success(
+                "곧 종료되는 행사 리스트 조회 성공",
+                eventService.getClosingSoonEvents(jobGroup, size)
+        );
     }
 }

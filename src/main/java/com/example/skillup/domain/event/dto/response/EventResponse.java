@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public class EventResponse {
@@ -50,5 +51,34 @@ public class EventResponse {
         private String hashtags;
 
         private Set<String> targetRoles;
+    }
+
+    @Getter @Builder
+    public static class FeaturedEventResponse {
+        private Long id;
+        private String thumbnailUrl;
+
+
+        private boolean online;
+        private String locationText;
+        private String title;
+        private String scheduleText;      // 형식 "2025.12.12 ~ 2025.12.31"
+        private String priceText;
+        private String d_dayLabel;         // "마감 D-1", "마감"
+
+        // 태그/뱃지
+        private boolean recommended;      // 추천 태그
+        private boolean ad;               // 광고/제휴 태그
+        private boolean bookmarked;
+
+        private EventCategory category;
+        //점수 제대로 뜨는지 확인 용
+        private double recommendedRate;
+    }
+
+    @Getter @Builder
+    public static class featuredEventResponseList {
+        private String tab;               //  ex )"IT 전체", "기획", "디자인", "개발", "AI"
+        private List<FeaturedEventResponse> featuredEventResponseList;
     }
 }

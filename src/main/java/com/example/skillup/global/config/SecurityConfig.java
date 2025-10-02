@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/all").hasAnyRole("OWNER", "VIEWER","OPERATOR")
                         .requestMatchers("/admin/login").permitAll()
                         .requestMatchers("/auth/*").permitAll()
+                        .requestMatchers("/events/closing-soon").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
