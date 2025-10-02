@@ -93,18 +93,12 @@ public class Event extends BaseEntity {
     @Column(name = "apply_clicks", nullable = false)
     private long applyClicks = 0L;         // 신청 버튼 클릭 수
 
-    @Column(name = "apply_impressions" , nullable = false)
-    private long applyImpressions = 0L;    // 신청 노출 수
-    //TODO : 신청 클릭률 계산 방식 질문하기
-
     // 운영 태그
     @Column(name = "recommended_manual", nullable = false)
     private boolean recommendedManual = false; // 운영진 수동 추천
 
     @Column(name = "ad_flag", nullable = false)
     private boolean ad = false;                // 광고/제휴 노출 여부
-
-
 
 
     public void addTargetRole(TargetRole role) {
