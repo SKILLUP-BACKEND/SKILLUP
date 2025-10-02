@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active:
   config:
     import: optional:file:.env[.properties]
   datasource:
