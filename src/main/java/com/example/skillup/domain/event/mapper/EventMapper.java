@@ -103,6 +103,13 @@ public class EventMapper {
                 .build();
     }
 
+    public EventResponse.CategoryEventResponseList toCategoryEventResponseList(List<EventResponse.HomeEventResponse> events, EventCategory category) {
+        return EventResponse.CategoryEventResponseList.builder()
+                .category(category)
+                .homeEventResponseList(events)
+                .build();
+    }
+
     private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
         if (start == null && end == null) return null;
         if (start != null && end != null) return start.format(fmt) + " ~ " + end.format(fmt);

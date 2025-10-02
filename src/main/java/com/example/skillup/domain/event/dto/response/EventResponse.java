@@ -81,4 +81,9 @@ public class EventResponse {
         private String tab;               //  ex )"IT 전체", "기획", "디자인", "개발", "AI"
         private List<HomeEventResponse> homeEventResponseList;
     }
+    @Getter @Builder
+    public static class CategoryEventResponseList {
+        private EventCategory category;
+        private List<HomeEventResponse> homeEventResponseList;
+    }
 }
