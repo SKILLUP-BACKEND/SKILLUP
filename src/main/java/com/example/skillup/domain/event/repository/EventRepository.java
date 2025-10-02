@@ -57,4 +57,26 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                        @Param("now") LocalDateTime now,
                                        @Param("due") LocalDateTime due,
                                        Pageable pageable);
+
+    @Query("""
+    select distinct e
+    from Event e
+    left join e.targetRoles tr
+    where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+      and e.category = com.example.skillup.domain.event.enums.EventCategory.BOOTCAMP_CLUB
+      and (:roleName is null or tr.name = :roleName)
+      and ( (e.recruitStart is null or e.recruitStart <= :now)
+            and (e.recruitEnd   is null or e.recruitEnd   >= :now) )
+    order by
+        (e.viewsCount * 0.6)
+      + (e.likesCount * 0.3)
+      + (case when e.applyImpressions > 0
+              then (1.0 * e.applyClicks / e.applyImpressions)
+              else 0 end) * 0.1 desc,
+        case when e.recruitEnd is null then 1 else 0 end,
+        e.recruitEnd asc
+""")
+    List<Event> findRecruitingBootcamps(@Param("roleName") String roleName,
+                                        @Param("now") LocalDateTime now,
+                                        Pageable pageable);
 }

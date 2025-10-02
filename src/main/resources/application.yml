@@ -51,4 +51,4 @@ sns:
 
 event:
   popularity:
-    recommend-threshold: 70
+    recommend-threshold: 500

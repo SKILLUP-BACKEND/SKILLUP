@@ -118,4 +118,20 @@ public class EventController {
                 eventService.getClosingSoonEvents(jobGroup, size)
         );
     }
+
+    @GetMapping("/bootcamps")
+    @Operation(
+            summary = "지금 모집중인 부트캠프 리스트",
+            description = "부트캠프/동아리 카테고리에서 현재 모집중인 행사만 직군 탭 기준으로 조회합니다. "
+                    + "정렬: 인기 점수 우선, 동점 시 마감일 빠른 순."
+    )
+    public BaseResponse<EventResponse.featuredEventResponseList> getRecruitingBootcamps(
+            @RequestParam(defaultValue = "IT 전체") String tab,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return BaseResponse.success(
+                "부트캠프 리스트 조회 성공",
+                eventService.getRecruitingBootcamps(tab, size)
+        );
+    }
 }

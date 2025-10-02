@@ -169,6 +169,37 @@ public class EventService {
         return eventMapper.toFeaturedEventResponsList(items, roleName);
     }
 
+    @Transactional(readOnly = true)
+    public EventResponse.featuredEventResponseList getRecruitingBootcamps(String tab, int size) {
+        String roleName = resolveRoleName(tab);
+
+        String roleFilter = null;
+        if (roleName != null) {
+            roleFilter = targetRoleRepository.findByName(roleName)
+                    .map(TargetRole::getName)
+                    .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, roleName));
+        }
+
+        List<Event> events = eventRepository.findRecruitingBootcamps(
+                roleFilter,
+                LocalDateTime.now(),
+                PageRequest.of(0, Math.max(1, size))
+        );
+
+        // TODO: 실제 북마크 연동 필요(현재 false 고정)
+        boolean bookmarked = false;
+
+        return eventMapper.toFeaturedEventResponsList(
+                events.stream()
+                        .map(e -> {
+                            double score = calcPopularity(e); // (views*0.6 + likes*0.3 + ctr*0.1)
+                            return eventMapper.toFeaturedEvent(e, bookmarked, false, false , score);
+                        })
+                        .toList(),
+                tab
+        );
+    }
+
     private double calcPopularity(Event event) {
         double views = event.getViewsCount();
         double likes = event.getLikesCount();
