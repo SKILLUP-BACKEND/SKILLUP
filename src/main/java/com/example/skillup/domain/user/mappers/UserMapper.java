@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Component
 public class UserMapper {
 
-    public static Users of(String email, String name, Long socialId, SocialLoginType socialLoginType, String gender, String age) {
+    public static Users of(String email, String name, String socialId, SocialLoginType socialLoginType, String gender, String age) {
         return Users.builder()
                 .email(email)
                 .name(name)

@@ -1,10 +1,7 @@
 package com.example.skillup.global.auth.RefreshToken;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +20,12 @@ public class RefreshToken {
 
     private String refreshToken;
 
+    @Column(nullable = false)
+    private Long userId;
 
-    public static RefreshToken of(String refreshToken) {
+    public static RefreshToken of(Long userId, String refreshToken) {
         return RefreshToken.builder()
+                .userId(userId)
                 .refreshToken(refreshToken)
                 .build();
     }

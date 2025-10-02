@@ -7,10 +7,10 @@ public record OauthInfo(
         String name,
         String age,
         String gender,
-        Long socialId,
+        String socialId,
         SocialLoginType socialLoginType
 ) {
-    public static OauthInfo of(String email, String name, Long socialId,
+    public static OauthInfo of(String email, String name, String socialId,
                                SocialLoginType socialLoginType, String gender, String age) {
         return new OauthInfo(email, name, age, gender, socialId, socialLoginType);
     }

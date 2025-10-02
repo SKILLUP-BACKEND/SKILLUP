@@ -1,7 +1,11 @@
 package com.example.skillup.global.auth.oauth.component;
 
+import com.example.skillup.domain.oauth.component.HttpClientHelper;
+import com.example.skillup.domain.oauth.dto.OauthInfo;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -38,6 +42,8 @@ public class NaverOauth implements SocialOauth {
 
     @Value("${sns.naver.token.url}")
     private String NAVER_SNS_TOKEN_BASE_URL;
+
+    private final HttpClientHelper httpClientHelper;
 
     @Override
     public String getOauthRedirectURL() {
@@ -86,6 +92,38 @@ public class NaverOauth implements SocialOauth {
             catch (HttpServerErrorException e) {
                 throw new OauthException(OauthErrorCode.OAUTH_SERVER_ERROR,"네이버 서버 오류");
             }
+    }
+
+    @Override
+    public String getUserInfo(String accessToken) {
+        return httpClientHelper.get(
+                "https://openapi.naver.com/v1/nid/me",
+                Map.of("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    @Override
+    public OauthInfo parse(String userInfo, String accessToken) {
+        JsonObject response = JsonParser.parseString(userInfo)
+                .getAsJsonObject()
+                .getAsJsonObject("response");
+
+        String socialId = response.get("id").getAsString();
+        String name = response.get("name").getAsString();
+
+        String email = response.has("email") && !response.get("email").isJsonNull()
+                ? response.get("email").getAsString()
+                : null;
+
+        String gender = response.has("gender") && !response.get("gender").isJsonNull()
+                ? response.get("gender").getAsString()
+                : null;
+
+        String age = response.has("age") && !response.get("age").isJsonNull()
+                ? response.get("age").getAsString()
+                : null;
+
+        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }
