@@ -61,4 +61,25 @@ public class EventMapper {
                         .collect(Collectors.toSet()))
                 .build();
     }
+
+    public EventResponse.EventSummaryResponse toEventSummaryInfo(Event event) {
+        return EventResponse.EventSummaryResponse.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .thumbnailUrl(event.getThumbnailUrl())
+                .category(event.getCategory())
+                .eventStart(event.getEventStart())
+                .eventEnd(event.getEventEnd())
+                .recruitStart(event.getRecruitStart())
+                .recruitEnd(event.getRecruitEnd())
+                .isFree(event.getIsFree())
+                .price(event.getPrice())
+                .isOnline(event.getIsOnline())
+                .locationText(event.getLocationText())
+                .targetRoles(event.getTargetRoles()
+                        .stream()
+                        .map(TargetRole::getName)
+                        .collect(Collectors.toSet()))
+                .build();
+    }
 }

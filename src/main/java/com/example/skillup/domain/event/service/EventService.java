@@ -15,6 +15,9 @@ import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,23 +120,25 @@ public class EventService {
     }
 
     @HandleDataAccessException
-    public List<EventResponse.EventSelectResponse> getEventByCategory(EventRequest.SearchEventByCategory category)
+    public List<EventResponse.EventSummaryResponse> getEventByCategory(EventRequest.SearchEventByCategory category)
     {
-        List<Event> events = eventRepository.findAllByCategoryIn(category.getCategories());
+        Pageable pageable = PageRequest.of(category.getPage(), 12);
+        Page<Event> events = eventRepository.findAllByCategoryIn(category.getCategories(),pageable);
         return mapToEventResponse(events);
     }
 
     @HandleDataAccessException
-    public List<EventResponse.EventSelectResponse> getAllEvents()
+    public List<EventResponse.EventSummaryResponse> getAllEvents(EventRequest.PageRequest pageRequest)
     {
-        List<Event> events = eventRepository.findAll();
+        Pageable pageable = PageRequest.of(pageRequest.getPage(), 12);
+        Page<Event> events = eventRepository.findAll(pageable);
         return mapToEventResponse(events);
     }
 
 
-    private List<EventResponse.EventSelectResponse> mapToEventResponse(List<Event> events) {
-        return events.stream()
-                .map(eventMapper::toEventDetailInfo)
+    private List<EventResponse.EventSummaryResponse> mapToEventResponse(Page<Event> events) {
+        return events.getContent().stream()
+                .map(eventMapper::toEventSummaryInfo)
                 .toList();
     }
 }

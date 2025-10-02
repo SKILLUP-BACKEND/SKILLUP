@@ -287,12 +287,12 @@ public class EventServiceTest {
         Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
 
-        List<EventResponse.EventSelectResponse> resultByCategory
+        List<EventResponse.EventSummaryResponse> resultByCategory
                 = eventService.getEventByCategory
-                (new EventRequest.SearchEventByCategory(List.of(EventCategory.BOOTCAMP_CLUB,EventCategory.CONFERENCE_SEMINAR)));
+                (new EventRequest.SearchEventByCategory(Set.of(EventCategory.BOOTCAMP_CLUB,EventCategory.CONFERENCE_SEMINAR),1));
 
-        List<EventResponse.EventSelectResponse> resultAll
-                = eventService.getAllEvents();
+        List<EventResponse.EventSummaryResponse> resultAll
+                = eventService.getAllEvents(new EventRequest.PageRequest(1));
 
 
         assertNotNull(resultByCategory);
@@ -303,5 +303,31 @@ public class EventServiceTest {
         assertEquals(3, resultAll.size());
         assertEquals(savedEvent.getTitle(), resultByCategory.get(0).getTitle());
     }
+
+    @Test
+    @DisplayName("모든 행사 조회, 카테고리로 행사 조회 페이징 테스트")
+    void getEvent_Use_Paging_Success_Test()
+    {
+        Event savedEvent =eventRepository.save(createEvent("저장"));
+        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        for(int i=0;i<20;i++)
+            eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
+        List<EventResponse.EventSummaryResponse> resultByCategory
+                = eventService.getEventByCategory
+                (new EventRequest.SearchEventByCategory(Set.of(EventCategory.BOOTCAMP_CLUB,EventCategory.CONFERENCE_SEMINAR),0));
+
+        List<EventResponse.EventSummaryResponse> resultAll
+                = eventService.getAllEvents(new EventRequest.PageRequest(1));
+
+        assertNotNull(resultByCategory);
+        assertEquals(12, resultByCategory.size());
+
+
+        assertNotNull(resultAll);
+        assertEquals(11, resultAll.size());
+    }
+
 
 }

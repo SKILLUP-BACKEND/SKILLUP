@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @AllArgsConstructor
@@ -116,6 +117,14 @@ public class EventRequest {
     public static class SearchEventByCategory {
 
         @NotNull(message = "카테고리는 필수입니다.")
-        private List<EventCategory> categories;
+        private Set<EventCategory> categories;
+
+        private int page;
+    }
+    @Getter
+    @AllArgsConstructor
+    public static class PageRequest {
+        @NotNull(message="페이지 번호는 필수입니다.")
+        private int page;
     }
 }

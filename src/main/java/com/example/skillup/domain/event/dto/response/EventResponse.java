@@ -51,4 +51,27 @@ public class EventResponse {
 
         private Set<String> targetRoles;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class EventSummaryResponse {
+        private Long id;
+        private String title;
+        private String thumbnailUrl;
+        private EventCategory category;
+
+        private LocalDateTime eventStart;
+        private LocalDateTime eventEnd;
+
+        private LocalDateTime recruitStart;
+        private LocalDateTime recruitEnd;
+
+        private Boolean isFree;
+        private Integer price;
+
+        private Boolean isOnline;
+        private String locationText;
+        private Set<String> targetRoles;
+    }
 }

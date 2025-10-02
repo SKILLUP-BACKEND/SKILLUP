@@ -93,23 +93,21 @@ public class EventController {
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
-    // 페이징 필요한지 상의 필요
-    // 행사가 많이 없을 때는 모든 행사 불러오기로 행사 다 불러간 후에 프론트에서 카테고리 분류
-    // 행사가 많아질 때는 해당 카테고리만 불러오기
     @GetMapping
     @Operation(summary = "행사 카테고리로 검색 API(여러가지 카테고리 선택 가능)", description = "특정 카테고리 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.EventSelectResponse>> getEventByCategory(
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getEventByCategory(
             @Valid @ModelAttribute EventRequest.SearchEventByCategory category
     ) {
-        List<EventResponse.EventSelectResponse> response = eventService.getEventByCategory(category);
-        return BaseResponse.success("행사 상세 조회 성공", response);
+        List<EventResponse.EventSummaryResponse> response = eventService.getEventByCategory(category);
+        return BaseResponse.success("행사 카테고리로 불러오기 성공", response);
     }
 
     @GetMapping("/all")
     @Operation(summary = "모든 행사 불러오기", description = "모든 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.EventSelectResponse>> getAllEvent(
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getAllEvent(
+            @Valid @ModelAttribute EventRequest.PageRequest pageRequest
     ) {
-        List<EventResponse.EventSelectResponse> response = eventService.getAllEvents();
+        List<EventResponse.EventSummaryResponse> response = eventService.getAllEvents(pageRequest);
         return BaseResponse.success("모든 행사 조회 성공", response);
     }
 }

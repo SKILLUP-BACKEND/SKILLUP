@@ -47,7 +47,7 @@ public class GlobalExceptionHandlerTest {
     void testMethodArgumentTypeMismatchException() throws Exception {
 
 
-        mockMvc.perform(get("/events?category=IVSSD")
+        mockMvc.perform(get("/events?categories=ㅕ혀ㅏ")
                         .with(user("user").roles("USER")))
                 .andDo(print());
     }
