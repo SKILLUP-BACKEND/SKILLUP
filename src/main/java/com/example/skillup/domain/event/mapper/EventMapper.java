@@ -4,6 +4,7 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +68,7 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.FeaturedEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , double score) {
+    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , double score) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy.MM.dd");
         String schedule = formatRange(event.getEventStart(), event.getEventEnd(), fmt);
         String priceText = event.getIsFree() != null && event.getIsFree()
@@ -78,7 +79,7 @@ public class EventMapper {
 
         String d_day = calcDdayLabel(event.getRecruitEnd());
 
-        return EventResponse.FeaturedEventResponse.builder()
+        return EventResponse.HomeEventResponse.builder()
                 .id(event.getId())
                 .thumbnailUrl(event.getThumbnailUrl())
                 .online(Boolean.TRUE.equals(event.getIsOnline()))
@@ -95,9 +96,9 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.featuredEventResponseList toFeaturedEventResponsList(List<EventResponse.FeaturedEventResponse> events , String tab) {
+    public EventResponse.featuredEventResponseList toFeaturedEventResponseList(List<EventResponse.HomeEventResponse> events , String tab) {
         return EventResponse.featuredEventResponseList.builder()
-                .featuredEventResponseList(events)
+                .homeEventResponseList(events)
                 .tab(tab == null ? "IT 전체" : tab)
                 .build();
     }
