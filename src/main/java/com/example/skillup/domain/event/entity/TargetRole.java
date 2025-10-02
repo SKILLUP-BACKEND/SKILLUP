@@ -19,6 +19,7 @@ public class TargetRole {
 
     private String name;
 
+    @Builder.Default
     @ManyToMany(mappedBy = "targetRoles")
     private Set<Event> events = new HashSet<>();
 
