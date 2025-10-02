@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.controller;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -91,7 +92,7 @@ public class EventController {
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
-    @GetMapping("/featured")
+    @GetMapping("/home/featured")
     @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
     public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
             @RequestParam(defaultValue = "IT 전체") String tab,
@@ -100,7 +101,7 @@ public class EventController {
         return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size));
     }
 
-    @GetMapping("/closing-soon")
+    @GetMapping("/home/closing-soon")
     @Operation(
             summary = "곧 종료되는 행사 리스트",
             description = "신청 종료일까지 D-5 이하인 진행예정/진행중 + 공개 행사 중, 직군 탭과 연관된 이벤트를 인기순으로 반환합니다."
@@ -119,19 +120,13 @@ public class EventController {
         );
     }
 
-    @GetMapping("/bootcamps")
-    @Operation(
-            summary = "지금 모집중인 부트캠프 리스트",
-            description = "부트캠프/동아리 카테고리에서 현재 모집중인 행사만 직군 탭 기준으로 조회합니다. "
-                    + "정렬: 인기 점수 우선, 동점 시 마감일 빠른 순."
-    )
-    public BaseResponse<EventResponse.featuredEventResponseList> getRecruitingBootcamps(
-            @RequestParam(defaultValue = "IT 전체") String tab,
-            @RequestParam(defaultValue = "8") int size
+    @GetMapping("/home/category")
+    @Operation(summary = "카테고리별 홈 리스트", description = "부트캠프는 모집중만·인기순(동점 시 마감임박), 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
+    public BaseResponse<EventResponse.CategoryEventResponseList> getHomeByCategory(
+            @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return BaseResponse.success(
-                "부트캠프 리스트 조회 성공",
-                eventService.getRecruitingBootcamps(tab, size)
-        );
+        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
     }
 }
