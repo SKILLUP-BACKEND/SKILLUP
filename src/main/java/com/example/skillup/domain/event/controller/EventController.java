@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.controller;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.global.common.BaseResponse;
@@ -16,6 +17,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/events")
@@ -88,5 +91,25 @@ public class EventController {
     ) {
         EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user.getAuthorities());
         return BaseResponse.success("행사 상세 조회 성공", response);
+    }
+
+    // 페이징 필요한지 상의 필요
+    // 행사가 많이 없을 때는 모든 행사 불러오기로 행사 다 불러간 후에 프론트에서 카테고리 분류
+    // 행사가 많아질 때는 해당 카테고리만 불러오기
+    @GetMapping
+    @Operation(summary = "행사 카테고리로 검색 API(여러가지 카테고리 선택 가능)", description = "특정 카테고리 행사들을 불러옵니다.")
+    public BaseResponse<List<EventResponse.EventSelectResponse>> getEventByCategory(
+            @Valid @ModelAttribute EventRequest.SearchEventByCategory category
+    ) {
+        List<EventResponse.EventSelectResponse> response = eventService.getEventByCategory(category);
+        return BaseResponse.success("행사 상세 조회 성공", response);
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "모든 행사 불러오기", description = "모든 행사들을 불러옵니다.")
+    public BaseResponse<List<EventResponse.EventSelectResponse>> getAllEvent(
+    ) {
+        List<EventResponse.EventSelectResponse> response = eventService.getAllEvents();
+        return BaseResponse.success("모든 행사 조회 성공", response);
     }
 }

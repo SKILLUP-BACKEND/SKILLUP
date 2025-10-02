@@ -4,6 +4,7 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
@@ -11,6 +12,7 @@ import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
@@ -98,7 +102,6 @@ public class EventService {
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
-    @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId, Collection<? extends GrantedAuthority> authorities) {
         Event event = eventRepository.getEvent(eventId);
 
@@ -113,5 +116,24 @@ public class EventService {
         return eventMapper.toEventDetailInfo(event);
     }
 
+    @HandleDataAccessException
+    public List<EventResponse.EventSelectResponse> getEventByCategory(EventRequest.SearchEventByCategory category)
+    {
+        List<Event> events = eventRepository.findAllByCategoryIn(category.getCategories());
+        return mapToEventResponse(events);
+    }
 
+    @HandleDataAccessException
+    public List<EventResponse.EventSelectResponse> getAllEvents()
+    {
+        List<Event> events = eventRepository.findAll();
+        return mapToEventResponse(events);
+    }
+
+
+    private List<EventResponse.EventSelectResponse> mapToEventResponse(List<Event> events) {
+        return events.stream()
+                .map(eventMapper::toEventDetailInfo)
+                .toList();
+    }
 }

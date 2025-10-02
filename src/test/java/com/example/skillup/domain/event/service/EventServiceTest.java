@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.service;
 
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
+import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
@@ -10,6 +11,7 @@ import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,12 +23,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,6 +67,10 @@ public class EventServiceTest {
     }
 
     private Event createEvent(String title) {
+        return createEvent(title, EventCategory.BOOTCAMP_CLUB); // 기본값
+    }
+
+    private Event createEvent(String title, EventCategory category) {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
                 .filter(r -> r.getName().equals("DESIGNER"))
                 .collect(Collectors.toSet());
@@ -72,7 +81,7 @@ public class EventServiceTest {
                 .eventStart(LocalDateTime.of(2025, 9, 12, 10, 0))
                 .eventEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
                 .thumbnailUrl("http://example.com/thumb.png")
-                .category(EventCategory.BOOTCAMP_CLUB)
+                .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
                 .recruitStart(LocalDateTime.of(2025, 9, 12, 10, 0))
                 .isFree(true)
@@ -267,6 +276,32 @@ public class EventServiceTest {
 
         Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
         assertThat(publishedEvent.getStatus()).isEqualTo(EventStatus.PUBLISHED);
+    }
+
+    @Test
+    @DisplayName("모든 행사 조회, 카테고리로 행사 조회 테스트")
+    void getEventByCategory_Success_Test()
+    {
+
+        Event savedEvent =eventRepository.save(createEvent("저장"));
+        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
+        List<EventResponse.EventSelectResponse> resultByCategory
+                = eventService.getEventByCategory
+                (new EventRequest.SearchEventByCategory(List.of(EventCategory.BOOTCAMP_CLUB,EventCategory.CONFERENCE_SEMINAR)));
+
+        List<EventResponse.EventSelectResponse> resultAll
+                = eventService.getAllEvents();
+
+
+        assertNotNull(resultByCategory);
+        assertEquals(2, resultByCategory.size());
+        assertEquals(savedEvent.getTitle(), resultByCategory.get(0).getTitle());
+
+        assertNotNull(resultAll);
+        assertEquals(3, resultAll.size());
+        assertEquals(savedEvent.getTitle(), resultByCategory.get(0).getTitle());
     }
 
 }

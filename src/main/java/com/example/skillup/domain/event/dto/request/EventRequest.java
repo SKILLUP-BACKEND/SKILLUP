@@ -110,4 +110,12 @@ public class EventRequest {
 
         private String hashtags;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class SearchEventByCategory {
+
+        @NotNull(message = "카테고리는 필수입니다.")
+        private List<EventCategory> categories;
+    }
 }
