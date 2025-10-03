@@ -1,0 +1,11 @@
+spring:
+  config:
+    activate:
+      on-profile: local-seed   # 이 파일은 local-seed일 때만 활성화
+  jpa:
+    hibernate:
+      ddl-auto: create-drop   # 시더 돌릴 때 깔끔하게 생성/삭제 (원하면 update로)
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true

@@ -33,6 +33,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/user/all").hasAnyRole("OWNER", "VIEWER","OPERATOR")
                         .requestMatchers("/admin/login").permitAll()
+                        .requestMatchers("/auth/*").permitAll()
+                        .requestMatchers("/events/closing-soon").permitAll()
                         .requestMatchers("/oauth/**").permitAll()
                         .anyRequest().authenticated()
                 );

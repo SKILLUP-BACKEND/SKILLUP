@@ -29,7 +29,7 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column
     private String thumbnailUrl;
 
     @Column(nullable = false)
@@ -84,15 +84,26 @@ public class Event extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String hashtags;
 
+    @Column(name = "views_count", nullable = false)
+    private long viewsCount = 0L;
+
+    @Column(name = "likes_count", nullable = false)
+    private long likesCount = 0L;
+
+    @Column(name = "apply_clicks", nullable = false)
+    private long applyClicks = 0L;         // 신청 버튼 클릭 수
+
+    // 운영 태그
+    @Column(name = "recommended_manual", nullable = false)
+    private boolean recommendedManual = false; // 운영진 수동 추천
+
+    @Column(name = "ad_flag", nullable = false)
+    private boolean ad = false;                // 광고/제휴 노출 여부
+
 
     public void addTargetRole(TargetRole role) {
         targetRoles.add(role);
         role.getEvents().add(this);
-    }
-
-    public void removeTargetRole(TargetRole role) {
-        targetRoles.remove(role);
-        role.getEvents().remove(this);
     }
 
 

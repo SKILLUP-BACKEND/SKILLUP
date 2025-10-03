@@ -61,7 +61,7 @@ public class OauthController {
 
         TokenResponse tokenResponse = authService.login(userId, "users");
 
-        return BaseResponse.success("관리자 로그인에 성공했습니다.",tokenResponse);
+        return BaseResponse.success("사용자 로그인에 성공했습니다.",tokenResponse);
 
     }
 }
