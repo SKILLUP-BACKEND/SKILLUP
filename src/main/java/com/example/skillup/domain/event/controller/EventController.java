@@ -129,4 +129,11 @@ public class EventController {
     ) {
         return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
     }
+
+    @GetMapping("/home/banners")
+    @Operation(summary = "메인 배너 및 서브 배너 리스트" , description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
+    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(){
+        return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
+    }
+
 }

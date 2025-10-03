@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.mapper;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
@@ -109,6 +110,22 @@ public class EventMapper {
                 .homeEventResponseList(events)
                 .build();
     }
+
+    public EventResponse.EventBannersResponseList toEventBannersResponseList(List<EventResponse.EventBannerResponse> mainBanner , List<EventResponse.EventBannerResponse> subBanner) {
+        return new EventResponse.EventBannersResponseList(mainBanner, subBanner);
+    }
+
+    public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
+        return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
+                .title(eventBanner.getTitle())
+                .bannerImageUrl(eventBanner.getBannerImageUrl())
+                .bannerLink(eventBanner.getBannerLink())
+                .displayOrder(eventBanner.getDisplayOrder())
+                .StartAt(eventBanner.getStartAt())
+                .EndAt(eventBanner.getEndAt())
+                .build()).toList();
+    }
+
 
     private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
         if (start == null && end == null) return null;

@@ -3,14 +3,17 @@ package com.example.skillup.domain.event.service;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
+import com.example.skillup.domain.event.repository.EventBannerRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
@@ -38,6 +41,7 @@ public class EventService {
     private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository userRepository;
+    private final EventBannerRepository eventBannerRepository;
 
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
@@ -209,6 +213,20 @@ public class EventService {
                 })
                 .toList();
         return eventMapper.toCategoryEventResponseList(items, category);
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponse.EventBannersResponseList getEventBanners(){
+        LocalDateTime now = LocalDateTime.now();
+
+        List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now , PageRequest.of(0,5));
+        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER,now,PageRequest.of(0,1));
+
+        List<EventResponse.EventBannerResponse> mainEventBanners = eventMapper.toEventBannerResponse(mainBanners);
+        List<EventResponse.EventBannerResponse> subEventBanners = eventMapper.toEventBannerResponse(subBanner);
+
+        return eventMapper.toEventBannersResponseList(mainEventBanners,subEventBanners);
+
     }
 
     private double calcPopularity(Event event) {

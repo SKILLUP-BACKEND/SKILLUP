@@ -86,4 +86,23 @@ public class EventResponse {
         private EventCategory category;
         private List<HomeEventResponse> homeEventResponseList;
     }
+
+    @Getter @Builder
+    public static class EventBannerResponse
+    {
+        private int displayOrder;
+
+        private String title;
+        private String bannerImageUrl;
+        private String bannerLink;
+        private LocalDateTime StartAt;
+        private LocalDateTime EndAt;
+
+    }
+
+    @Getter @Builder @AllArgsConstructor
+    public static class EventBannersResponseList {
+        private List<EventBannerResponse> eventMainBannerReponseList;
+        private List<EventBannerResponse> eventSubBannerResponse;
+    }
 }
