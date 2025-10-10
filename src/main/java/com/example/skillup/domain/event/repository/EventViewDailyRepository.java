@@ -32,7 +32,7 @@ public interface EventViewDailyRepository extends JpaRepository<EventViewDaily,L
         SELECT COALESCE(SUM(cnt), 0)
         FROM event_view_daily
         WHERE event_id = :eventId
-          AND view_date >= CURRENT_DATE - INTERVAL 13 DAY
+          AND createdAt >= CURRENT_DATE - INTERVAL 13 DAY
         """, nativeQuery = true)
     long sumLast14Days(@Param("eventId") Long eventId);
 }

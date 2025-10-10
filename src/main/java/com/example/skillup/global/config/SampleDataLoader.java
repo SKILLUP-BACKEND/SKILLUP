@@ -249,7 +249,6 @@ public class SampleDataLoader implements CommandLineRunner {
 
             EventViewDaily row = EventViewDaily.builder()
                     .event(event)
-                    .viewDate(d)
                     .cnt(cnt)
                     .build();
             eventViewDailyRepository.save(row);

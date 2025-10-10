@@ -27,9 +27,6 @@ public class EventViewDaily extends BaseEntity {
             foreignKey = @ForeignKey(name = "fk_event_view_daily_event"))
     private Event event;
 
-    @Column(name = "view_date", nullable = false)
-    private LocalDate viewDate;
-
     @Column(name = "cnt", nullable = false)
     @Builder.Default
     private long cnt = 0L;

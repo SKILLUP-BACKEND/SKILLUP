@@ -49,7 +49,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         ) as popularity
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -100,7 +100,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         ) as popularity
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -151,7 +151,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         ) as popularity
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -194,7 +194,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         ) as popularity
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -233,7 +233,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     select e
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -267,7 +267,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     select e
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -305,7 +305,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     select e
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -335,7 +335,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     select e
     from Event e
     left join EventViewDaily v
-           on v.event = e and v.viewDate >= :since
+           on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
