@@ -51,7 +51,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     left join EventViewDaily v
            on v.event = e and v.createdAt >= :since
     left join EventLike el
-           on el.event = e
+           on el.event = e and el.createdAt >= :since
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
       and (e.eventEnd is null or e.eventEnd >= :now)
       and (
