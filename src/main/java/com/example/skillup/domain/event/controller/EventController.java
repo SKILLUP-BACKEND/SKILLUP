@@ -3,8 +3,10 @@ package com.example.skillup.domain.event.controller;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.service.EventService;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -89,4 +91,49 @@ public class EventController {
         EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user.getAuthorities());
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
+
+    @GetMapping("/home/featured")
+    @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
+    public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
+            @RequestParam(defaultValue = "IT 전체") String tab,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size));
+    }
+
+    @GetMapping("/home/closing-soon")
+    @Operation(
+            summary = "곧 종료되는 행사 리스트",
+            description = "신청 종료일까지 D-5 이하인 진행예정/진행중 + 공개 행사 중, 직군 탭과 연관된 이벤트를 인기순으로 반환합니다."
+    )
+    public BaseResponse<EventResponse.featuredEventResponseList> getClosingSoonEvents(
+            @RequestParam(defaultValue = "8") int size,
+            @AuthenticationPrincipal UsersDetails user
+    ) {
+        String jobGroup = (user != null && user.getUser() != null)
+                ? user.getUser().getJobGroup()
+                : null;
+
+        return BaseResponse.success(
+                "곧 종료되는 행사 리스트 조회 성공",
+                eventService.getClosingSoonEvents(jobGroup, size)
+        );
+    }
+
+    @GetMapping("/home/category")
+    @Operation(summary = "카테고리별 홈 리스트", description = "부트캠프는 모집중만·인기순(동점 시 마감임박), 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
+    public BaseResponse<EventResponse.CategoryEventResponseList> getHomeByCategory(
+            @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
+    }
+
+    @GetMapping("/home/banners")
+    @Operation(summary = "메인 배너 및 서브 배너 리스트" , description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
+    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(){
+        return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
+    }
+
 }

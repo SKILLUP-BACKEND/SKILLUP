@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active:
   config:
     import: optional:file:.env[.properties]
   datasource:
@@ -48,3 +50,7 @@ sns:
       url: http://localhost:8080/oauth/google/callback
     token:
       url: https://oauth2.googleapis.com/token
+
+event:
+  popularity:
+    recommend-threshold: 500
