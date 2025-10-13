@@ -29,4 +29,11 @@ public class RefreshToken {
                 .refreshToken(refreshToken)
                 .build();
     }
+
+    public static RefreshToken of(String refreshToken) {
+        return RefreshToken.builder()
+                .userId(9999L)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }
