@@ -232,7 +232,7 @@ public class SampleDataLoader implements CommandLineRunner {
 
     private void seedViews14(Event event, int minTotal, int maxTotal) {
         LocalDate today = LocalDate.now();
-        int days = 14;
+        int days = 90;
 
         // 총 합을 대략 min~max 사이로 맞추기 위해 14일 분산
         int targetTotal = ThreadLocalRandom.current().nextInt(minTotal, maxTotal + 1);

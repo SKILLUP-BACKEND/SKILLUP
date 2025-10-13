@@ -23,7 +23,8 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         FROM event e
         LEFT JOIN event_view_daily v ON v.event_id = e.id AND v.created_at >= :since
         LEFT JOIN event_like el ON el.event_id = e.id AND el.created_at >= :since
-        LEFT JOIN event_target_roles tr ON tr.event_id = e.id
+        LEFT JOIN event_target_role etr ON etr.event_id = e.id
+        LEFT JOIN target_role tr ON tr.id = etr.role_id
         WHERE (:category IS NULL OR e.category = :category)
           AND (e.status = 'PUBLISHED')
           AND (:isOnline IS NULL OR e.is_online = :isOnline)
@@ -51,13 +52,16 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         };
 
         Query query = entityManager.createNativeQuery(baseQuery + orderBy, Event.class)
-                .setParameter("category", cond.getCategory())
+                .setParameter("category", cond.getCategory().name())
                 .setParameter("isOnline", cond.getIsOnline())
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
                 .setParameter("targetRoles", cond.getTargetRoles())
                 .setParameter("since", since);
+
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
 
         return query.getResultList();
     }

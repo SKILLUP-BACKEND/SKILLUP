@@ -6,7 +6,9 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -114,6 +116,7 @@ public class EventRequest {
     }
     @Getter
     @AllArgsConstructor
+    @Builder
     public static class EventSearchCondition {
         @NotNull(message = "카테고리를 선택해주세요.")
         private EventCategory category;
@@ -139,21 +142,11 @@ public class EventRequest {
             return (startDate == null && endDate == null)
                     || (startDate != null && endDate != null);
         }
+
+        @AssertTrue(message="sort값은 popularity, latest, deadline 만 가능합니다. ")
+        public boolean isValidSort() {
+            return (sort.equals("latest")||sort.equals("popularity")||sort.equals("deadline"));
+        }
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class SearchEventByCategory {
-
-        @NotNull(message = "카테고리는 필수입니다.")
-        private Set<EventCategory> categories;
-
-        private int page;
-    }
-    @Getter
-    @AllArgsConstructor
-    public static class PageRequest {
-        @NotNull(message="페이지 번호는 필수입니다.")
-        private int page;
-    }
 }
