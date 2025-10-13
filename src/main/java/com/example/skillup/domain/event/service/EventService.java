@@ -8,7 +8,6 @@ import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
@@ -27,8 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +37,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
@@ -48,6 +44,7 @@ public class EventService {
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
+    LocalDate since = LocalDate.now().minusMonths(3);
 
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
@@ -142,7 +139,6 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getFeaturedEvents(String tab, int size) {
         String roleName = resolveRoleName(tab);
-        LocalDate since = LocalDate.now().minusDays(13);
         String roleFilter = null;
 
         if (roleName != null) {
@@ -160,21 +156,6 @@ public class EventService {
 
         // TODO: 북마크 여부 실제 연동 (현재 false 고정)
         boolean bookmarked = false;
-    @HandleDataAccessException
-    public List<EventResponse.EventSummaryResponse> getEventByCategory(EventRequest.SearchEventByCategory category)
-    {
-        Pageable pageable = PageRequest.of(category.getPage(), 12);
-        Page<Event> events = eventRepository.findAllByCategoryIn(category.getCategories(),pageable);
-        return mapToEventResponse(events);
-    }
-
-    @HandleDataAccessException
-    public List<EventResponse.EventSummaryResponse> getAllEvents(EventRequest.PageRequest pageRequest)
-    {
-        Pageable pageable = PageRequest.of(pageRequest.getPage(), 12);
-        Page<Event> events = eventRepository.findAll(pageable);
-        return mapToEventResponse(events);
-    }
 
         return  eventMapper.toFeaturedEventResponseList(rows.stream()
                 .map(r -> {
@@ -186,17 +167,16 @@ public class EventService {
                 .toList() , tab );
     }
 
-    private List<EventResponse.EventSummaryResponse> mapToEventResponse(Page<Event> events) {
-        return events.getContent().stream()
+    private List<EventResponse.EventSummaryResponse> mapToEventResponse(List<Event> events) {
+        return events.stream()
                 .map(eventMapper::toEventSummaryInfo)
                 .toList();
     }
-}
+
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDate since = LocalDate.now().minusDays(13);
         LocalDateTime due = now.plusDays(5);
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
@@ -218,7 +198,6 @@ public class EventService {
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
                                                                             int page,
                                                                             int size) {
-        LocalDate since = LocalDate.now().minusDays(13); // 오늘 포함 14일
         LocalDateTime now = LocalDateTime.now();
         Pageable pageable = PageRequest.of(page, size);
 
@@ -288,5 +267,12 @@ public class EventService {
             eventRepository.incrementLikes(event.getId(), 1);
         }
     }
-}
 
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.EventSummaryResponse> getEventBySearch(EventRequest.EventSearchCondition condition)
+    {
+        Pageable pageable = PageRequest.of(condition.getPage(), 12);
+        return mapToEventResponse(eventRepository.searchEvents(condition, pageable, since));
+    }
+}

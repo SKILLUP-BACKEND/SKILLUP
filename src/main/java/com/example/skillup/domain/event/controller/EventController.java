@@ -94,24 +94,6 @@ public class EventController {
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
-    @GetMapping
-    @Operation(summary = "행사 카테고리로 검색 API(여러가지 카테고리 선택 가능)", description = "특정 카테고리 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.EventSummaryResponse>> getEventByCategory(
-            @Valid @ModelAttribute EventRequest.SearchEventByCategory category
-    ) {
-        List<EventResponse.EventSummaryResponse> response = eventService.getEventByCategory(category);
-        return BaseResponse.success("행사 카테고리로 불러오기 성공", response);
-    }
-
-    @GetMapping("/all")
-    @Operation(summary = "모든 행사 불러오기", description = "모든 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.EventSummaryResponse>> getAllEvent(
-            @Valid @ModelAttribute EventRequest.PageRequest pageRequest
-    ) {
-        List<EventResponse.EventSummaryResponse> response = eventService.getAllEvents(pageRequest);
-        return BaseResponse.success("모든 행사 조회 성공", response);
-    }
-
     @GetMapping("/home/featured")
     @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
     public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
@@ -155,5 +137,15 @@ public class EventController {
     public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(){
         return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
     }
+
+    @PostMapping("/search")
+    @Operation(summary = "행사 카테고리 페이지 검색 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getEventBySearch(
+            @Valid @RequestBody EventRequest.EventSearchCondition condition
+    ){
+        List<EventResponse.EventSummaryResponse> response = eventService.getEventBySearch(condition);
+        return BaseResponse.success("카테고리 페이지 검색 성공", response);
+    }
+
 
 }

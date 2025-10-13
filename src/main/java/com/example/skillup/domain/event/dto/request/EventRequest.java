@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.dto.request;
 
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -110,6 +111,34 @@ public class EventRequest {
         private String description;
 
         private String hashtags;
+    }
+    @Getter
+    @AllArgsConstructor
+    public static class EventSearchCondition {
+        @NotNull(message = "카테고리를 선택해주세요.")
+        private EventCategory category;
+
+        private Boolean isOnline;
+
+        private Boolean isFree;
+
+        private LocalDateTime startDate;
+
+        private LocalDateTime endDate;
+
+        @NotNull(message = "정렬 기준을 선택해주세요. (기본 값은 인기순)")
+        private String sort;
+
+        private List<String> targetRoles;
+
+        @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
+        private int page;
+
+        @AssertTrue(message = "시작일이 있으면 종료일도 함께 입력해야 합니다.")
+        public boolean isValidDateRange() {
+            return (startDate == null && endDate == null)
+                    || (startDate != null && endDate != null);
+        }
     }
 
     @Getter
