@@ -44,10 +44,20 @@ public class GlobalExceptionHandlerTest {
 
     @Test
     @DisplayName("MethodArgumentTypeMismatchException 발생 시 응답 확인")
-    void testMethodArgumentTypeMismatchException() throws Exception {
+    void testCategoryArgumentMethodArgumentTypeMismatchException() throws Exception {
 
 
         mockMvc.perform(get("/events?categories=ㅕ혀ㅏ")
+                        .with(user("user").roles("USER")))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("page-MethodArgumentTypeMismatchException 발생 시 응답 확인 ")
+    void testPageArgumentMethodArgumentTypeMismatchException() throws Exception {
+
+
+        mockMvc.perform(get("/events/all?page=ㅕ혀ㅏ")
                         .with(user("user").roles("USER")))
                 .andDo(print());
     }
