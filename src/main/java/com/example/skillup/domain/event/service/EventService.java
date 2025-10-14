@@ -25,15 +25,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +46,32 @@ public class EventService {
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     LocalDate since = LocalDate.now().minusMonths(3);
+    LocalDateTime now = LocalDateTime.now();
+
+    private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
+            EventCategory.CONFERENCE_SEMINAR, List.of(
+                    EventCategory.NETWORKING_MENTORING,
+                    EventCategory.COMPETITION_HACKATHON,
+                    EventCategory.BOOTCAMP_CLUB
+            ),
+            EventCategory.NETWORKING_MENTORING, List.of(
+                    EventCategory.CONFERENCE_SEMINAR,
+                    EventCategory.COMPETITION_HACKATHON,
+                    EventCategory.BOOTCAMP_CLUB
+            ),
+            EventCategory.COMPETITION_HACKATHON, List.of(
+                    EventCategory.BOOTCAMP_CLUB,
+                    EventCategory.NETWORKING_MENTORING,
+                    EventCategory.CONFERENCE_SEMINAR
+            ),
+            EventCategory.BOOTCAMP_CLUB, List.of(
+                    EventCategory.COMPETITION_HACKATHON,
+                    EventCategory.NETWORKING_MENTORING,
+                    EventCategory.CONFERENCE_SEMINAR
+            )
+    );
+
+
 
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
@@ -167,7 +194,7 @@ public class EventService {
                 .toList() , tab );
     }
 
-    private List<EventResponse.EventSummaryResponse> mapToEventResponse(List<Event> events) {
+    private List<EventResponse.EventSummaryResponse> mapToEventSummaryResponse(List<Event> events) {
         return events.stream()
                 .map(eventMapper::toEventSummaryInfo)
                 .toList();
@@ -176,7 +203,6 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
-        LocalDateTime now = LocalDateTime.now();
         LocalDateTime due = now.plusDays(5);
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
@@ -198,7 +224,6 @@ public class EventService {
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
                                                                             int page,
                                                                             int size) {
-        LocalDateTime now = LocalDateTime.now();
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
@@ -224,7 +249,6 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.EventBannersResponseList getEventBanners(){
-        LocalDateTime now = LocalDateTime.now();
 
         List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now , PageRequest.of(0,5));
         List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER,now,PageRequest.of(0,1));
@@ -273,6 +297,37 @@ public class EventService {
     public List<EventResponse.EventSummaryResponse> getEventBySearch(EventRequest.EventSearchCondition condition)
     {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
-        return mapToEventResponse(eventRepository.searchEvents(condition, pageable, since));
+        return mapToEventSummaryResponse(eventRepository.searchEvents(condition, pageable, since,now));
+    }
+
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.EventSummaryResponse> getRecommendedEvents(EventCategory category) {
+
+        int MIN_COUNT = 3;
+        Pageable pageable = PageRequest.of(0,4);
+        List<Event> result =eventRepository.searchEvents
+                (EventRequest.EventSearchCondition.builder().category(category).sort("popularity").page(0).build()
+                        ,pageable,since,now);
+
+        int missing = MIN_COUNT - result.size();
+
+
+        if(missing>0)
+        {
+            for (EventCategory supplement : CATEGORY_PRIORITY.get(category))
+            {
+                System.out.println(missing);
+                List<Event> supplementEvents = eventRepository.searchEvents
+                        (EventRequest.EventSearchCondition.builder().category(supplement).sort("popularity").page(0).build()
+                                ,pageable,since,now);
+                result.addAll(supplementEvents);
+                missing -= supplementEvents.size();
+                if(missing<=0)
+                    break;
+            }
+        }
+
+        return mapToEventSummaryResponse(result);
     }
 }

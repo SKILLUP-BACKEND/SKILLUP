@@ -86,7 +86,7 @@ public class EventServiceTest {
                 .title(title)
                 .status(EventStatus.PUBLISHED)
                 .eventStart(LocalDateTime.of(2025, 9, 12, 10, 0))
-                .eventEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
+                .eventEnd(LocalDateTime.of(2025, 11, 12, 12, 0))
                 .thumbnailUrl("http://example.com/thumb.png")
                 .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
@@ -293,6 +293,7 @@ public class EventServiceTest {
         Event savedEvent =eventRepository.save(createEvent("저장"));
         Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
         for(int i=0;i<20;i++)
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         List<EventResponse.EventSummaryResponse> resultByCategory
@@ -411,6 +412,22 @@ public class EventServiceTest {
         assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
     }
 
+    @Test
+    @DisplayName("행사 추천 기존 카테고리가 2개 이하여서 다른 카테고리로 보충 성공 테스트")
+    public void getRecommendedEvents_Success()
+    {
+        Event savedEvent1 =eventRepository.save(createEvent("저장",EventCategory.COMPETITION_HACKATHON));
+        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
+        List<EventResponse.EventSummaryResponse> result=eventService.getRecommendedEvents(EventCategory.NETWORKING_MENTORING);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
+        assertThat(result.get(1).getId()).isEqualTo(savedEvent2.getId());
+        assertThat(result.get(2).getId()).isEqualTo(savedEvent1.getId());
+
+    }
 
 
 

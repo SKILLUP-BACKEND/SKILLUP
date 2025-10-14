@@ -146,6 +146,14 @@ public class EventController {
         List<EventResponse.EventSummaryResponse> response = eventService.getEventBySearch(condition);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
+    @GetMapping("/recommended")
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getRecommendedEvents(
+            @RequestParam EventCategory category) {
+
+        List<EventResponse.EventSummaryResponse> events = eventService.getRecommendedEvents(category);
+        return BaseResponse.success("카테고리별 추천 이벤트 조회 성공",events);
+    }
+
 
 
 }

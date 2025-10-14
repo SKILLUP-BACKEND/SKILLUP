@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -17,7 +18,8 @@ public class EventRepositoryImpl implements EventRepositoryNative {
     private final EntityManager entityManager;
 
     @Override
-    public List<Event> searchEvents(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDate since) {
+    public List<Event> searchEvents(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDate since, LocalDateTime now) {
+
         String baseQuery = """
         SELECT e.*
         FROM event e
@@ -26,6 +28,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         LEFT JOIN event_target_role etr ON etr.event_id = e.id
         LEFT JOIN target_role tr ON tr.id = etr.role_id
         WHERE (:category IS NULL OR e.category = :category)
+          AND (e.event_end IS NULL OR e.event_end >= :now)
           AND (e.status = 'PUBLISHED')
           AND (:isOnline IS NULL OR e.is_online = :isOnline)
           AND (:isFree IS NULL OR e.is_free = :isFree)
@@ -58,7 +61,9 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
                 .setParameter("targetRoles", cond.getTargetRoles())
-                .setParameter("since", since);
+                .setParameter("since", since)
+                .setParameter("now", now);
+
 
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
