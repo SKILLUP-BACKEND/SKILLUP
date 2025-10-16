@@ -2,14 +2,19 @@ package com.example.skillup.domain.event.service;
 
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
+import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventViewDaily;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,13 +25,17 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +61,9 @@ public class EventServiceTest {
     @Autowired
     private TargetRoleRepository targetRoleRepository;
 
+    @Autowired
+    private EventViewDailyRepository eventViewDailyRepository;
+
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
@@ -62,6 +74,10 @@ public class EventServiceTest {
     }
 
     private Event createEvent(String title) {
+        return createEvent(title, EventCategory.BOOTCAMP_CLUB); // 기본값
+    }
+
+    private Event createEvent(String title, EventCategory category) {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
                 .filter(r -> r.getName().equals("DESIGNER"))
                 .collect(Collectors.toSet());
@@ -70,9 +86,9 @@ public class EventServiceTest {
                 .title(title)
                 .status(EventStatus.PUBLISHED)
                 .eventStart(LocalDateTime.of(2025, 9, 12, 10, 0))
-                .eventEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
+                .eventEnd(LocalDateTime.of(2025, 11, 12, 12, 0))
                 .thumbnailUrl("http://example.com/thumb.png")
-                .category(EventCategory.BOOTCAMP_CLUB)
+                .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
                 .recruitStart(LocalDateTime.of(2025, 9, 12, 10, 0))
                 .isFree(true)
@@ -268,5 +284,151 @@ public class EventServiceTest {
         Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
         assertThat(publishedEvent.getStatus()).isEqualTo(EventStatus.PUBLISHED);
     }
+
+    @Test
+    @DisplayName("카테고리로 행사 조회 페이징 테스트")
+    void getEventBySearch_Paging_Test()
+    {
+
+        Event savedEvent =eventRepository.save(createEvent("저장"));
+        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
+        for(int i=0;i<20;i++)
+            eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        List<EventResponse.EventSummaryResponse> resultByCategory
+                = eventService.getEventBySearch
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
+
+        List<EventResponse.EventSummaryResponse> resultByCategory2
+                = eventService.getEventBySearch
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
+
+        assertNotNull(resultByCategory);
+        assertEquals(12, resultByCategory.size());
+        assertEquals(savedEvent.getTitle(), resultByCategory.get(0).getTitle());
+        assertEquals(9, resultByCategory2.size());
+    }
+
+    @Test
+    @DisplayName("카테고리로 행사 조회 정렬 테스트")
+    void getEventBySearch_Popularity_Test() throws NoSuchFieldException, IllegalAccessException {
+        Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
+        createdAtField.setAccessible(true);
+
+        Field event= EventViewDaily.class.getDeclaredField("event");
+        event.setAccessible(true);
+
+
+        // 테스트용 이벤트 생성
+        Event event1 = Event.builder()
+                .title("테스트 이벤트")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(500))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .build();
+        createdAtField.set(event1, LocalDateTime.now().minusDays(1));
+
+        Event event2 = Event.builder()
+                .title("테스트 이벤트")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(10))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .build();
+        createdAtField.set(event2, LocalDateTime.now().minusDays(55));
+
+
+        eventRepository.save(event1);
+        eventRepository.save(event2);
+        // 3달 전 조회수
+        EventViewDaily oldView = EventViewDaily.builder()
+                .event(event1)
+                .cnt(1L)
+                .build();
+        createdAtField.set(oldView, LocalDateTime.now().minusMonths(3).minusDays(1)); // 3달 +1일 전
+        eventViewDailyRepository.save(oldView);
+
+
+        // 3달 이내 조회수
+        //event2는 3달이내 조회수 2개,event1는 3달 전 조회수 1개, 3달이내 조회수 1개
+        EventViewDaily recentView = EventViewDaily.builder()
+                .event(event1)
+                .cnt(1L)
+                .build();
+        createdAtField.set(recentView, LocalDateTime.now().minusDays(10)); // 10일 전
+        eventViewDailyRepository.save(recentView);
+
+        event.set(recentView,event2);
+        eventViewDailyRepository.save(recentView);
+        eventViewDailyRepository.save(recentView);
+
+
+
+
+        // 조건 DTO
+        EventRequest.EventSearchCondition condPopularity = EventRequest.EventSearchCondition.builder()
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .sort("popularity")
+                .page(0)
+                .build();
+
+        EventRequest.EventSearchCondition condLatest = EventRequest.EventSearchCondition.builder()
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .sort("latest")
+                .page(0)
+                .build();
+
+        EventRequest.EventSearchCondition condDeadline = EventRequest.EventSearchCondition.builder()
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .sort("deadline")
+                .page(0)
+                .build();
+
+        List<EventResponse.EventSummaryResponse> resultsByPopularity = eventService.getEventBySearch(condPopularity);
+
+        List<EventResponse.EventSummaryResponse> resultsByLatest = eventService.getEventBySearch(condLatest);
+
+        List<EventResponse.EventSummaryResponse> resultsByDeadLine = eventService.getEventBySearch(condDeadline);
+
+
+        // assertions
+        assertThat(resultsByPopularity).isNotEmpty();
+        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event2.getId());
+
+        assertThat(resultsByLatest).isNotEmpty();
+        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event1.getId());
+
+        assertThat(resultsByDeadLine).isNotEmpty();
+        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
+    }
+
+    @Test
+    @DisplayName("행사 추천 기존 카테고리가 2개 이하여서 다른 카테고리로 보충 성공 테스트")
+    public void getRecommendedEvents_Success()
+    {
+        Event savedEvent1 =eventRepository.save(createEvent("저장",EventCategory.COMPETITION_HACKATHON));
+        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+
+        List<EventResponse.EventSummaryResponse> result=eventService.getRecommendedEvents(EventCategory.NETWORKING_MENTORING);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
+        assertThat(result.get(1).getId()).isEqualTo(savedEvent2.getId());
+        assertThat(result.get(2).getId()).isEqualTo(savedEvent1.getId());
+
+    }
+
+
 
 }

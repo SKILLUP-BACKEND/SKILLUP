@@ -41,7 +41,6 @@ public class GlobalExceptionHandler
                         error.getDefaultMessage()
                 ))
                 .toList();
-
         fieldErrors.forEach(error ->
                 log.error("Validation error - field: {}, message: {}", error.getField(), error.getMessage())
         );

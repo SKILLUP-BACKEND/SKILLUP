@@ -5,6 +5,7 @@ import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,10 +15,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface EventRepository extends JpaRepository<Event, Long> {
+import java.util.Set;
+
+public interface EventRepository extends JpaRepository<Event, Long>, EventRepositoryNative {
     default Event getEvent(Long eventId) {
         return findById(eventId).orElseThrow(() -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND,  "EventID 가 " + eventId + "인"));
     }
+
+    Page<Event> findAllByCategoryIn(Set<EventCategory> categories, Pageable pageable);
 
     @Modifying
     @Query(value = "UPDATE event SET views_count = views_count + 1 WHERE id = :eventId", nativeQuery = true)
@@ -362,5 +367,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                             @Param("now") LocalDateTime now,
                                                             @Param("due") LocalDateTime due,
                                                             Pageable pageable);
+
+    //
+
 
 }

@@ -19,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -135,5 +137,23 @@ public class EventController {
     public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(){
         return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
     }
+
+    @PostMapping("/search")
+    @Operation(summary = "행사 카테고리 페이지 검색 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getEventBySearch(
+            @Valid @RequestBody EventRequest.EventSearchCondition condition
+    ){
+        List<EventResponse.EventSummaryResponse> response = eventService.getEventBySearch(condition);
+        return BaseResponse.success("카테고리 페이지 검색 성공", response);
+    }
+    @GetMapping("/recommended")
+    public BaseResponse<List<EventResponse.EventSummaryResponse>> getRecommendedEvents(
+            @RequestParam EventCategory category) {
+
+        List<EventResponse.EventSummaryResponse> events = eventService.getRecommendedEvents(category);
+        return BaseResponse.success("카테고리별 추천 이벤트 조회 성공",events);
+    }
+
+
 
 }
