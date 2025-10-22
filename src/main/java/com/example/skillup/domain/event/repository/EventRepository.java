@@ -232,7 +232,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         Long getLikesCnt();
         Double getPopularity();
     }
-
     // 위에는 점수까지 포함(test 용) 아래는 점수 포함하지 않은 쿼리문
     @Query("""
     select e

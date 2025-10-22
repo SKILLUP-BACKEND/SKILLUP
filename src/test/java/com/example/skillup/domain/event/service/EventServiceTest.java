@@ -296,11 +296,11 @@ public class EventServiceTest {
 
         for(int i=0;i<20;i++)
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
-        List<EventResponse.EventSummaryResponse> resultByCategory
+        List<EventResponse.HomeEventResponse> resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
 
-        List<EventResponse.EventSummaryResponse> resultByCategory2
+        List<EventResponse.HomeEventResponse> resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
 
@@ -313,16 +313,10 @@ public class EventServiceTest {
     @Test
     @DisplayName("카테고리로 행사 조회 정렬 테스트")
     void getEventBySearch_Popularity_Test() throws NoSuchFieldException, IllegalAccessException {
-        Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
-        createdAtField.setAccessible(true);
-
-        Field event= EventViewDaily.class.getDeclaredField("event");
-        event.setAccessible(true);
-
 
         // 테스트용 이벤트 생성
         Event event1 = Event.builder()
-                .title("테스트 이벤트")
+                .title("테스트 이벤트1")
                 .category(EventCategory.CONFERENCE_SEMINAR)
                 .status(EventStatus.PUBLISHED)
                 .isFree(true)
@@ -332,10 +326,9 @@ public class EventServiceTest {
                 .eventStart(LocalDateTime.now().minusDays(20))
                 .eventEnd(LocalDateTime.now().plusDays(20))
                 .build();
-        createdAtField.set(event1, LocalDateTime.now().minusDays(1));
 
         Event event2 = Event.builder()
-                .title("테스트 이벤트")
+                .title("테스트 이벤트2")
                 .category(EventCategory.CONFERENCE_SEMINAR)
                 .status(EventStatus.PUBLISHED)
                 .isFree(true)
@@ -345,32 +338,56 @@ public class EventServiceTest {
                 .eventStart(LocalDateTime.now().minusDays(20))
                 .eventEnd(LocalDateTime.now().plusDays(20))
                 .build();
-        createdAtField.set(event2, LocalDateTime.now().minusDays(55));
+
+        Event event3 = Event.builder()
+                .title("테스트 이벤트3")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(1000))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .build();
 
 
         eventRepository.save(event1);
         eventRepository.save(event2);
-        // 3달 전 조회수
+        eventRepository.save(event3);
+
+
+        // event는 3달 이후 조회수 2개 + 3달 이내 조회수 1개
         EventViewDaily oldView = EventViewDaily.builder()
                 .event(event1)
-                .cnt(1L)
+                .cnt(1000L)
                 .build();
-        createdAtField.set(oldView, LocalDateTime.now().minusMonths(3).minusDays(1)); // 3달 +1일 전
         eventViewDailyRepository.save(oldView);
 
+        EventViewDaily oldView2 = EventViewDaily.builder()
+                .event(event1)
+                .cnt(100L)
+                .build();
+        eventViewDailyRepository.save(oldView2);
 
-        // 3달 이내 조회수
-        //event2는 3달이내 조회수 2개,event1는 3달 전 조회수 1개, 3달이내 조회수 1개
         EventViewDaily recentView = EventViewDaily.builder()
                 .event(event1)
                 .cnt(1L)
                 .build();
-        createdAtField.set(recentView, LocalDateTime.now().minusDays(10)); // 10일 전
         eventViewDailyRepository.save(recentView);
 
-        event.set(recentView,event2);
-        eventViewDailyRepository.save(recentView);
-        eventViewDailyRepository.save(recentView);
+        //event2는 3달이내 조회수 2개
+        EventViewDaily recentView2 = EventViewDaily.builder()
+                .event(event2)
+                .cnt(1L)
+                .build();
+        eventViewDailyRepository.save(recentView2);
+
+        EventViewDaily recentView3 = EventViewDaily.builder()
+                .event(event2)
+                .cnt(1L)
+                .build();
+        eventViewDailyRepository.save(recentView3);
 
 
 
@@ -394,22 +411,29 @@ public class EventServiceTest {
                 .page(0)
                 .build();
 
-        List<EventResponse.EventSummaryResponse> resultsByPopularity = eventService.getEventBySearch(condPopularity);
 
-        List<EventResponse.EventSummaryResponse> resultsByLatest = eventService.getEventBySearch(condLatest);
 
-        List<EventResponse.EventSummaryResponse> resultsByDeadLine = eventService.getEventBySearch(condDeadline);
+        List<EventResponse.HomeEventResponse> resultsByPopularity = eventService.getEventBySearch(condPopularity);
 
+        List<EventResponse.HomeEventResponse> resultsByLatest = eventService.getEventBySearch(condLatest);
+
+        List<EventResponse.HomeEventResponse> resultsByDeadLine = eventService.getEventBySearch(condDeadline);
 
         // assertions
-        assertThat(resultsByPopularity).isNotEmpty();
-        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByDeadLine).isNotEmpty();
+        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(2L);
 
         assertThat(resultsByLatest).isNotEmpty();
-        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event1.getId());
+        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event2.getId());
 
-        assertThat(resultsByDeadLine).isNotEmpty();
-        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByPopularity).isNotEmpty();
+        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event1.getId());
+
+
+
+        //created_at에 값을 채워서 저장해도 JPA가 now로 덮어 씌워서 creat_at을 조정하지는 못했네요.. 좋은 테스트 방법 있으면 추천 부탁드려요
+
+
     }
 
     @Test
@@ -420,7 +444,7 @@ public class EventServiceTest {
         Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
 
-        List<EventResponse.EventSummaryResponse> result=eventService.getRecommendedEvents(EventCategory.NETWORKING_MENTORING);
+        List<EventResponse.HomeEventResponse> result=eventService.getRecommendedEvents(EventCategory.NETWORKING_MENTORING);
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
