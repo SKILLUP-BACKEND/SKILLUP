@@ -111,6 +111,13 @@ public class EventResponse {
     }
 
     @Getter @Builder
+    public static class SearchEventResponseList{
+        private Integer total;
+        private List<HomeEventResponse> homeEventResponseList;
+        private String message;
+    }
+
+    @Getter @Builder
     public static class EventBannerResponse
     {
         private int displayOrder;
