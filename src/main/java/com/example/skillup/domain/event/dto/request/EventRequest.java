@@ -149,4 +149,18 @@ public class EventRequest {
         }
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventSearchRequest{
+        private String searchString; // 검색어
+        private String sort;  // recommended|deadline|created
+        private Boolean freeOnly;   // true면 무료만
+        private List<String> modes; // ["ONLINE","OFFLINE"]
+        String city;
+        String venue;
+        Integer page;
+        Integer size;
+    }
+
 }
