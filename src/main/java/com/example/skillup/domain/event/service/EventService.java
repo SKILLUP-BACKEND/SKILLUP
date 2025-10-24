@@ -13,10 +13,7 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
-import com.example.skillup.domain.event.repository.EventBannerRepository;
-import com.example.skillup.domain.event.repository.EventLikeRepository;
-import com.example.skillup.domain.event.repository.EventRepository;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.event.repository.*;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
@@ -194,12 +191,6 @@ public class EventService {
                 .toList() , tab );
     }
 
-    private List<EventResponse.EventSummaryResponse> mapToEventSummaryResponse(List<Event> events) {
-        return events.stream()
-                .map(eventMapper::toEventSummaryInfo)
-                .toList();
-    }
-
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
@@ -294,19 +285,26 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.EventSummaryResponse> getEventBySearch(EventRequest.EventSearchCondition condition)
+    public List<EventResponse.HomeEventResponse> getEventBySearch(EventRequest.EventSearchCondition condition)
     {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
-        return mapToEventSummaryResponse(eventRepository.searchEvents(condition, pageable, since,now));
+        List<EventRepositoryImpl.EventWithPopularity>events=eventRepository.findByCategoryWithSearch(condition, pageable, since,now);
+        return events.stream()
+              .map(r -> {
+                  Event event = r.getEvent();
+                  double score = r.getPopularity();
+                  return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), score);
+              })
+              .toList();
     }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.EventSummaryResponse> getRecommendedEvents(EventCategory category) {
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(EventCategory category) {
 
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0,4);
-        List<Event> result =eventRepository.searchEvents
+        List<EventRepositoryImpl.EventWithPopularity> result =eventRepository.findByCategoryWithSearch
                 (EventRequest.EventSearchCondition.builder().category(category).sort("popularity").page(0).build()
                         ,pageable,since,now);
 
@@ -318,7 +316,7 @@ public class EventService {
             for (EventCategory supplement : CATEGORY_PRIORITY.get(category))
             {
                 System.out.println(missing);
-                List<Event> supplementEvents = eventRepository.searchEvents
+                List<EventRepositoryImpl.EventWithPopularity> supplementEvents = eventRepository.findByCategoryWithSearch
                         (EventRequest.EventSearchCondition.builder().category(supplement).sort("popularity").page(0).build()
                                 ,pageable,since,now);
                 result.addAll(supplementEvents);
@@ -328,6 +326,12 @@ public class EventService {
             }
         }
 
-        return mapToEventSummaryResponse(result);
+        return result.stream()
+                .map(r -> {
+                    Event event = r.getEvent();
+                    double score = r.getPopularity();
+                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), score);
+                })
+                .toList();
     }
 }
