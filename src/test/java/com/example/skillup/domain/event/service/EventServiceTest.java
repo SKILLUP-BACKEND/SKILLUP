@@ -11,7 +11,6 @@ import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
-import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,9 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -444,7 +441,7 @@ public class EventServiceTest {
         Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
 
-        List<EventResponse.HomeEventResponse> result=eventService.getRecommendedEvents(EventCategory.NETWORKING_MENTORING);
+        List<EventResponse.HomeEventResponse> result=eventService.getSupplementaryEvents(EventCategory.NETWORKING_MENTORING);
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());

@@ -138,21 +138,31 @@ public class EventController {
         return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
     }
 
-    @PostMapping("/search")
-    @Operation(summary = "행사 카테고리 페이지 검색 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
+    @PostMapping("category-page/search")
+    @Operation(summary = "행사 카테고리 페이지에서 검색하는 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getEventBySearch(
             @Valid @RequestBody EventRequest.EventSearchCondition condition
     ){
         List<EventResponse.HomeEventResponse> response = eventService.getEventBySearch(condition);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
-    @GetMapping("/recommended")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(
+    @GetMapping("category-page/recommended")
+    @Operation(summary = "행사 카테고리 페이지 검색에서 이벤트가 부족할 때 다른 카테고리의 이벤트를 불러옵니다"
+            , description="카테고리 화면 이벤트 보충 api")
+    public BaseResponse<List<EventResponse.HomeEventResponse>> getSupplementaryEvents(
             @RequestParam EventCategory category) {
 
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(category);
-        return BaseResponse.success("카테고리별 추천 이벤트 조회 성공",events);
+        List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category);
+        return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공",events);
     }
 
+    @GetMapping("home/recommended")
+    @Operation(summary = "홈 화면에서 해쉬태그 기반으로 이벤트를 추천합니다"
+            , description="홈 화면 이벤트 추천 api")
+    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(@AuthenticationPrincipal UsersDetails user)
+    {
+        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId());
+        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공",events);
+    }
 
 }

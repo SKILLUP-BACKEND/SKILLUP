@@ -300,7 +300,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(EventCategory category) {
+    public List<EventResponse.HomeEventResponse> getSupplementaryEvents(EventCategory category) {
 
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0,4);
@@ -333,5 +333,12 @@ public class EventService {
                     return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), score);
                 })
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long userId)
+    {
+
     }
 }
