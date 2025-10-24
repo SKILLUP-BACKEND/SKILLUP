@@ -7,17 +7,22 @@ import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import org.springframework.stereotype.Component;
-
+import com.example.skillup.domain.event.search.document.EventDocument;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EventMapper {
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     public Event toEntity(EventRequest.CreateEvent request) {
 
@@ -126,6 +131,62 @@ public class EventMapper {
                 .build()).toList();
     }
 
+    public EventResponse.HomeEventResponse mapEsDocToHomeItem(
+            EventDocument eventDocument,
+            Map<String, List<String>> highlight,
+            Double score
+    ) {
+        // 1) 제목: 하이라이트 우선
+        String title = (highlight != null && highlight.get("title") != null && !highlight.get("title").isEmpty())
+                ? highlight.get("title").get(0)
+                : eventDocument.getTitle();
+
+        LocalDateTime startDt = eventDocument.getEventStart() == null
+                ? null
+                : LocalDateTime.ofInstant(eventDocument.getEventStart(), KST);
+
+        LocalDateTime endDt = eventDocument.getEventEnd() == null
+                ? null
+                : LocalDateTime.ofInstant(eventDocument.getEventEnd(), KST);
+
+        String schedule = formatRange(startDt, endDt, DATE_FMT);
+
+        String priceText = Boolean.TRUE.equals(eventDocument.getIsFree())
+                ? "무료"
+                : (eventDocument.getPrice() != null
+                        ? NumberFormat.getNumberInstance(Locale.KOREA).format(eventDocument.getPrice()) + "₩"
+                        : null);
+
+        LocalDateTime recruitEndDt = eventDocument.getRecruitEnd() == null
+                ? null
+                : LocalDateTime.ofInstant(eventDocument.getRecruitEnd(), KST);
+
+        String d_day = calcDdayLabel(recruitEndDt);
+        // 5) category(enum)
+        EventCategory category = null;
+        if (eventDocument.getCategory() != null) {
+            try { category = EventCategory.valueOf(eventDocument.getCategory()); } catch (IllegalArgumentException ignore) {}
+        }
+
+        double recommendedRate = score == null ? 0.0 : score;
+
+        // 6) HomeEventResponse 빌드
+        return EventResponse.HomeEventResponse.builder()
+                .id(eventDocument.getId())
+                .thumbnailUrl(eventDocument.getThumbnailUrl())
+                .online(Boolean.TRUE.equals(eventDocument.getIsOnline()))
+                .locationText(eventDocument.getLocationText())
+                .title(title)
+                .scheduleText(schedule)
+                .priceText(priceText)
+                .d_dayLabel(d_day)
+                .recommended(Boolean.TRUE.equals(eventDocument.getRecommendedManual()))
+                .ad(Boolean.TRUE.equals(eventDocument.getAd()))
+                .bookmarked(false)            // 사용자별 북마크는 서비스에서 보강
+                .category(category)
+                .recommendedRate(recommendedRate)
+                .build();
+    }
 
     private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
         if (start == null && end == null) return null;

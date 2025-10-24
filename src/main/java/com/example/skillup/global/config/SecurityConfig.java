@@ -29,7 +29,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**"
+                                "/swagger-resources/**",
+                                "/events/search/home"
                         ).permitAll()
                         .requestMatchers("/user/all").hasAnyRole("OWNER", "VIEWER","OPERATOR")
                         .requestMatchers("/admin/login").permitAll()
