@@ -74,14 +74,15 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , double score) {
+    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended,
+                                                           boolean ad, double score) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy.MM.dd");
         String schedule = formatRange(event.getEventStart(), event.getEventEnd(), fmt);
         String priceText = event.getIsFree() != null && event.getIsFree()
                 ? "무료"
                 : (event.getPrice() != null
-                ? NumberFormat.getNumberInstance(Locale.KOREA).format(event.getPrice()) + "₩"
-                : null);
+                        ? NumberFormat.getNumberInstance(Locale.KOREA).format(event.getPrice()) + "₩"
+                        : null);
 
         String d_day = calcDdayLabel(event.getRecruitEnd());
 
@@ -102,21 +103,24 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.featuredEventResponseList toFeaturedEventResponseList(List<EventResponse.HomeEventResponse> events , String tab) {
+    public EventResponse.featuredEventResponseList toFeaturedEventResponseList(
+            List<EventResponse.HomeEventResponse> events, String tab) {
         return EventResponse.featuredEventResponseList.builder()
                 .homeEventResponseList(events)
                 .tab(tab == null ? "IT 전체" : tab)
                 .build();
     }
 
-    public EventResponse.CategoryEventResponseList toCategoryEventResponseList(List<EventResponse.HomeEventResponse> events, EventCategory category) {
+    public EventResponse.CategoryEventResponseList toCategoryEventResponseList(
+            List<EventResponse.HomeEventResponse> events, EventCategory category) {
         return EventResponse.CategoryEventResponseList.builder()
                 .category(category)
                 .homeEventResponseList(events)
                 .build();
     }
 
-    public EventResponse.EventBannersResponseList toEventBannersResponseList(List<EventResponse.EventBannerResponse> mainBanner , List<EventResponse.EventBannerResponse> subBanner) {
+    public EventResponse.EventBannersResponseList toEventBannersResponseList(
+            List<EventResponse.EventBannerResponse> mainBanner, List<EventResponse.EventBannerResponse> subBanner) {
         return new EventResponse.EventBannersResponseList(mainBanner, subBanner);
     }
 
@@ -136,7 +140,8 @@ public class EventMapper {
             Map<String, List<String>> highlight,
             Double score
     ) {
-        // 1) 제목: 하이라이트 우선
+        // 하이라이트 설정
+
         String title = (highlight != null && highlight.get("title") != null && !highlight.get("title").isEmpty())
                 ? highlight.get("title").get(0)
                 : eventDocument.getTitle();
@@ -162,15 +167,17 @@ public class EventMapper {
                 : LocalDateTime.ofInstant(eventDocument.getRecruitEnd(), KST);
 
         String d_day = calcDdayLabel(recruitEndDt);
-        // 5) category(enum)
+
         EventCategory category = null;
         if (eventDocument.getCategory() != null) {
-            try { category = EventCategory.valueOf(eventDocument.getCategory()); } catch (IllegalArgumentException ignore) {}
+            try {
+                category = EventCategory.valueOf(eventDocument.getCategory());
+            } catch (IllegalArgumentException ignore) {
+            }
         }
 
         double recommendedRate = score == null ? 0.0 : score;
 
-        // 6) HomeEventResponse 빌드
         return EventResponse.HomeEventResponse.builder()
                 .id(eventDocument.getId())
                 .thumbnailUrl(eventDocument.getThumbnailUrl())
@@ -182,24 +189,43 @@ public class EventMapper {
                 .d_dayLabel(d_day)
                 .recommended(Boolean.TRUE.equals(eventDocument.getRecommendedManual()))
                 .ad(Boolean.TRUE.equals(eventDocument.getAd()))
-                .bookmarked(false)            // 사용자별 북마크는 서비스에서 보강
+                .bookmarked(false)
                 .category(category)
                 .recommendedRate(recommendedRate)
                 .build();
     }
 
+    public EventResponse.SearchEventResponseList toSearchEventResponseList
+            (int total, List<EventResponse.HomeEventResponse> events) {
+        return EventResponse.SearchEventResponseList.builder()
+                .total(total)
+                .homeEventResponseList(events)
+                .build();
+    }
+
     private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
-        if (start == null && end == null) return null;
-        if (start != null && end != null) return start.format(fmt) + " ~ " + end.format(fmt);
+        if (start == null && end == null) {
+            return null;
+        }
+        if (start != null && end != null) {
+            return start.format(fmt) + " ~ " + end.format(fmt);
+        }
         return (start != null) ? start.format(fmt) : end.format(fmt);
     }
 
     private String calcDdayLabel(LocalDateTime recruitEnd) {
-        if (recruitEnd == null) return null;
+        if (recruitEnd == null) {
+            return null;
+        }
         LocalDateTime now = LocalDateTime.now();
-        if (now.isAfter(recruitEnd)) return "마감";
-        long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(), recruitEnd.toLocalDate().atStartOfDay()).toDays();
-        if (days <= 0) return "마감 D-0";
+        if (now.isAfter(recruitEnd)) {
+            return "마감";
+        }
+        long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(),
+                recruitEnd.toLocalDate().atStartOfDay()).toDays();
+        if (days <= 0) {
+            return "마감 D-0";
+        }
         return "마감 D-" + days;
     }
 
