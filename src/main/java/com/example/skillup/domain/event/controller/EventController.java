@@ -159,8 +159,8 @@ public class EventController {
     @GetMapping("/search/home")
     @Operation(summary = "행사 검색 api", description="검색 내용의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-            @ModelAttribute EventRequest.EventSearchRequest request
-    ) throws Exception {
+           @Valid @ModelAttribute EventRequest.EventSearchRequest request
+    )  {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
     }
 
