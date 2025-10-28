@@ -165,4 +165,16 @@ public class EventController {
         return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공",events);
     }
 
+    @GetMapping("home/recent")
+    @Operation(summary = "홈 화면에서 최근 본 이벤트를 보여줍니다.",
+            description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
+    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
+            @AuthenticationPrincipal UsersDetails user,
+            @CookieValue(value = "guest_id", required = false) String guestId
+) {
+        List<EventResponse.HomeEventResponse> events =
+                eventService.getRecentEvents(user!=null ? String.valueOf(user.getUser().getId()) : guestId);
+        return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
+    }
+
 }

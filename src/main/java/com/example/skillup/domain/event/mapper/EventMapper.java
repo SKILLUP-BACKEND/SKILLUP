@@ -69,7 +69,7 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , double score) {
+    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , Double score) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy.MM.dd");
         String schedule = formatRange(event.getEventStart(), event.getEventEnd(), fmt);
         String priceText = event.getIsFree() != null && event.getIsFree()

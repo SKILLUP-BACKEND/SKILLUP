@@ -26,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class EventService {
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
+    private final EventActionRepository eventActionRepository;
     LocalDate since = LocalDate.now().minusMonths(3);
     LocalDateTime now = LocalDateTime.now();
 
@@ -339,6 +341,22 @@ public class EventService {
     @HandleDataAccessException
     public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long userId)
     {
+
+    }
+
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId)
+    {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Event>events=eventActionRepository.findRecentEventsByActorId(actorId,pageable);
+
+
+        return events.stream()
+                .map(event -> {
+                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                })
+                .toList();
 
     }
 }
