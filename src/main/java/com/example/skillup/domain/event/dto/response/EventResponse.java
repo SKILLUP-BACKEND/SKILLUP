@@ -114,7 +114,6 @@ public class EventResponse {
     public static class SearchEventResponseList{
         private Integer total;
         private List<HomeEventResponse> homeEventResponseList;
-        private String message;
     }
 
     @Getter @Builder
