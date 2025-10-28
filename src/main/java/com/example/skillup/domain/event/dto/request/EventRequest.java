@@ -1,18 +1,15 @@
 package com.example.skillup.domain.event.dto.request;
 
 import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.EventSortType;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
 
 @Getter
 @AllArgsConstructor
@@ -114,6 +111,7 @@ public class EventRequest {
 
         private String hashtags;
     }
+
     @Getter
     @AllArgsConstructor
     @Builder
@@ -143,24 +141,30 @@ public class EventRequest {
                     || (startDate != null && endDate != null);
         }
 
-        @AssertTrue(message="sort값은 popularity, latest, deadline 만 가능합니다. ")
+        @AssertTrue(message = "sort값은 popularity, latest, deadline 만 가능합니다. ")
         public boolean isValidSort() {
-            return (sort.equals("latest")||sort.equals("popularity")||sort.equals("deadline"));
+            return (sort.equals("latest") || sort.equals("popularity") || sort.equals("deadline"));
         }
     }
 
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class EventSearchRequest{
-        private String searchString; // 검색어
-        private String sort;  // recommended|deadline|created
-        private Boolean freeOnly;   // true면 무료만
-        private List<String> modes; // ["ONLINE","OFFLINE"]
-        String city;
-        String venue;
-        Integer page;
-        Integer size;
+    public static class EventSearchRequest {
+
+        @NotNull(message = "검색어를 입력해주세요")
+        private String searchString;
+
+        private EventSortType sort = EventSortType.POPULARITY;
+
+        private LocalDateTime eventStart;
+        private LocalDateTime eventEnd;
+
+        private Boolean isOnline;
+
+        @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
+        private Integer page = 0;
+
     }
 
 }
