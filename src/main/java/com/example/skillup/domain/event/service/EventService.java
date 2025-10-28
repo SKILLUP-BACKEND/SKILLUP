@@ -14,6 +14,7 @@ import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.domain.event.search.service.EventIndexerService;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
@@ -28,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,8 @@ public class EventService {
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
+    private final EventIndexerService eventIndexerService;
+
     LocalDate since = LocalDate.now().minusMonths(3);
     LocalDateTime now = LocalDateTime.now();
 
@@ -69,7 +71,6 @@ public class EventService {
     );
 
 
-
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
 
@@ -81,11 +82,16 @@ public class EventService {
                 .distinct()
                 .forEach(roleName -> {
                     TargetRole role = targetRoleRepository.findByName(roleName)
-                            .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND , roleName+"에"));
+                            .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND,
+                                    roleName + "에"));
                     event.addTargetRole(role);
                 });
 
-        return eventRepository.save(event);
+        Event savedEvent = eventRepository.save(event);
+
+        eventIndexerService.index(savedEvent);
+
+        return savedEvent;
     }
 
     @Transactional
@@ -95,7 +101,10 @@ public class EventService {
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
         }
+
         event.delete();
+
+        eventIndexerService.delete(event.getId());
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
@@ -117,6 +126,8 @@ public class EventService {
             });
         }
 
+        eventIndexerService.index(event);
+
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
@@ -131,6 +142,8 @@ public class EventService {
 
         event.setStatus(EventStatus.HIDDEN);
 
+        eventIndexerService.delete(event.getId());
+
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
@@ -138,15 +151,19 @@ public class EventService {
     public EventResponse.CommonEventResponse publishEvent(Long eventId) {
         Event event = eventRepository.getEvent(eventId);
         if (event.getStatus() == EventStatus.PUBLISHED) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED ,"EventID가 " + eventId + "는");
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED, "EventID가 " + eventId + "는");
         }
 
         event.setStatus(EventStatus.PUBLISHED);
+
+        eventIndexerService.index(event);
+
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
     @Transactional(readOnly = true)
-    public EventResponse.EventSelectResponse getEventDetail(Long eventId, Collection<? extends GrantedAuthority> authorities) {
+    public EventResponse.EventSelectResponse getEventDetail(Long eventId,
+                                                            Collection<? extends GrantedAuthority> authorities) {
         Event event = eventRepository.getEvent(eventId);
 
         boolean isAdmin = authorities.stream()
@@ -168,7 +185,7 @@ public class EventService {
         if (roleName != null) {
             roleFilter = targetRoleRepository.findByName(roleName)
                     .map(TargetRole::getName)
-                    .orElseThrow(()-> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, roleName));
+                    .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, roleName));
         }
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findPopularForHomeWithPopularity(
@@ -181,14 +198,14 @@ public class EventService {
         // TODO: 북마크 여부 실제 연동 (현재 false 고정)
         boolean bookmarked = false;
 
-        return  eventMapper.toFeaturedEventResponseList(rows.stream()
+        return eventMapper.toFeaturedEventResponseList(rows.stream()
                 .map(r -> {
                     double score = r.getPopularity();
                     Event event = r.getEvent();
                     boolean recommended = event.isRecommendedManual() || score >= recommendThreshold;
-                    return eventMapper.toFeaturedEvent(event, bookmarked, recommended, event.isAd(),score);
+                    return eventMapper.toFeaturedEvent(event, bookmarked, recommended, event.isAd(), score);
                 })
-                .toList() , tab );
+                .toList(), tab);
     }
 
 
@@ -197,7 +214,7 @@ public class EventService {
         LocalDateTime due = now.plusDays(5);
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
-                roleName,since, now, due, PageRequest.of(0, size)
+                roleName, since, now, due, PageRequest.of(0, size)
         );
 
         List<EventResponse.HomeEventResponse> items = rows.stream()
@@ -213,8 +230,8 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
-                                                                            int page,
-                                                                            int size) {
+                                                                              int page,
+                                                                              int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
@@ -239,15 +256,17 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public EventResponse.EventBannersResponseList getEventBanners(){
+    public EventResponse.EventBannersResponseList getEventBanners() {
 
-        List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now , PageRequest.of(0,5));
-        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER,now,PageRequest.of(0,1));
+        List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now,
+                PageRequest.of(0, 5));
+        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER, now,
+                PageRequest.of(0, 1));
 
         List<EventResponse.EventBannerResponse> mainEventBanners = eventMapper.toEventBannerResponse(mainBanners);
         List<EventResponse.EventBannerResponse> subEventBanners = eventMapper.toEventBannerResponse(subBanner);
 
-        return eventMapper.toEventBannersResponseList(mainEventBanners,subEventBanners);
+        return eventMapper.toEventBannersResponseList(mainEventBanners, subEventBanners);
 
     }
 
@@ -255,14 +274,16 @@ public class EventService {
         //현재는 쿼리에서 직접 가져오는걸로 수정
         double views = event.getViewsCount();
         double likes = event.getLikesCount();
-        double ctr   = (views > 0)
+        double ctr = (views > 0)
                 ? (double) event.getApplyClicks() / views
                 : 0.0;
         return views * 0.6 + likes * 0.3 + ctr * 0.1;
     }
 
     private String resolveRoleName(String tab) {
-        if (tab == null || tab.isBlank() || "IT 전체".equals(tab)) return null;
+        if (tab == null || tab.isBlank() || "IT 전체".equals(tab)) {
+            return null;
+        }
         return switch (tab) {
             case "기획" -> "기획자";
             case "디자인" -> "디자이너";
@@ -276,7 +297,7 @@ public class EventService {
     public void toggleLike(Event event, Users users) {
         if (eventLikeRepository.existsByEventIdAndUserId(event.getId(), users.getId())) {
             eventLikeRepository.deleteByEventIdAndUserId(event.getId(), users.getId());
-            eventRepository.incrementLikes(event.getId(), - 1);
+            eventRepository.incrementLikes(event.getId(), -1);
         } else {
             eventLikeRepository.save(new EventLike(event, users));
             eventRepository.incrementLikes(event.getId(), 1);
@@ -285,17 +306,17 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getEventBySearch(EventRequest.EventSearchCondition condition)
-    {
+    public List<EventResponse.HomeEventResponse> getEventBySearch(EventRequest.EventSearchCondition condition) {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
-        List<EventRepositoryImpl.EventWithPopularity>events=eventRepository.findByCategoryWithSearch(condition, pageable, since,now);
+        List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
+                pageable, since, now);
         return events.stream()
-              .map(r -> {
-                  Event event = r.getEvent();
-                  double score = r.getPopularity();
-                  return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), score);
-              })
-              .toList();
+                .map(r -> {
+                    Event event = r.getEvent();
+                    double score = r.getPopularity();
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -303,26 +324,25 @@ public class EventService {
     public List<EventResponse.HomeEventResponse> getRecommendedEvents(EventCategory category) {
 
         int MIN_COUNT = 3;
-        Pageable pageable = PageRequest.of(0,4);
-        List<EventRepositoryImpl.EventWithPopularity> result =eventRepository.findByCategoryWithSearch
+        Pageable pageable = PageRequest.of(0, 4);
+        List<EventRepositoryImpl.EventWithPopularity> result = eventRepository.findByCategoryWithSearch
                 (EventRequest.EventSearchCondition.builder().category(category).sort("popularity").page(0).build()
-                        ,pageable,since,now);
+                        , pageable, since, now);
 
         int missing = MIN_COUNT - result.size();
 
-
-        if(missing>0)
-        {
-            for (EventCategory supplement : CATEGORY_PRIORITY.get(category))
-            {
+        if (missing > 0) {
+            for (EventCategory supplement : CATEGORY_PRIORITY.get(category)) {
                 System.out.println(missing);
                 List<EventRepositoryImpl.EventWithPopularity> supplementEvents = eventRepository.findByCategoryWithSearch
-                        (EventRequest.EventSearchCondition.builder().category(supplement).sort("popularity").page(0).build()
-                                ,pageable,since,now);
+                        (EventRequest.EventSearchCondition.builder().category(supplement).sort("popularity").page(0)
+                                        .build()
+                                , pageable, since, now);
                 result.addAll(supplementEvents);
                 missing -= supplementEvents.size();
-                if(missing<=0)
+                if (missing <= 0) {
                     break;
+                }
             }
         }
 
@@ -330,7 +350,7 @@ public class EventService {
                 .map(r -> {
                     Event event = r.getEvent();
                     double score = r.getPopularity();
-                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), score);
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
                 })
                 .toList();
     }
