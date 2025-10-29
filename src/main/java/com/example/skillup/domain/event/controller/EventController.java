@@ -156,14 +156,14 @@ public class EventController {
         return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공",events);
     }
 
-    @GetMapping("home/recommended")
-    @Operation(summary = "홈 화면에서 해쉬태그 기반으로 이벤트를 추천합니다"
-            , description="홈 화면 이벤트 추천 api")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(@AuthenticationPrincipal UsersDetails user)
-    {
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId());
-        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공",events);
-    }
+  //  @GetMapping("home/recommended")
+  //  @Operation(summary = "홈 화면에서 해쉬태그 기반으로 이벤트를 추천합니다"
+   //         , description="홈 화면 이벤트 추천 api")
+   // public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(@AuthenticationPrincipal UsersDetails user)
+  //  {
+        //List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId());
+        //return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공",events);
+    //}
 
     @GetMapping("home/recent")
     @Operation(summary = "홈 화면에서 최근 본 이벤트를 보여줍니다.",

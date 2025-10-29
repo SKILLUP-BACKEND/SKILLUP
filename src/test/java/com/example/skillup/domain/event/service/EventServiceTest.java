@@ -4,10 +4,14 @@ package com.example.skillup.domain.event.service;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventViewDaily;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
@@ -24,12 +28,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sound.midi.SysexMessage;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,13 +67,16 @@ public class EventServiceTest {
     @Autowired
     private EventViewDailyRepository eventViewDailyRepository;
 
+    @Autowired
+    private EventActionRepository  eventActionRepository;
+
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
         targetRoleRepository.deleteAll();
-        targetRoleRepository.save(new TargetRole("PLANNER"));
-        targetRoleRepository.save(new TargetRole("DESIGNER"));
-        targetRoleRepository.save(new TargetRole("AI_DEVELOPER"));
+        targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
+        targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
+        targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
     }
 
     private Event createEvent(String title) {
@@ -309,7 +318,7 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("카테고리로 행사 조회 정렬 테스트")
-    void getEventBySearch_Popularity_Test() throws NoSuchFieldException, IllegalAccessException {
+    void getEventBySearch_Popularity_Test() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
 
         // 테스트용 이벤트 생성
         Event event1 = Event.builder()
@@ -350,7 +359,9 @@ public class EventServiceTest {
 
 
         eventRepository.save(event1);
+        sleep(500);
         eventRepository.save(event2);
+        sleep(500);
         eventRepository.save(event3);
 
 
@@ -386,6 +397,11 @@ public class EventServiceTest {
                 .build();
         eventViewDailyRepository.save(recentView3);
 
+        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW).actorId("3L").build();
+        EventAction action2 = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.APPLY).actorId("3L").build();
+
+        eventActionRepository.save(action);
+        eventActionRepository.save(action2);
 
 
 
@@ -418,14 +434,18 @@ public class EventServiceTest {
 
         // assertions
         assertThat(resultsByDeadLine).isNotEmpty();
-        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(2L);
+        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
 
         assertThat(resultsByLatest).isNotEmpty();
-        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event3.getId());
 
         assertThat(resultsByPopularity).isNotEmpty();
         assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event1.getId());
 
+        for(EventResponse.HomeEventResponse event :resultsByPopularity)
+        {
+            System.out.println(event.getRecommendedRate());
+        }
 
 
         //created_at에 값을 채워서 저장해도 JPA가 now로 덮어 씌워서 creat_at을 조정하지는 못했네요.. 좋은 테스트 방법 있으면 추천 부탁드려요

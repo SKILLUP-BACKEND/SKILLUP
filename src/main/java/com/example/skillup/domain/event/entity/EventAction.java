@@ -43,5 +43,4 @@ public class EventAction extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private ActionType actionType; // VIEW, SAVE, APPLY
-
 }

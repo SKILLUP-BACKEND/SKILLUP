@@ -337,12 +337,12 @@ public class EventService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long userId)
-    {
+  //  @Transactional(readOnly = true)
+   // @HandleDataAccessException
+  //  public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long userId)
+  //  {
 
-    }
+    //}
 
     @Transactional(readOnly = true)
     @HandleDataAccessException

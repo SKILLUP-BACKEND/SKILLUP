@@ -69,7 +69,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 + count(DISTINCT el.id) * 0.3
                 + (
                     CASE WHEN coalesce(sum(v.cnt), 0) > 0
-                            THEN (1.0 * e.apply_clicks / coalesce(sum(v.cnt), 1))
+                            THEN (1.0 * count(distinct ea.id)  / coalesce(sum(v.cnt), 1))
                             ELSE 0
                     END
                 ) * 0.1
@@ -77,6 +77,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         FROM event e
         LEFT JOIN event_view_daily v ON v.event_id = e.id AND v.created_at >= :since
         LEFT JOIN event_like el ON el.event_id = e.id AND el.created_at >= :since
+        LEFT JOIN event_action ea ON ea.event_id = e.id AND ea.created_at >= :since AND ea.action_type = 'APPLY'
         LEFT JOIN event_target_role etr ON etr.event_id = e.id
         LEFT JOIN target_role tr ON tr.id = etr.role_id
         WHERE (:category IS NULL OR e.category = :category)

@@ -47,7 +47,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
           + count(distinct el.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
-                     then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
+                     then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
                      else 0
                 end
             ) * 0.1
@@ -57,6 +57,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
            on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e and el.createdAt >= :since
+    left join EventAction ea
+           on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
       and (e.eventEnd is null or e.eventEnd >= :now)
       and (
@@ -98,7 +100,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
           + count(distinct el.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
-                     then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
+                     then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
                      else 0
                 end
             ) * 0.1
@@ -108,6 +110,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
            on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
+    left join EventAction ea
+           on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
       and (e.eventEnd is null or e.eventEnd >= :now)
       and e.recruitEnd is not null
@@ -149,7 +153,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
           + count(distinct el.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
-                     then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
+                     then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
                      else 0
                 end
             ) * 0.1
@@ -159,6 +163,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
            on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
+    left join EventAction ea
+           on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
       and e.category = com.example.skillup.domain.event.enums.EventCategory.BOOTCAMP_CLUB
       and (e.eventEnd is null or e.eventEnd >= :now)
@@ -192,7 +198,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
           + count(distinct el.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
-                     then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
+                     then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
                      else 0
                 end
             ) * 0.1
@@ -202,6 +208,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
            on v.event = e and v.createdAt >= :since
     left join EventLike el
            on el.event = e
+    left join EventAction ea
+           on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
       and e.category = :category
       and (e.eventEnd is null or e.eventEnd >= :now)

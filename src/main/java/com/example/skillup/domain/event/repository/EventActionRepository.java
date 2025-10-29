@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface EventActionRepository extends JpaRepository<EventAction, Long> {
 
-    List<Event> findEventByHashTagScore();
+   // List<Event> findEventByHashTagScore();
 
     @Query("""
         SELECT ea.event
