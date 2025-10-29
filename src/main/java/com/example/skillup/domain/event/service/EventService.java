@@ -2,15 +2,13 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.entity.EventBanner;
-import com.example.skillup.domain.event.entity.EventLike;
-import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.entity.*;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.*;
@@ -44,6 +42,7 @@ public class EventService {
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
+    private final HashTagRepository hashTagRepository;
     LocalDate since = LocalDate.now().minusMonths(3);
     LocalDateTime now = LocalDateTime.now();
 
@@ -86,6 +85,15 @@ public class EventService {
                             .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND , roleName+"에"));
                     event.addTargetRole(role);
                 });
+        request.getHashtags().stream()
+                .distinct()
+                .forEach(hashtagName -> {
+                    HashTag hashTag = hashTagRepository.findByName(hashtagName)
+                            .orElseThrow(() ->new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName+"에"));
+                            event.addHashTag(hashTag);
+                });
+        // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 이거 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
+        // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
 
         return eventRepository.save(event);
     }

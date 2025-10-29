@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -20,6 +23,11 @@ public class HashTag {
 
     @Column(nullable = false, length = 100,unique = true)
     private String name;
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "hashTags")
+    private Set<Event> events = new HashSet<>();
+
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

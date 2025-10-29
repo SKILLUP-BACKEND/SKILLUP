@@ -63,7 +63,8 @@ public class EventRequest {
 
         private String description;
 
-        private String hashtags;
+        @Size(min = 1, max = 5, message = "해시태그는 1개 이상 5개 이하로 선택해주세요.")
+        private List<String> hashtags;
     }
 
     @Getter
@@ -111,8 +112,8 @@ public class EventRequest {
         private String contact;
 
         private String description;
-
-        private String hashtags;
+        @Size(min = 1, max = 5, message = "해시태그는 1개 이상 5개 이하로 선택해주세요.")
+        private List<String> hashtags;
     }
     @Getter
     @AllArgsConstructor

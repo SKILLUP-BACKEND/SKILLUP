@@ -80,9 +80,16 @@ public class Event extends BaseEntity {
     // 행사 설명
     @Column(columnDefinition = "TEXT")
     private String description;
-    //최대 다섯개
-    @Column(columnDefinition = "TEXT")
-    private String hashtags;
+
+    @Builder.Default
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "event_hash_tags",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "hash_tags_id")
+    )
+    private Set<HashTag> hashTags= new HashSet<>();
+
 
     @Column(name = "views_count", nullable = false)
     private long viewsCount = 0L;
@@ -106,6 +113,10 @@ public class Event extends BaseEntity {
         role.getEvents().add(this);
     }
 
+    public void addHashTag(HashTag tag) {
+        hashTags.add(tag);
+    }
+
 
     public void update(EventRequest.UpdateEvent request) {
         this.title = request.getTitle();
@@ -124,6 +135,6 @@ public class Event extends BaseEntity {
         this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
-        this.hashtags = request.getHashtags();
+
     }
 }
