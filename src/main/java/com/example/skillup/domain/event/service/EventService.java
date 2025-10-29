@@ -92,7 +92,7 @@ public class EventService {
                             .orElseThrow(() ->new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName+"에"));
                             event.addHashTag(hashTag);
                 });
-        // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 이거 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
+        // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
         // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
 
         return eventRepository.save(event);
@@ -117,7 +117,6 @@ public class EventService {
         event.update(request);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
-            event.getTargetRoles().forEach(role -> role.getEvents().remove(event));
             event.getTargetRoles().clear();
 
             request.getTargetRoles().stream().distinct().forEach(name -> {
@@ -126,6 +125,17 @@ public class EventService {
                 event.addTargetRole(role);
             });
         }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            event.getHashTags().clear();
+            request.getHashTags().stream().distinct().forEach(name -> {
+                HashTag hashTag = hashTagRepository.findByName(name)
+                        .orElseThrow(() -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, name + "에"));
+                event.addHashTag(hashTag);
+            });
+        }
+
+
 
         return new EventResponse.CommonEventResponse(event.getId());
     }

@@ -48,7 +48,7 @@ public class EventResponse {
 
         private String description;
 
-        private String hashtags;
+        private Set<String> hashTags;
 
         private Set<String> targetRoles;
     }
