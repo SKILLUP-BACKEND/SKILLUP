@@ -157,10 +157,15 @@ public class EventRequest {
 
         private EventSortType sort = EventSortType.POPULARITY;
 
-        private LocalDateTime eventStart;
-        private LocalDateTime eventEnd;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        private OffsetDateTime eventStart;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        private OffsetDateTime eventEnd;
 
-        private Boolean isOnline;
+
+        private EventFormat eventFormat;
+
+        private Boolean isFree;
 
         @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
         private Integer page = 0;
