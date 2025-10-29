@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.JsonData;
 import com.example.skillup.domain.event.dto.request.EventRequest;
@@ -51,14 +52,30 @@ public class EventSearchService {
         final Integer size = 12;
 
         BoolQuery.Builder bool = new BoolQuery.Builder()
-                .should(sh -> sh.multiMatch(mm -> mm
-                        .query(searchString)
-                        .fields("title^5", "title.ngram^3")
-                        .operator(Operator.And)))
-                .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
-                .should(sh -> sh.match(m -> m.field("title.nospace_infix").query(searchStringNoSpace).boost(3.0f)))
-                .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
-                .minimumShouldMatch("1");
+                .must(m -> m.bool(b -> b
+                        .should(s -> s.match(mm -> mm
+                                .field("title")
+                                .query(searchString)
+                                .analyzer("ko_query_syn")
+                                .operator(Operator.And)
+                                .boost(3.0f)
+                        ))
+                        .should(s -> s.multiMatch(mm -> mm
+                                .query(searchString)
+                                .fields("title.ngram^1.8")
+                                .analyzer("ko_query_syn")
+                                .type(TextQueryType.MostFields)
+                        ))
+                        .should(s -> s.match(mm -> mm
+                                .field("title.nospace_infix")
+                                .query(searchStringNoSpace)
+                                .boost(1.5f)
+                        ))
+                        .minimumShouldMatch("1")
+                        .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
+                        .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
+                        )
+                );
 
         // 무료 필터
         if (Boolean.TRUE.equals(request.getIsFree())) {
