@@ -1,15 +1,18 @@
 package com.example.skillup.domain.event.dto.request;
 
 import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventFormat;
 import com.example.skillup.domain.event.enums.EventSortType;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Getter
 @AllArgsConstructor
