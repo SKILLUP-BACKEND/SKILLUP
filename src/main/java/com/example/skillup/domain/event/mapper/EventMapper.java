@@ -14,7 +14,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -137,15 +136,8 @@ public class EventMapper {
 
     public EventResponse.HomeEventResponse mapEsDocToHomeItem(
             EventDocument eventDocument,
-            Map<String, List<String>> highlight,
             Double score
     ) {
-        // 하이라이트 설정
-
-        String title = (highlight != null && highlight.get("title") != null && !highlight.get("title").isEmpty())
-                ? highlight.get("title").get(0)
-                : eventDocument.getTitle();
-
         LocalDateTime startDt = eventDocument.getEventStart() == null
                 ? null
                 : LocalDateTime.ofInstant(eventDocument.getEventStart(), KST);
@@ -183,7 +175,7 @@ public class EventMapper {
                 .thumbnailUrl(eventDocument.getThumbnailUrl())
                 .online(Boolean.TRUE.equals(eventDocument.getIsOnline()))
                 .locationText(eventDocument.getLocationText())
-                .title(title)
+                .title(eventDocument.getTitle())
                 .scheduleText(schedule)
                 .priceText(priceText)
                 .d_dayLabel(d_day)
