@@ -44,7 +44,7 @@ public class EventService {
     private final EventBannerRepository eventBannerRepository;
     private final EventIndexerService eventIndexerService;
 
-    LocalDate since = LocalDate.now().minusMonths(3);
+    LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
 
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
