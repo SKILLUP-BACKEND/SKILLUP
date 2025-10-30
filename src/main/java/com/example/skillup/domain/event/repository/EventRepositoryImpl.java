@@ -58,7 +58,6 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                               e.status,
                               e.contact,
                               e.description,
-                              e.hashtags,
                               e.views_count,
                               e.likes_count,
                               e.apply_clicks,
@@ -133,14 +132,13 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                     .status(EventStatus.valueOf((String) row[14]))
                     .contact((String) row[15])
                     .description((String) row[16])
-                    .hashtags((String) row[17])
-                    .viewsCount(((Number) row[18]).longValue())
-                    .likesCount(((Number) row[19]).longValue())
-                    .applyClicks(((Number) row[20]).longValue())
-                    .recommendedManual((Boolean) row[21])
-                    .ad((Boolean) row[22])
+                    .viewsCount(((Number) row[17]).longValue())
+                    .likesCount(((Number) row[18]).longValue())
+                    .applyClicks(((Number) row[19]).longValue())
+                    .recommendedManual((Boolean) row[20])
+                    .ad((Boolean) row[21])
                     .build();
-            Double popularity = row[23] != null ? ((Number) row[23]).doubleValue() : 0.0;
+            Double popularity = row[22] != null ? ((Number) row[22]).doubleValue() : 0.0;
 
             results.add(new EventWithPopularity(event, popularity));
         }

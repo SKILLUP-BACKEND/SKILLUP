@@ -64,7 +64,7 @@ public class EventRequest {
         private String description;
 
         @Size(min = 1, max = 5, message = "해시태그는 1개 이상 5개 이하로 선택해주세요.")
-        private List<String> hashtags;
+        private List<String> hashTags;
     }
 
     @Getter

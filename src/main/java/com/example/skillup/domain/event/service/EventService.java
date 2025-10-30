@@ -85,7 +85,7 @@ public class EventService {
                             .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND , roleName+"에"));
                     event.addTargetRole(role);
                 });
-        request.getHashtags().stream()
+        request.getHashTags().stream()
                 .distinct()
                 .forEach(hashtagName -> {
                     HashTag hashTag = hashTagRepository.findByName(hashtagName)

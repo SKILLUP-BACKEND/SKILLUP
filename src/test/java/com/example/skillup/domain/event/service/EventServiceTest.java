@@ -3,18 +3,9 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.entity.EventAction;
-import com.example.skillup.domain.event.entity.EventViewDaily;
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.ActionType;
-import com.example.skillup.domain.event.enums.ActorType;
-import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.domain.event.repository.EventActionRepository;
-import com.example.skillup.domain.event.repository.EventRepository;
-import com.example.skillup.domain.event.repository.EventViewDailyRepository;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.event.entity.*;
+import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,6 +60,8 @@ public class EventServiceTest {
 
     @Autowired
     private EventActionRepository  eventActionRepository;
+    @Autowired
+    private HashTagRepository hashTagRepository;
 
     @BeforeEach
     void setUp() {
@@ -77,6 +70,14 @@ public class EventServiceTest {
         targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#IT").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#AI").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#워크숍").build());
+        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#PLANNER").build());
+
     }
 
     private Event createEvent(String title) {
@@ -87,6 +88,8 @@ public class EventServiceTest {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
                 .filter(r -> r.getName().equals("DESIGNER"))
                 .collect(Collectors.toSet());
+        Set<HashTag> tags = new HashSet<>();
+        tags.add(hashTagRepository.findByName("#PLANNER").orElseThrow());
 
         return Event.builder()
                 .title(title)
@@ -105,7 +108,7 @@ public class EventServiceTest {
                 .applyLink("http://apply.example.com")
                 .contact("010-1234-5678")
                 .description("test")
-                .hashtags("#test")
+                .hashTags(new HashSet<>(tags))
                 .targetRoles(new HashSet<>(roles))
                 .build();
     }
@@ -132,7 +135,7 @@ public class EventServiceTest {
                 "http://apply.example.com",
                 "010-1234-5678",
                 "이벤트 설명입니다",
-                "#스포츠 , #러닝"
+                List.of("#스포츠","#러닝")
         );
 
         mockMvc.perform(post("/events")
@@ -170,7 +173,7 @@ public class EventServiceTest {
                 "http://apply.example.com",
                 "010-1234-5678",
                 "임시 저장 설명",
-                "#테스트"
+                List.of("#서울","#IT")
         );
 
         mockMvc.perform(post("/events")
@@ -221,7 +224,7 @@ public class EventServiceTest {
                 "http://apply.example.com/new",
                 "010-9876-5432",
                 "완전히 수정된 이벤트 설명",
-                "#AI , #워크숍"
+                List.of("#AI", "#워크숍")
         );
         mockMvc.perform(put("/events/{id}", event.getId()) // PUT 메서드 사용
                         .contentType(MediaType.APPLICATION_JSON)
@@ -251,7 +254,11 @@ public class EventServiceTest {
         assertThat(updatedEvent.getApplyLink()).isEqualTo("http://apply.example.com/new");
         assertThat(updatedEvent.getContact()).isEqualTo("010-9876-5432");
         assertThat(updatedEvent.getDescription()).isEqualTo("완전히 수정된 이벤트 설명");
-        assertThat(updatedEvent.getHashtags()).isEqualTo("#AI , #워크숍");
+        assertThat(
+                updatedEvent.getHashTags().stream()
+                        .map(HashTag::getName)
+                        .collect(Collectors.toList())
+        ).containsExactlyInAnyOrder("#AI" , "#워크숍");
         assertThat(updatedEvent.getStatus()).isEqualTo(EventStatus.DRAFT);
     }
 
