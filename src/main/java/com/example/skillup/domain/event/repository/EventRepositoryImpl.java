@@ -39,7 +39,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         return null;
     }
     @Override
-    public List<EventWithPopularity> findByCategoryWithSearch(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDate since, LocalDateTime now) {
+    public List<EventWithPopularity> findByCategoryWithSearch(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDateTime since, LocalDateTime now) {
 
         String baseQuery = """
         SELECT                e.id,e.title,

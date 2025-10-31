@@ -83,7 +83,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     """)
 
     List<PopularEventProjection> findPopularForHomeWithPopularity(@Param("roleName") String roleName,
-                                                                  @Param("since") LocalDate since,
+                                                                  @Param("since") LocalDateTime since,
                                                                   @Param("now") LocalDateTime now,
                                                                   Pageable pageable);
 
@@ -134,7 +134,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         ) desc, e.recruitEnd asc, e.createdAt desc
     """)
     List<PopularEventProjection> findClosingSoonForHomeWithPopularity(@Param("roleName") String roleName,
-                                                                      @Param("since") LocalDate since,
+                                                                      @Param("since") LocalDateTime since,
                                                                       @Param("now") LocalDateTime now,
                                                                       @Param("due") LocalDateTime due,
                                                                       Pageable pageable);
@@ -177,7 +177,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             ) * 0.1
         ) desc, e.recruitEnd asc, e.createdAt desc
     """)
-    List<PopularEventProjection> findBootcampsOpenOrderByPopularityWithPopularity(@Param("since") LocalDate since,
+    List<PopularEventProjection> findBootcampsOpenOrderByPopularityWithPopularity(@Param("since") LocalDateTime since,
                                                                                   @Param("now") LocalDateTime now,
                                                                                   Pageable pageable);
 
@@ -221,7 +221,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         ) desc, e.recruitEnd asc, e.createdAt desc
     """)
     List<PopularEventProjection> findByCategoryWithin30DaysOrderByPopularityWithPopularity(@Param("category") EventCategory category,
-                                                                                           @Param("since") LocalDate since,
+                                                                                           @Param("since") LocalDateTime since,
                                                                                            @Param("now") LocalDateTime now,
                                                                                            @Param("due") LocalDateTime due,
                                                                                            Pageable pageable);

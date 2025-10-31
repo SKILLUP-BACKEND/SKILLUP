@@ -9,5 +9,5 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventRepositoryNative {
-    List<EventRepositoryImpl.EventWithPopularity> findByCategoryWithSearch(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDate date, LocalDateTime now);
+    List<EventRepositoryImpl.EventWithPopularity> findByCategoryWithSearch(EventRequest.EventSearchCondition cond, Pageable pageable, LocalDateTime date, LocalDateTime now);
 }
