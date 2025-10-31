@@ -43,12 +43,12 @@ public class SampleDataLoader implements CommandLineRunner {
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository usersRepository; // 있으면 사용
     private final AdminRepository adminRepository;
+    private final SynonymGroupRepository synonymGroupRepository;
+    private final SynonymTermRepository synonymTermRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
-
-
 
         TargetRole dev = getOrCreateRole("개발자");
         TargetRole design = getOrCreateRole("디자이너");
@@ -220,13 +220,33 @@ public class SampleDataLoader implements CommandLineRunner {
                         .build()
         );
 
-         eventLikeRepository.saveAll(List.of(
-                 new EventLike(bootcampOpen, u1),
-                 new EventLike(bootcampOpen, u2),
-                 new EventLike(hackathon, u1)
-         ));
+        eventLikeRepository.saveAll(List.of(
+                new EventLike(bootcampOpen, u1),
+                new EventLike(bootcampOpen, u2),
+                new EventLike(hackathon, u1)
+        ));
 
+        //동의어 사전 추가
+        makeSynonyms("ko", "카카오 관련 동의어", List.of("카카오", "kakao"));
+        makeSynonyms("ko", "우테코 관련 동의어", List.of("우테코", "우아한테크코스", "woowacourse"));
+        makeSynonyms("ko", "IT 기업 관련 동의어", List.of("네카라쿠배", "네이버", "카카오", "라인", "쿠팡"));
 
+    }
+
+    private void makeSynonyms(String local, String comment, List<String> terms) {
+        SynonymGroup group = synonymGroupRepository.save(
+                SynonymGroup.builder()
+                        .locale(local)
+                        .comment(comment)
+                        .build()
+        );
+
+        List<SynonymTerm> synonymTermList = terms.stream().map(term -> SynonymTerm.builder()
+                        .group(group)
+                        .term(term)
+                        .build())
+                .toList();
+        synonymTermRepository.saveAll(synonymTermList);
     }
 
     private TargetRole getOrCreateRole(String name) {
