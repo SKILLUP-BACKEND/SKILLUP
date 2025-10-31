@@ -1,4 +1,4 @@
-package com.example.skillup.domain.event.search.document;
+package com.example.skillup.global.search.document;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -14,7 +14,7 @@ import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.*;
-import com.example.skillup.domain.event.search.service.EventIndexerService;
+import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;

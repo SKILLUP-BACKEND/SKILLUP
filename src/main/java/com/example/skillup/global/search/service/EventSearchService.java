@@ -1,4 +1,4 @@
-package com.example.skillup.domain.event.search.service;
+package com.example.skillup.global.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOptions;
@@ -17,7 +17,9 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
-import com.example.skillup.domain.event.search.document.EventDocument;
+import com.example.skillup.global.search.document.EventDocument;
+import com.example.skillup.global.search.exception.SearchErrorCode;
+import com.example.skillup.global.search.exception.SearchException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

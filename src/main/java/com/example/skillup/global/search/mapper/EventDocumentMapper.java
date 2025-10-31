@@ -1,7 +1,7 @@
-package com.example.skillup.domain.event.mapper;
+package com.example.skillup.global.search.mapper;
 
 import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.search.document.EventDocument;
+import com.example.skillup.global.search.document.EventDocument;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import org.springframework.stereotype.Component;

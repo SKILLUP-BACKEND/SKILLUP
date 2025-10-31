@@ -7,7 +7,7 @@ import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.domain.event.search.document.EventDocument;
+import com.example.skillup.global.search.document.EventDocument;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

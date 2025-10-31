@@ -17,6 +17,10 @@ import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.global.search.entity.SynonymGroup;
+import com.example.skillup.global.search.entity.SynonymTerm;
+import com.example.skillup.global.search.repository.SynonymGroupRepository;
+import com.example.skillup.global.search.repository.SynonymTermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -245,7 +249,9 @@ public class SampleDataLoader implements CommandLineRunner {
             LocalDate d = today.minusDays(i);
             int extra = ThreadLocalRandom.current().nextInt(0, 5); // 소량 가중
             long cnt = base + extra + (remain > 0 ? 1 : 0);
-            if (remain > 0) remain--;
+            if (remain > 0) {
+                remain--;
+            }
 
             EventViewDaily row = EventViewDaily.builder()
                     .event(event)

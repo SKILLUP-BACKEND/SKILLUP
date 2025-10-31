@@ -5,7 +5,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.domain.event.search.service.EventSearchService;
+import com.example.skillup.global.search.service.EventSearchService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
