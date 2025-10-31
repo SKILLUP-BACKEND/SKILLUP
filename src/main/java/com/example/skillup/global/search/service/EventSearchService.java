@@ -26,12 +26,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class EventSearchService {
+
+    @Value("${skillup.search.index-name}")
+    private String index;
 
     private final ElasticsearchClient elasticsearchClient;
     private final EventMapper eventMapper;
@@ -55,27 +59,27 @@ public class EventSearchService {
 
         BoolQuery.Builder bool = new BoolQuery.Builder()
                 .must(m -> m.bool(b -> b
-                        .should(s -> s.match(mm -> mm
-                                .field("title")
-                                .query(searchString)
-                                .analyzer("ko_query_syn")
-                                .operator(Operator.And)
-                                .boost(3.0f)
-                        ))
-                        .should(s -> s.multiMatch(mm -> mm
-                                .query(searchString)
-                                .fields("title.ngram^1.8")
-                                .analyzer("ko_query_syn")
-                                .type(TextQueryType.MostFields)
-                        ))
-                        .should(s -> s.match(mm -> mm
-                                .field("title.nospace_infix")
-                                .query(searchStringNoSpace)
-                                .boost(1.5f)
-                        ))
-                        .minimumShouldMatch("1")
-                        .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
-                        .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
+                                .should(s -> s.match(mm -> mm
+                                        .field("title")
+                                        .query(searchString)
+                                        .analyzer("ko_query_syn")
+                                        .operator(Operator.And)
+                                        .boost(3.0f)
+                                ))
+                                .should(s -> s.multiMatch(mm -> mm
+                                        .query(searchString)
+                                        .fields("title.ngram^1.8")
+                                        .analyzer("ko_query_syn")
+                                        .type(TextQueryType.MostFields)
+                                ))
+                                .should(s -> s.match(mm -> mm
+                                        .field("title.nospace_infix")
+                                        .query(searchStringNoSpace)
+                                        .boost(1.5f)
+                                ))
+                                .minimumShouldMatch("1")
+                                .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
+                                .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
                         )
                 );
 
@@ -123,14 +127,14 @@ public class EventSearchService {
         SearchResponse<EventDocument> documentSearchResponse;
         try {
             documentSearchResponse = elasticsearchClient.search(s -> s
-                            .index("events_v1")
+                            .index(index)
                             .from(request.getPage() * size)
                             .size(size)
                             .query(query)
                             .sort(sorts)
                     , EventDocument.class);
         } catch (IOException e) {
-            throw new EventException(EventErrorCode.EVENT_SEARCH_ERROR, e.getMessage());
+            throw new SearchException(SearchErrorCode.SEARCH_SEARCH_ERROR, e.getMessage());
         }
 
         // 3) 결과 매핑
