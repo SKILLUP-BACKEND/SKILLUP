@@ -26,4 +26,10 @@ public class ElasticsearchConfig {
         RestClientTransport transport = new RestClientTransport(lowLevel, jsonpMapper);
         return new ElasticsearchClient(transport);
     }
+
+    @Bean
+    public org.elasticsearch.client.RestClient lowLevelRestClient() {
+        // 실제 운영에선 yml 또는 .env 파일에 경로 설정하기
+        return org.elasticsearch.client.RestClient.builder(HttpHost.create("http://localhost:9200")).build();
+    }
 }
