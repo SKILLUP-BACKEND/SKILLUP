@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 .env
+src/main/resources/es-synonyms
 
 ### STS ###
 .apt_generated
