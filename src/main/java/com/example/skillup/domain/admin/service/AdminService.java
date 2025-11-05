@@ -64,7 +64,7 @@ public class AdminService {
 
         synonymGroup = synonymGroupRepository.save(synonymGroup);
 
-        List<SynonymTerm> synonymTermList = synonymMapper.toTermEntity(synonymGroup,request.terms());
+        List<SynonymTerm> synonymTermList = synonymMapper.toTermEntity(synonymGroup, request.terms());
 
         try {
             synonymTermRepository.saveAll(synonymTermList);
@@ -84,7 +84,7 @@ public class AdminService {
     public String addTermsToSynonymGroup(Long groupId, AddTermsReq request) {
         SynonymGroup synonymGroup = synonymGroupRepository.getGroup(groupId);
 
-        List<SynonymTerm> synonymTermList = synonymMapper.toTermEntity(synonymGroup,request.terms());
+        List<SynonymTerm> synonymTermList = synonymMapper.toTermEntity(synonymGroup, request.terms());
 
         try {
             synonymTermRepository.saveAll(synonymTermList);
@@ -108,7 +108,7 @@ public class AdminService {
         List<SynonymTerm> synonymTermList = synonymTermRepository.findAllByGroup(synonymGroup);
 
         synonymTermList.forEach(BaseEntity::delete);
-        String deletedTerms = String.join(", ",synonymTermList.stream().map(SynonymTerm::getTerm).toList());
+        String deletedTerms = String.join(", ", synonymTermList.stream().map(SynonymTerm::getTerm).toList());
         synonymGroup.delete();
 
         final String locale = synonymGroup.getLocale();

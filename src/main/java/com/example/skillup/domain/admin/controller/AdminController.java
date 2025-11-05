@@ -47,7 +47,7 @@ public class AdminController {
         return BaseResponse.success("현재 존재하는 행사 값들을 인덱싱 작업을 성공했습니다.", "변환된 행사의 개수 : " + total);
     }
 
-    @PostMapping("/synonyms/pulish")
+    @PostMapping("/synonyms/publish")
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "es에 DB 에 저장되어있는 동의어 내용을 연동하는 API", description = "")
     public BaseResponse<String> publish(
@@ -59,21 +59,22 @@ public class AdminController {
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "새로운 그룹을 추가하고 동의어를 추가하는 api 입니다.", description = "")
     public BaseResponse<String> createGroup(@RequestBody @Valid SynonymRequest.CreateSynonymRequest request) {
-        return BaseResponse.success("성공적으로 생성되었습니다.",adminService.createSynonymGroupAndTerm(request));
+        return BaseResponse.success("성공적으로 생성되었습니다.", adminService.createSynonymGroupAndTerm(request));
     }
 
     //용어 추가
     @PostMapping("/groups/{groupId}/terms")
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "존재하는 동의어 그룹에 용어를 추가하는 api", description = "")
-    public BaseResponse<String> addTerms(@PathVariable Long groupId, @RequestBody @Valid SynonymRequest.AddTermsReq req) {
-        return BaseResponse.success("성공적으로 추가되었습니다.",adminService.addTermsToSynonymGroup(groupId, req));
+    public BaseResponse<String> addTerms(@PathVariable Long groupId,
+                                         @RequestBody @Valid SynonymRequest.AddTermsReq req) {
+        return BaseResponse.success("성공적으로 추가되었습니다.", adminService.addTermsToSynonymGroup(groupId, req));
     }
 
-    @DeleteMapping("/groups/{groupId}/")
+    @DeleteMapping("/groups/{groupId}")
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "해당 동의어 그룹을 삭제합니다.")
     public BaseResponse<String> deleteGroup(@PathVariable Long groupId) {
-        return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " +adminService.deleteGroup(groupId));
+        return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " + adminService.deleteGroup(groupId));
     }
 }
