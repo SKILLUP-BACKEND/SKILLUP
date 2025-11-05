@@ -7,6 +7,7 @@ import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.exception.AdminException;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
+import com.example.skillup.global.common.BaseEntity;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
 import com.example.skillup.global.search.component.ElasticsearchAdminClient;
@@ -106,9 +107,12 @@ public class AdminService {
 
         List<SynonymTerm> synonymTermList = synonymTermRepository.findAllByGroup(synonymGroup);
 
-        synonymTermRepository.deleteAll(synonymTermList);
+        synonymTermList.forEach(BaseEntity::delete);
         String deletedTerms = String.join(", ",synonymTermList.stream().map(SynonymTerm::getTerm).toList());
-        synonymGroupRepository.delete(synonymGroup);
+        synonymGroup.delete();
+
+        final String locale = synonymGroup.getLocale();
+        publish(locale);
 
         return deletedTerms;
     }

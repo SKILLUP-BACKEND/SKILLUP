@@ -1,7 +1,7 @@
 package com.example.skillup.global.search.entity;
 
-import com.example.skillup.global.search.enums.SynonymStatus;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.search.enums.SynonymStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 
 @Entity
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("deleted_at IS NULL")
 public class SynonymTerm extends BaseEntity {
 
     @Id
