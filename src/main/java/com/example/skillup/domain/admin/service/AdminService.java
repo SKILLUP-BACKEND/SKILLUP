@@ -100,4 +100,16 @@ public class AdminService {
         return String.join(", ", synonymTermList.stream().map(SynonymTerm::getTerm).toList());
     }
 
+    @Transactional
+    public String deleteGroup(Long groupId) {
+        SynonymGroup synonymGroup = synonymGroupRepository.getGroup(groupId);
+
+        List<SynonymTerm> synonymTermList = synonymTermRepository.findAllByGroup(synonymGroup);
+
+        synonymTermRepository.deleteAll(synonymTermList);
+        String deletedTerms = String.join(", ",synonymTermList.stream().map(SynonymTerm::getTerm).toList());
+        synonymGroupRepository.delete(synonymGroup);
+
+        return deletedTerms;
+    }
 }

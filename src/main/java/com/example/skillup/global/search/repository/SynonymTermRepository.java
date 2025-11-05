@@ -30,4 +30,6 @@ public interface SynonymTermRepository extends JpaRepository<SynonymTerm, Long> 
     }
 
     List<SynonymTerm> findAllByGroupAndStatus(SynonymGroup group, SynonymStatus status);
+
+    List<SynonymTerm> findAllByGroup(SynonymGroup group);
 }

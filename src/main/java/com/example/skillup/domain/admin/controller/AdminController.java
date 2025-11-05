@@ -4,14 +4,15 @@ import com.example.skillup.domain.admin.dto.AdminLoginRequest;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.service.AdminService;
-import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
+import com.example.skillup.global.search.service.EventIndexerService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,5 +68,12 @@ public class AdminController {
     @Operation(summary = "존재하는 동의어 그룹에 용어를 추가하는 api", description = "")
     public BaseResponse<String> addTerms(@PathVariable Long groupId, @RequestBody @Valid SynonymRequest.AddTermsReq req) {
         return BaseResponse.success("성공적으로 추가되었습니다.",adminService.addTermsToSynonymGroup(groupId, req));
+    }
+
+    @DeleteMapping("/groups/{groupId}/")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "해당 동의어 그룹을 삭제합니다.")
+    public BaseResponse<String> deleteGroup(@PathVariable Long groupId) {
+        return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " +adminService.deleteGroup(groupId));
     }
 }
