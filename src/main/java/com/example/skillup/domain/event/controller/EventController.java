@@ -5,6 +5,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.global.search.service.EventSearchService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
@@ -27,6 +28,7 @@ import java.util.List;
 @Tag(name = "Event", description = "행사 관련 API")
 public class EventController {
     private final EventService eventService;
+    private final EventSearchService eventSearchService;
 
     @PostMapping
     @PreAuthorize("hasRole('OWNER')")
@@ -154,5 +156,12 @@ public class EventController {
         return BaseResponse.success("카테고리별 추천 이벤트 조회 성공",events);
     }
 
+    @GetMapping("/search/home")
+    @Operation(summary = "행사 검색 api", description="검색 내용의 행사들을 불러옵니다.")
+    public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
+           @Valid @ModelAttribute EventRequest.EventSearchRequest request
+    )  {
+        return BaseResponse.success("검색 성공", eventSearchService.search(request));
+    }
 
 }
