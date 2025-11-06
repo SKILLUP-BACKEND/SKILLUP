@@ -355,12 +355,18 @@ public class EventService {
                 .toList();
     }
 
-  //  @Transactional(readOnly = true)
-   // @HandleDataAccessException
-  //  public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long userId)
-  //  {
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId)
+    {
+        List<Event> events=eventRepository.findRecommendedEventForHome(actorId,since);
 
-    //}
+        return events.stream()
+                .map(event -> {
+                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                })
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException

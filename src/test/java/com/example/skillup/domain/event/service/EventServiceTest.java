@@ -63,6 +63,14 @@ public class EventServiceTest {
     @Autowired
     private HashTagRepository hashTagRepository;
 
+    private HashTag hashTag;
+    private HashTag hashTag2;
+    private HashTag hashTag3;
+    private HashTag hashTag4;
+    private HashTag hashTag5;
+    private HashTag hashTag6;
+    private HashTag hashTag7;
+
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
@@ -70,13 +78,13 @@ public class EventServiceTest {
         targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#IT").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#AI").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#워크숍").build());
-        hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#PLANNER").build());
+        hashTag=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
+        hashTag2=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
+        hashTag3=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
+        hashTag4=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#IT").build());
+        hashTag5=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#AI").build());
+        hashTag6=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#워크숍").build());
+        hashTag7=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#PLANNER").build());
 
     }
 
@@ -462,7 +470,7 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("행사 추천 기존 카테고리가 2개 이하여서 다른 카테고리로 보충 성공 테스트")
-    public void getRecommendedEvents_Success()
+    public void getSupplementaryEvents_Success()
     {
         Event savedEvent1 =eventRepository.save(createEvent("저장",EventCategory.COMPETITION_HACKATHON));
         Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
@@ -474,6 +482,66 @@ public class EventServiceTest {
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
         assertThat(result.get(1).getId()).isEqualTo(savedEvent2.getId());
         assertThat(result.get(2).getId()).isEqualTo(savedEvent1.getId());
+
+    }
+
+    @Test
+    @DisplayName("해시태그 기반으로 이벤트 추천 테스트")
+    public void getRecommendedEvent_Success()
+    {
+
+        Event event1 = Event.builder()
+                .title("테스트 이벤트1")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(500))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .hashTags(new HashSet<>(List.of(hashTag, hashTag2, hashTag3, hashTag4)))
+                .build();
+
+        Event event2 = Event.builder()
+                .title("테스트 이벤트2")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(10))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .hashTags(new HashSet<>(List.of(hashTag3, hashTag4, hashTag5)))
+                .build();
+
+        Event event3 = Event.builder()
+                .title("테스트 이벤트3")
+                .category(EventCategory.CONFERENCE_SEMINAR)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(1000))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                .hashTags(new HashSet<>(List.of(hashTag6, hashTag7, hashTag3,hashTag2)))
+                .build();
+
+        eventRepository.saveAll(List.of(event1, event2, event3));
+
+        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW).actorId("3L").build();
+
+        eventActionRepository.save(action);
+
+        List<EventResponse.HomeEventResponse> events=eventService.getRecommendedEvents(3L);
+        assertThat(events).isNotEmpty();
+        assertThat(events.size()).isEqualTo(2);
+        for(EventResponse.HomeEventResponse event :events)
+        {
+            System.out.println(event.getTitle());
+        }
 
     }
 
