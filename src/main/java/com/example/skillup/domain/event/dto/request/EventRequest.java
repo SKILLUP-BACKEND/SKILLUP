@@ -1,18 +1,18 @@
 package com.example.skillup.domain.event.dto.request;
 
 import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.EventFormat;
+import com.example.skillup.domain.event.enums.EventSortType;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Getter
 @AllArgsConstructor
@@ -115,6 +115,7 @@ public class EventRequest {
         @Size(min = 1, max = 5, message = "해시태그는 1개 이상 5개 이하로 선택해주세요.")
         private List<String> hashTags;
     }
+
     @Getter
     @AllArgsConstructor
     @Builder
@@ -144,10 +145,35 @@ public class EventRequest {
                     || (startDate != null && endDate != null);
         }
 
-        @AssertTrue(message="sort값은 popularity, latest, deadline 만 가능합니다. ")
+        @AssertTrue(message = "sort값은 popularity, latest, deadline 만 가능합니다. ")
         public boolean isValidSort() {
-            return (sort.equals("latest")||sort.equals("popularity")||sort.equals("deadline"));
+            return (sort.equals("latest") || sort.equals("popularity") || sort.equals("deadline"));
         }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventSearchRequest {
+
+        @NotNull(message = "검색어를 입력해주세요")
+        private String searchString;
+
+        private EventSortType sort = EventSortType.POPULARITY;
+
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        private OffsetDateTime eventStart;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        private OffsetDateTime eventEnd;
+
+
+        private EventFormat eventFormat;
+
+        private Boolean isFree;
+
+        @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
+        private Integer page = 0;
+
     }
 
 }
