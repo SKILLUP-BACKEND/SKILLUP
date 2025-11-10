@@ -5,22 +5,30 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.global.search.service.EventSearchService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
+import com.example.skillup.global.search.service.EventSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/events")
@@ -90,9 +98,9 @@ public class EventController {
     @Operation(summary = "행사 상세 조회 API", description = "특정 행사의 상세 정보를 불러옵니다.")
     public BaseResponse<EventResponse.EventSelectResponse> getEventDetail(
             @PathVariable Long eventId,
-            @AuthenticationPrincipal UserDetails user
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user.getAuthorities());
+        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user);
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
@@ -163,5 +171,6 @@ public class EventController {
     )  {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
     }
+
 
 }

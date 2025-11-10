@@ -13,25 +13,27 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
-import com.example.skillup.domain.event.repository.*;
-import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.domain.event.repository.EventBannerRepository;
+import com.example.skillup.domain.event.repository.EventLikeRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.search.service.EventIndexerService;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +42,7 @@ public class EventService {
     private final EventMapper eventMapper;
     private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
+    private final EventBookmarkService eventBookmarkService;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     private final EventIndexerService eventIndexerService;
@@ -163,18 +166,25 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId,
-                                                            Collection<? extends GrantedAuthority> authorities) {
+                                                            UsersDetails user) {
         Event event = eventRepository.getEvent(eventId);
 
-        boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+        boolean isAdmin = false;
+        if (user != null) {
+            isAdmin = user.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+        }
 
-        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
+        //일반 사용자라면 북마크 여부 추가해주기 비회원인경우 패스
+        if (!isAdmin && user != null) {
+            boolean isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
+            return eventMapper.toEventDetailInfo(event, isBookmarked);
+        }
 
-        return eventMapper.toEventDetailInfo(event);
+        return eventMapper.toEventDetailInfo(event, false);
     }
 
     @Transactional(readOnly = true)
