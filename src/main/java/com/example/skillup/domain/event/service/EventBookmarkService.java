@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class EventBookmarkService {
 
-    private EventBookmarkRepository eventBookmarkRepository;
+    private final EventBookmarkRepository eventBookmarkRepository;
 
     @Transactional(readOnly = true)
     public boolean isBookmarked(Users user , Event event) {
