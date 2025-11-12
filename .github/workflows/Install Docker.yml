@@ -1,4 +1,4 @@
-name: Install Docker
+name: Install Docker(DEV SERVER)
 
 on:
   workflow_dispatch:  
@@ -10,9 +10,9 @@ jobs:
       - name: Connect to EC2 and install Docker
         uses: appleboy/ssh-action@v1.1.0
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.DEV_EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.DEV_EC2_SSH_KEY }}
           script: |
             if ! command -v docker &> /dev/null
             then
