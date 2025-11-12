@@ -2,15 +2,13 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.entity.EventBanner;
-import com.example.skillup.domain.event.entity.EventLike;
-import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.entity.*;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.*;
@@ -27,6 +25,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -42,8 +41,10 @@ public class EventService {
     private final EventLikeRepository eventLikeRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
+    private final EventActionRepository eventActionRepository;
+    private final HashTagRepository hashTagRepository;
+    LocalDate since = LocalDate.now().minusMonths(3);
     private final EventIndexerService eventIndexerService;
-
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
 
@@ -86,6 +87,15 @@ public class EventService {
                                     roleName + "에"));
                     event.addTargetRole(role);
                 });
+        request.getHashTags().stream()
+                .distinct()
+                .forEach(hashtagName -> {
+                    HashTag hashTag = hashTagRepository.findByName(hashtagName)
+                            .orElseThrow(() ->new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName+"에"));
+                            event.addHashTag(hashTag);
+                });
+        // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
+        // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
 
         Event savedEvent = eventRepository.save(event);
 
@@ -116,7 +126,6 @@ public class EventService {
         event.update(request);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
-            event.getTargetRoles().forEach(role -> role.getEvents().remove(event));
             event.getTargetRoles().clear();
 
             request.getTargetRoles().stream().distinct().forEach(name -> {
@@ -125,6 +134,16 @@ public class EventService {
                 event.addTargetRole(role);
             });
         }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            event.getHashTags().clear();
+            request.getHashTags().stream().distinct().forEach(name -> {
+                HashTag hashTag = hashTagRepository.findByName(name)
+                        .orElseThrow(() -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, name + "에"));
+                event.addHashTag(hashTag);
+            });
+        }
+
 
         eventIndexerService.index(event);
 
@@ -321,7 +340,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(EventCategory category) {
+    public List<EventResponse.HomeEventResponse> getSupplementaryEvents(EventCategory category) {
 
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0, 4);
@@ -353,5 +372,34 @@ public class EventService {
                     return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
                 })
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId)
+    {
+        List<Event> events=eventRepository.findRecommendedEventForHome(actorId,since);
+
+        return events.stream()
+                .map(event -> {
+                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @HandleDataAccessException
+    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId)
+    {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Event>events=eventActionRepository.findRecentEventsByActorId(actorId,pageable);
+
+
+        return events.stream()
+                .map(event -> {
+                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                })
+                .toList();
+
     }
 }

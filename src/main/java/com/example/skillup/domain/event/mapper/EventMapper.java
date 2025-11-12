@@ -4,6 +4,7 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBanner;
+import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
@@ -41,7 +42,6 @@ public class EventMapper {
                 .applyLink(request.getApplyLink())
                 .contact(request.getContact())
                 .description(request.getDescription())
-                .hashtags(request.getHashtags())
                 .status(request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED)
                 .build();
     }
@@ -65,7 +65,10 @@ public class EventMapper {
                 .status(event.getStatus())
                 .contact(event.getContact())
                 .description(event.getDescription())
-                .hashtags(event.getHashtags())
+                .hashTags(event.getHashTags()
+                        .stream()
+                        .map(HashTag::getName)
+                        .collect(Collectors.toSet()))
                 .targetRoles(event.getTargetRoles()
                         .stream()
                         .map(TargetRole::getName)
@@ -73,8 +76,7 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended,
-                                                           boolean ad, double score) {
+    public EventResponse.HomeEventResponse toFeaturedEvent(Event event, boolean bookmarked, boolean recommended, boolean ad , Double score) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy.MM.dd");
         String schedule = formatRange(event.getEventStart(), event.getEventEnd(), fmt);
         String priceText = event.getIsFree() != null && event.getIsFree()

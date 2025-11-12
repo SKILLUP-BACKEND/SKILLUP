@@ -58,7 +58,6 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                               e.status,
                               e.contact,
                               e.description,
-                              e.hashtags,
                               e.views_count,
                               e.likes_count,
                               e.apply_clicks,
@@ -69,7 +68,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 + count(DISTINCT el.id) * 0.3
                 + (
                     CASE WHEN coalesce(sum(v.cnt), 0) > 0
-                            THEN (1.0 * e.apply_clicks / coalesce(sum(v.cnt), 1))
+                            THEN (1.0 * count(distinct ea.id)  / coalesce(sum(v.cnt), 1))
                             ELSE 0
                     END
                 ) * 0.1
@@ -77,6 +76,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
         FROM event e
         LEFT JOIN event_view_daily v ON v.event_id = e.id AND v.created_at >= :since
         LEFT JOIN event_like el ON el.event_id = e.id AND el.created_at >= :since
+        LEFT JOIN event_action ea ON ea.event_id = e.id AND ea.created_at >= :since AND ea.action_type = 'APPLY'
         LEFT JOIN event_target_role etr ON etr.event_id = e.id
         LEFT JOIN target_role tr ON tr.id = etr.role_id
         WHERE (:category IS NULL OR e.category = :category)
@@ -132,14 +132,13 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                     .status(EventStatus.valueOf((String) row[14]))
                     .contact((String) row[15])
                     .description((String) row[16])
-                    .hashtags((String) row[17])
-                    .viewsCount(((Number) row[18]).longValue())
-                    .likesCount(((Number) row[19]).longValue())
-                    .applyClicks(((Number) row[20]).longValue())
-                    .recommendedManual((Boolean) row[21])
-                    .ad((Boolean) row[22])
+                    .viewsCount(((Number) row[17]).longValue())
+                    .likesCount(((Number) row[18]).longValue())
+                    .applyClicks(((Number) row[19]).longValue())
+                    .recommendedManual((Boolean) row[20])
+                    .ad((Boolean) row[21])
                     .build();
-            Double popularity = row[23] != null ? ((Number) row[23]).doubleValue() : 0.0;
+            Double popularity = row[22] != null ? ((Number) row[22]).doubleValue() : 0.0;
 
             results.add(new EventWithPopularity(event, popularity));
         }

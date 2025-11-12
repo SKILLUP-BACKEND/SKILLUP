@@ -48,7 +48,7 @@ public class EventResponse {
 
         private String description;
 
-        private String hashtags;
+        private Set<String> hashTags;
 
         private Set<String> targetRoles;
     }
@@ -96,7 +96,7 @@ public class EventResponse {
 
         private EventCategory category;
         //점수 제대로 뜨는지 확인 용
-        private double recommendedRate;
+        private Double recommendedRate;
     }
 
     @Getter @Builder
