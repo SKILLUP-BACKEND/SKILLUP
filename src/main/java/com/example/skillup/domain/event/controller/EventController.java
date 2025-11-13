@@ -31,7 +31,7 @@ public class EventController {
     private final EventSearchService eventSearchService;
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
     @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
@@ -44,7 +44,7 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 수정 API", description = "관리자가 특정 행사를 수정합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> updateEvent(
             @PathVariable Long eventId,
@@ -55,7 +55,7 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/hide")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 숨김 API", description = "관리자가 특정 행사를 숨김 처리합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> hideEvent(
             @PathVariable Long eventId
@@ -65,7 +65,7 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/publish")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 공개 API" , description = "관리자가 특정 행사를 공개 처리합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> publishEvent(
             @PathVariable Long eventId
@@ -76,7 +76,7 @@ public class EventController {
 
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 삭제 API", description = "관리자가 특정 행사를 삭제합니다.")
     @ApiResponse(responseCode = "200", description = "행사 삭제 성공",
             content = @Content(mediaType = "application/json"))
