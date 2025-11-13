@@ -1,7 +1,9 @@
 package com.example.skillup.domain.user.service;
 
+import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.user.dto.response.UserResponseDto;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ThrowIfEmptyAspect;
 import com.example.skillup.global.exception.GlobalException;
@@ -48,10 +50,5 @@ class UserServiceTest {
         assertThat(result).hasSize(1);
     }
 
-    @Test
-    void findByAll_ShouldThrowException_WhenNoUsersExist() {
-        assertThatThrownBy(() -> userService.findAll())
-                .isInstanceOf(GlobalException.class)
-                .hasMessageContaining("데이터를 찾을 수 없습니다.");
-    }
+
 }

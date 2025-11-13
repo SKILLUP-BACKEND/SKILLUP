@@ -272,7 +272,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     GROUP BY e.id
     ORDER BY SUM(tt.score) DESC LIMIT 6
      """, nativeQuery = true)
-    List<Event> findRecommendedEventForHome( @Param("actorId") Long actorId,@Param("since") LocalDate since);
+    List<Event> findRecommendedEventForHome( @Param("actorId") Long actorId,@Param("since") LocalDateTime since);
 
 
 

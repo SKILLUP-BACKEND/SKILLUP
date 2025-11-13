@@ -172,17 +172,17 @@ public class EventController {
             description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId
-) {
+            @CookieValue(value = "guest_id", required = false) String guestId)
+    {
         List<EventResponse.HomeEventResponse> events =
-                eventService.getRecentEvents(user!=null ? String.valueOf(user.getUser().getId()) : guestId);
+                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
-
+    }
     @GetMapping("/search/home")
     @Operation(summary = "행사 검색 api", description="검색 내용의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-           @Valid @ModelAttribute EventRequest.EventSearchRequest request
-    )  {
+           @Valid @ModelAttribute EventRequest.EventSearchRequest request)
+    {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
  
     }
