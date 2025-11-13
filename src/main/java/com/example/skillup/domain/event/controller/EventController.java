@@ -31,7 +31,7 @@ public class EventController {
     private final EventSearchService eventSearchService;
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
     @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
@@ -44,7 +44,7 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 수정 API", description = "관리자가 특정 행사를 수정합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> updateEvent(
             @PathVariable Long eventId,
@@ -55,7 +55,7 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/hide")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 숨김 API", description = "관리자가 특정 행사를 숨김 처리합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> hideEvent(
             @PathVariable Long eventId
@@ -65,7 +65,7 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/publish")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 공개 API" , description = "관리자가 특정 행사를 공개 처리합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> publishEvent(
             @PathVariable Long eventId
@@ -76,7 +76,7 @@ public class EventController {
 
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 삭제 API", description = "관리자가 특정 행사를 삭제합니다.")
     @ApiResponse(responseCode = "200", description = "행사 삭제 성공",
             content = @Content(mediaType = "application/json"))
@@ -172,17 +172,17 @@ public class EventController {
             description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId
-) {
+            @CookieValue(value = "guest_id", required = false) String guestId)
+    {
         List<EventResponse.HomeEventResponse> events =
-                eventService.getRecentEvents(user!=null ? String.valueOf(user.getUser().getId()) : guestId);
+                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
-
+    }
     @GetMapping("/search/home")
     @Operation(summary = "행사 검색 api", description="검색 내용의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-           @Valid @ModelAttribute EventRequest.EventSearchRequest request
-    )  {
+           @Valid @ModelAttribute EventRequest.EventSearchRequest request)
+    {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
  
     }

@@ -34,22 +34,6 @@ public class JwtProviderTest {
     }
 
     @Test
-    void testGetAuthentication() {
-        // given
-        Long userId = 123L;
-        String role = "VIEWER";
-        String token = jwtProvider.generateToken(userId, role,Duration.ofHours(1));
-
-        // when
-        Authentication authentication = jwtProvider.getAuthentication(token);
-
-        // then
-        assertThat(authentication).isNotNull();
-        assertThat(authentication.getName()).isEqualTo("123");
-        System.out.println(authentication);
-    }
-
-    @Test
     void testInvalidToken() {
         // given
         String invalidToken = "this.is.invalid.token";

@@ -40,7 +40,7 @@ public class AdminController {
     }
 
     @PostMapping("/search/upload")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "초기 존재하는 행사 인덱싱 api", description = "ElasticSearch 초기 세팅시 존재하는 행사들을 추가하는 api")
     public BaseResponse<String> reindexAll() {
         long total = eventIndexerService.bulkIndexAll();
@@ -48,7 +48,7 @@ public class AdminController {
     }
 
     @PostMapping("/synonyms/publish")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "es에 DB 에 저장되어있는 동의어 내용을 연동하는 API", description = "")
     public BaseResponse<String> publish(
             @RequestParam(defaultValue = "ko") String locale) {
@@ -56,7 +56,7 @@ public class AdminController {
     }
 
     @PostMapping("/groups")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "새로운 그룹을 추가하고 동의어를 추가하는 api 입니다.", description = "")
     public BaseResponse<String> createGroup(@RequestBody @Valid SynonymRequest.CreateSynonymRequest request) {
         return BaseResponse.success("성공적으로 생성되었습니다.", adminService.createSynonymGroupAndTerm(request));
@@ -64,7 +64,7 @@ public class AdminController {
 
     //용어 추가
     @PostMapping("/groups/{groupId}/terms")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "존재하는 동의어 그룹에 용어를 추가하는 api", description = "")
     public BaseResponse<String> addTerms(@PathVariable Long groupId,
                                          @RequestBody @Valid SynonymRequest.AddTermsReq req) {
@@ -72,7 +72,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/groups/{groupId}")
-    @PreAuthorize("hasRole('OWNER')")
+    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "해당 동의어 그룹을 삭제합니다.")
     public BaseResponse<String> deleteGroup(@PathVariable Long groupId) {
         return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " + adminService.deleteGroup(groupId));

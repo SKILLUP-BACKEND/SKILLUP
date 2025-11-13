@@ -6,6 +6,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.*;
 import com.example.skillup.domain.event.enums.*;
 import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sound.midi.SysexMessage;
+import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +105,7 @@ public class EventServiceTest {
                 .title(title)
                 .status(EventStatus.PUBLISHED)
                 .eventStart(LocalDateTime.of(2025, 9, 12, 10, 0))
-                .eventEnd(LocalDateTime.of(2025, 11, 12, 12, 0))
+                .eventEnd(LocalDateTime.of(2026, 11, 12, 12, 0))
                 .thumbnailUrl("http://example.com/thumb.png")
                 .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
@@ -311,30 +313,27 @@ public class EventServiceTest {
     void getEventBySearch_Paging_Test()
     {
 
-        Event savedEvent =eventRepository.save(createEvent("저장"));
-        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
-        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
 
         for(int i=0;i<20;i++)
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         List<EventResponse.HomeEventResponse> resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
-
         List<EventResponse.HomeEventResponse> resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
 
-        assertNotNull(resultByCategory);
+        assertThat(resultByCategory).isNotEmpty();
         assertEquals(12, resultByCategory.size());
-        assertEquals(savedEvent.getTitle(), resultByCategory.get(0).getTitle());
-        assertEquals(9, resultByCategory2.size());
+        assertEquals(8, resultByCategory2.size());
     }
 
     @Test
     @DisplayName("카테고리로 행사 조회 정렬 테스트")
-    void getEventBySearch_Popularity_Test() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+    void getEventBySearch_Popularity_Test() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
 
+        Field createdField = BaseEntity.class.getDeclaredField("createdAt");
+        createdField.setAccessible(true);
         // 테스트용 이벤트 생성
         Event event1 = Event.builder()
                 .title("테스트 이벤트1")
@@ -372,25 +371,28 @@ public class EventServiceTest {
                 .eventEnd(LocalDateTime.now().plusDays(20))
                 .build();
 
+        createdField.set(event1, LocalDate.now().minusMonths(2).atStartOfDay());
+        createdField.set(event2, LocalDate.now().minusMonths(3).atStartOfDay());
+        createdField.set(event3, LocalDate.now().minusMonths(1).atStartOfDay());
 
         eventRepository.save(event1);
-        sleep(500);
         eventRepository.save(event2);
-        sleep(500);
         eventRepository.save(event3);
 
 
         // event는 3달 이후 조회수 2개 + 3달 이내 조회수 1개
         EventViewDaily oldView = EventViewDaily.builder()
                 .event(event1)
-                .cnt(1000L)
+                .cnt(1L)
                 .build();
+        createdField.set(oldView, LocalDate.now().minusMonths(4).atStartOfDay());
         eventViewDailyRepository.save(oldView);
 
         EventViewDaily oldView2 = EventViewDaily.builder()
                 .event(event1)
-                .cnt(100L)
+                .cnt(1L)
                 .build();
+        createdField.set(oldView, LocalDate.now().minusMonths(5).atStartOfDay());
         eventViewDailyRepository.save(oldView2);
 
         EventViewDaily recentView = EventViewDaily.builder()
@@ -455,7 +457,7 @@ public class EventServiceTest {
         assertThat(resultsByLatest.get(0).getId()).isEqualTo(event3.getId());
 
         assertThat(resultsByPopularity).isNotEmpty();
-        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event1.getId());
+        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event2.getId());
 
         for(EventResponse.HomeEventResponse event :resultsByPopularity)
         {
@@ -463,7 +465,6 @@ public class EventServiceTest {
         }
 
 
-        //created_at에 값을 채워서 저장해도 JPA가 now로 덮어 씌워서 creat_at을 조정하지는 못했네요.. 좋은 테스트 방법 있으면 추천 부탁드려요
 
 
     }

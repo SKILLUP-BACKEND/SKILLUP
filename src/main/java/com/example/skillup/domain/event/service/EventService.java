@@ -43,11 +43,9 @@ public class EventService {
     private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
     private final HashTagRepository hashTagRepository;
-    LocalDate since = LocalDate.now().minusMonths(3);
     private final EventIndexerService eventIndexerService;
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
-
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
                     EventCategory.NETWORKING_MENTORING,
