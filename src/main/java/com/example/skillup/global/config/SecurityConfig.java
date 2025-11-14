@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/*").permitAll()
                         .requestMatchers("/events/closing-soon").permitAll()
                         .requestMatchers("/oauth/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()));
         return http.build();
     }
