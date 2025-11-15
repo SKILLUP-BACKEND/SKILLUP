@@ -29,7 +29,7 @@ public class ConvertNotFoundAspect {
             Class<? extends ResultCode> enumClass = convertNotFound.errorCodeEnum();
             String name = convertNotFound.errorCodeName();
 
-            ResultCode errorCode = (ResultCode) Enum.valueOf((Class) enumClass, name);
+            ResultCode errorCode =  (ResultCode) Enum.valueOf((Class) enumClass, name);
 
             RuntimeException ex =
                     convertNotFound.exception()
