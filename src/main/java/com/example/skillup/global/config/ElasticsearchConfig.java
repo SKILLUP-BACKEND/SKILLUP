@@ -8,11 +8,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ElasticsearchConfig {
+
+    @Value("${spring.elasticsearch.uris}")
+    private String esUrl;
 
     @Bean
     public ElasticsearchClient elasticsearchClient() {
@@ -22,7 +26,7 @@ public class ElasticsearchConfig {
 
         JacksonJsonpMapper jsonpMapper = new JacksonJsonpMapper(om);
 
-        RestClient lowLevel = RestClient.builder(HttpHost.create("http://localhost:9200")).build();
+        RestClient lowLevel = RestClient.builder(HttpHost.create(esUrl)).build();
         RestClientTransport transport = new RestClientTransport(lowLevel, jsonpMapper);
         return new ElasticsearchClient(transport);
     }
@@ -30,6 +34,6 @@ public class ElasticsearchConfig {
     @Bean
     public org.elasticsearch.client.RestClient lowLevelRestClient() {
         // 실제 운영에선 yml 또는 .env 파일에 경로 설정하기
-        return org.elasticsearch.client.RestClient.builder(HttpHost.create("http://localhost:9200")).build();
+        return org.elasticsearch.client.RestClient.builder(HttpHost.create(esUrl)).build();
     }
 }
