@@ -53,4 +53,36 @@ jobs:
             echo "🚀 서비스 재시작"
             sudo docker compose up -d
 
-            echo "🎉 DEV 배포 완료!"
+            echo "🎉 도커 설치 완료!"
+
+            echo "=== 🌐 PUBLIC IP 가져오기 ==="
+            PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
+            DOMAIN="${PUBLIC_IP}.nip.io"
+
+             echo "=== 📦 Caddy 설치 ==="
+            if ! command -v caddy &> /dev/null
+            then
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key'  | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+              sudo apt update
+              sudo apt install -y caddy
+            fi
+
+            echo "=== 📝 Caddyfile 생성 (/etc/caddy/Caddyfile) ==="
+            sudo bash -c "cat > /etc/caddy/Caddyfile" <<EOF
+            ${DOMAIN} {
+                reverse_proxy localhost:8080
+            }
+            EOF
+            echo "=== 🔄 Caddy 서비스 시작 ==="
+            sudo systemctl daemon-reload
+            sudo systemctl enable --now caddy || true
+            sudo systemctl restart caddy
+
+            echo "=== ✅ Caddy 상태 ==="
+            sudo systemctl status caddy --no-pager
+
+            echo "=== 🎉 배포 완료 ==="
+
+
+            
