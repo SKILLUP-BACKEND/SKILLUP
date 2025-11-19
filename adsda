@@ -1,0 +1,90 @@
+* [33m46e2e9f[m[33m ([m[1;31morigin/hotfix/event-search[m[33m, [m[1;32mhotfix/event-search[m[33m)[m feat: ci-cd에 테스트 코드 삽입 로직 추가
+* [33ma930435[m feat: 이벤트 개수 값 반환 로직 추가
+*   [33m542f4fc[m[33m ([m[1;31morigin/dev[m[33m)[m Merge pull request #31 from SKILLUP-BACKEND/hotfix/kibana-setting
+[32m|[m[33m\[m  
+[32m|[m * [33m02f83cd[m[33m ([m[1;31morigin/hotfix/kibana-setting[m[33m)[m hotfix(docker) : 서버가 docker 내부에서 돌아가서 localhost 로 접속할경우 indexing 에러 발생
+* [33m|[m [33mee70dfd[m [HOTFIX] (docker) kibana-setting 수정
+[34m|[m[33m\[m[33m|[m 
+[34m|[m * [33ma3958c6[m hotfix(docker) kibana-setting 수정
+[34m|[m [35m|[m * [33mbf7eb76[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32madd/aop-exception-handling[m[33m, [m[1;31morigin/add/aop-exception-handling[m[33m)[m feat:해시태그 기반 추천 이벤트 DB에서 실행 스프링에서 실행 비교 테스트 추가
+[34m|[m [35m|[m * [33mc0094e0[m NotFound 예외 Aop 추가
+[34m|[m [35m|[m * [33m60728d6[m feat: Not Found Aop 추가 및 중복 코드 리펙토링 + eventRepositoryTest 인덱스 테스트 실행 시간 체크
+[34m|[m [35m|[m * [33m1c19dd4[m throwifempty 삭제
+[34m|[m [35m|[m[35m/[m  
+[34m|[m [35m|[m * [33m34e4684[m[33m ([m[1;31morigin/kimjunghwannn-patch-1[m[33m)[m Update DEV-CI-CD.yml
+[34m|[m [35m|[m[34m/[m  
+[34m|[m[34m/[m[35m|[m   
+* [35m|[m   [33m8c334e4[m Merge pull request #27 from SKILLUP-BACKEND/kimjunghwannn-patch-3
+[1;32m|[m[1;33m\[m [35m\[m  
+[1;32m|[m * [35m|[m [33ma9c793c[m[33m ([m[1;31morigin/kimjunghwannn-patch-3[m[33m, [m[1;32mkimjunghwannn-patch-3[m[33m)[m add: testLogin api 추가
+[1;32m|[m * [35m|[m [33mf32df19[m Update DEV-CI-CD.yml
+[1;32m|[m[1;32m/[m [35m/[m  
+* [35m|[m   [33mfe43e5d[m Merge pull request #25 from SKILLUP-BACKEND/kimjunghwannn-patch-1
+[1;34m|[m[1;35m\[m [35m\[m  
+[1;34m|[m * [35m|[m [33m1c58a24[m Update SecurityConfig.java
+[1;34m|[m[1;34m/[m [35m/[m  
+* [35m|[m   [33m9ac76ac[m[33m ([m[1;32mdev[m[33m)[m Merge pull request #24 from SKILLUP-BACKEND/kimjunghwannn-patch-1
+[35m|[m[31m\[m [35m\[m  
+[35m|[m [31m|[m[35m/[m  
+[35m|[m[35m/[m[31m|[m   
+[35m|[m * [33m0157bd7[m Update DEV-CI-CD.yml
+[35m|[m * [33m76bcc1d[m feat: dockerfile_dev 추가
+* [31m|[m [33m0a4118c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/fix/event-search[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #23 from SKILLUP-BACKEND/kimjunghwannn-patch-1
+[32m|[m[31m\[m[31m|[m 
+[32m|[m * [33mda6fe1d[m Create DEV-CI-CD.yml
+* [33m|[m   [33m4f7cd5b[m Merge pull request #22 from SKILLUP-BACKEND/feature/event-recommendation-and-recent
+[33m|[m[35m\[m [33m\[m  
+[33m|[m [35m|[m[33m/[m  
+[33m|[m[33m/[m[35m|[m   
+[33m|[m * [33m0f80ed8[m[33m ([m[1;31morigin/feature/event-recommendation-and-recent[m[33m, [m[1;32mfeature/event-recommendation-and-recent[m[33m)[m fix: cors 설정 및 인증 인가 무효화
+[33m|[m * [33mfd2892a[m fix: 테스크 코드 수정 및 테스트 코드를 위해 createdAt 변경
+* [35m|[m   [33mf85d5a6[m[33m ([m[1;31morigin/add/event-repository-test-code[m[33m, [m[1;32madd/event-repository-test-code[m[33m)[m Merge pull request #21 from SKILLUP-BACKEND/kimjunghwannn-patch-1
+[36m|[m[1;31m\[m [35m\[m  
+[36m|[m * [35m|[m [33m33d5cbd[m 변수명 변경
+[36m|[m * [35m|[m [33m06d08d1[m Create Install Docker.yml
+* [1;31m|[m [35m|[m   [33mc5d09e5[m Merge pull request #19 from SKILLUP-BACKEND/feature/event-recommendation-and-recent
+[1;31m|[m[35m\[m [1;31m\[m [35m\[m  
+[1;31m|[m [35m|[m[1;31m/[m [35m/[m  
+[1;31m|[m[1;31m/[m[35m|[m [35m/[m   
+[1;31m|[m [35m|[m[35m/[m    
+[1;31m|[m *   [33m93fceea[m Merge branch 'main' into feature/event-recommendation-and-recent
+[1;31m|[m [1;34m|[m[1;31m\[m  
+[1;31m|[m [1;34m|[m[1;31m/[m  
+[1;31m|[m[1;31m/[m[1;34m|[m   
+[1;31m|[m [1;34m|[m * [33me6aea83[m[33m ([m[1;35mrefs/stash[m[33m)[m WIP on feature/event-recommendation-and-recent: 189f208 add: 이벤트 해시태그 기반 추천 api 추가
+[1;31m|[m [1;34m|[m[1;34m/[m[31m|[m 
+[1;31m|[m [1;34m|[m * [33m9868a4f[m index on feature/event-recommendation-and-recent: 189f208 add: 이벤트 해시태그 기반 추천 api 추가
+[1;31m|[m [1;34m|[m[1;34m/[m  
+[1;31m|[m * [33m189f208[m add: 이벤트 해시태그 기반 추천 api 추가
+[1;31m|[m * [33mcae532a[m update: 카테고리 수정에 따라서 테스트 코드 수정
+[1;31m|[m * [33m1fbbdd5[m update : 이벤트 업데이트 코드 수정 및 hashTage로 이름 통일
+[1;31m|[m * [33m227794e[m update : createEvent수정 및 Event엔티티와 HashTag엔티티 연관 관계로 변경
+[1;31m|[m * [33md182cab[m update : 인기도 계산에서최근 신청률 가져오는 것으로 변경 + 그에 따른 테스트 코드 수정
+[1;31m|[m * [33m420480e[m add: 최근 이벤트 보기 api 추가, actorType(USER/GUEST)과 actorId(String) 필드 추가하여 Guest 식별 가능하도록 변경 , HomeEventResponse.recommendedRate 타입을 Double로 변경하여 null 허용
+[1;31m|[m * [33m079572b[m fix: 카테고리별 api 함수명 변경
+[1;31m|[m [31m|[m * [33m792fdff[m[33m ([m[1;31morigin/feature/event-bookmark[m[33m)[m feat(Response) : response 에 bookmarked 추가
+[1;31m|[m [31m|[m * [33m83c1963[m fix(eventController & Service) : 기존 행사 상세 조회 api 수정
+[1;31m|[m [31m|[m * [33me2527fa[m feat : bookmark 기능을 위한 기본적인 파일 추가
+[1;31m|[m [31m|[m * [33m726abc0[m feat : bookmark 기능을 위한 기본적인 파일 추가
+[1;31m|[m [31m|[m * [33maafda4a[m feat : bookmark 기능을 위한 기본적인 파일 추가
+[1;31m|[m [31m|[m[1;31m/[m  
+[1;31m|[m[1;31m/[m[31m|[m   
+* [31m|[m   [33m7cdf9b6[m [FEAT] 검색 기능 api 구현 (동의어 , 부분일치)
+[33m|[m[34m\[m [31m\[m  
+[33m|[m [34m|[m [31m|[m * [33me3c1a34[m[33m ([m[1;31morigin/feature/event-elasticsearch[m[33m)[m add : git ignore 에 es-synonyms 추가
+[33m|[m [34m|[m [31m|[m[34m/[m  
+[33m|[m [34m|[m[34m/[m[31m|[m   
+[33m|[m * [31m|[m [33m7ff39c8[m refactor : 코드 라인 정렬
+[33m|[m * [31m|[m [33m474c23a[m fix : 동의어 지우는 api 수정
+[33m|[m * [31m|[m [33maf9cac7[m feat : 동의어 사전 지우는 api 추가
+[33m|[m * [31m|[m [33mdfb15b0[m feat(DataLoader) : 동의어 사전 기본 데이터 추가 로직 추가
+[33m|[m * [31m|[m [33m90b9018[m feat(exception) :SearchException 추가
+[33m|[m * [31m|[m [33m92a97d9[m feat(enum) : SearchErrorCode 추가
+[33m|[m * [31m|[m [33m110d7b2[m refactor : index 변수 yml 에서 경로 읽어오는걸로 수정
+[33m|[m * [31m|[m [33maeb95ce[m feat(enum) : CommonErrorCode 에 FileUploadError 추가
+[33m|[m * [31m|[m [33mbc8e6d9[m feat(search) : admin 이 직접 동의어 사전 관리 할 수 있도록 기능 추가
+[33m|[m * [31m|[m [33mda03fb0[m refactor : es 크기가 커저 global -> search 로 구조 변경
+[33m|[m * [31m|[m [33mb6b5e4e[m feat(yml) : txt 동의어 파일 위치경로 추가
+[33m|[m * [31m|[m [33m6288b7f[m refactor : spring 내 spring 오타 수정
+[33m|[m * [31m|[m [33mcf00722[m feat : docker 설정 수정
+[33m|[m * [31m|[m [33m76de87b[m feat : 동의어 사전을 위한 txt 파일 및 search 로직 수정

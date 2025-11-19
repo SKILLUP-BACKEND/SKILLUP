@@ -5,6 +5,9 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.*;
 import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;
+import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.repository.*;
 import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,8 +33,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -545,6 +547,46 @@ public class EventServiceTest {
         }
 
     }
+
+    @Test
+    @DisplayName("getRole 실패 테스트")
+    public void getTargetRoleByName_Fail()
+    {
+        EventException exception =
+                assertThrows(EventException.class, () -> eventService.getRole("잘못된 이름"));
+        System.out.println(exception.getMessage());
+        System.out.println(exception.getResultCode());
+        assertEquals(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, exception.getResultCode());
+    }
+
+    @Test
+    @DisplayName("getRole 성공 테스트")
+    public void getTargetRoleByName_Success()
+    {
+        TargetRole targetRole =eventService.getRole("PLANNER");
+       assertEquals(targetRole.getName(), "PLANNER");
+    }
+
+    @Test
+    @DisplayName("getHashTag 실패 테스트")
+    public void getHashTagByName_Fail()
+    {
+        EventException exception =
+                assertThrows(EventException.class, () -> eventService.getHashTag("잘못된 이름"));
+        System.out.println(exception.getMessage());
+        System.out.println(exception.getResultCode());
+        assertEquals(HashTagErrorCode.HAST_TAG_NOT_FOUND, exception.getResultCode());
+    }
+
+    @Test
+    @DisplayName("getHashTag 성공 테스트")
+    public void getHashTagByName_Success()
+    {
+        HashTag targetRole =eventService.getHashTag("#스포츠");
+        assertEquals(targetRole.getName(), "#스포츠");
+    }
+
+
 
 
 
