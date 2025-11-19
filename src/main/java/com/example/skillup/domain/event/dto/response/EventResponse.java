@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -112,8 +113,9 @@ public class EventResponse {
 
     @Getter @Builder
     public static class SearchEventResponseList{
-        private Integer total;
-        private List<HomeEventResponse> homeEventResponseList;
+        private int total;
+        @Builder.Default
+        private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
     }
 
     @Getter @Builder

@@ -105,7 +105,6 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("since", since)
                 .setParameter("now", now);
 
-
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 

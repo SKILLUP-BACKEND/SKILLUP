@@ -323,17 +323,20 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getEventBySearch(EventRequest.EventSearchCondition condition) {
+    public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition) {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        return events.stream()
+        int count=eventRepository.countByCategoryWithSearch(condition.getCategory().name(),condition.getIsOnline()
+                ,condition.getIsFree(),condition.getStartDate(),condition.getEndDate(),condition.getTargetRoles(),now);
+
+        return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {
                     Event event = r.getEvent();
                     double score = r.getPopularity();
                     return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
                 })
-                .toList();
+                .toList()).total(count).build();
     }
 
     @Transactional(readOnly = true)

@@ -316,16 +316,17 @@ public class EventServiceTest {
 
         for(int i=0;i<20;i++)
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
-        List<EventResponse.HomeEventResponse> resultByCategory
+        EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
-        List<EventResponse.HomeEventResponse> resultByCategory2
+        EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
 
-        assertThat(resultByCategory).isNotEmpty();
-        assertEquals(12, resultByCategory.size());
-        assertEquals(8, resultByCategory2.size());
+        assertThat(resultByCategory).isNotNull();
+        System.out.println(resultByCategory.getTotal());
+        assertEquals(12, resultByCategory.getHomeEventResponseList().size());
+        assertEquals(8, resultByCategory2.getHomeEventResponseList().size());
     }
 
     @Test
@@ -443,26 +444,29 @@ public class EventServiceTest {
 
 
 
-        List<EventResponse.HomeEventResponse> resultsByPopularity = eventService.getEventBySearch(condPopularity);
+        EventResponse.SearchEventResponseList resultsByPopularity = eventService.getEventBySearch(condPopularity);
 
-        List<EventResponse.HomeEventResponse> resultsByLatest = eventService.getEventBySearch(condLatest);
+        EventResponse.SearchEventResponseList resultsByLatest = eventService.getEventBySearch(condLatest);
 
-        List<EventResponse.HomeEventResponse> resultsByDeadLine = eventService.getEventBySearch(condDeadline);
+        EventResponse.SearchEventResponseList resultsByDeadLine = eventService.getEventBySearch(condDeadline);
 
         // assertions
-        assertThat(resultsByDeadLine).isNotEmpty();
-        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByDeadLine).isNotNull();
+        assertThat(resultsByDeadLine.getHomeEventResponseList().get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByDeadLine.getTotal()).isEqualTo(resultsByPopularity.getTotal());
 
-        assertThat(resultsByLatest).isNotEmpty();
-        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event3.getId());
+        assertThat(resultsByLatest).isNotNull();
+        assertThat(resultsByLatest.getHomeEventResponseList().get(0).getId()).isEqualTo(event3.getId());
 
-        assertThat(resultsByPopularity).isNotEmpty();
-        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByPopularity).isNotNull();
+        assertThat(resultsByPopularity.getHomeEventResponseList().get(0).getId()).isEqualTo(event2.getId());
 
-        for(EventResponse.HomeEventResponse event :resultsByPopularity)
+        for(EventResponse.HomeEventResponse event :resultsByPopularity.getHomeEventResponseList())
         {
             System.out.println(event.getRecommendedRate());
         }
+
+        System.out.println(resultsByLatest.getTotal());
 
 
 
