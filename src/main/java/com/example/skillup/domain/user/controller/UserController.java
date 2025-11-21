@@ -1,18 +1,15 @@
 package com.example.skillup.domain.user.controller;
 
 
-import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.domain.user.dto.response.UserResponseDto;
 import com.example.skillup.domain.user.service.UserService;
-import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/user")

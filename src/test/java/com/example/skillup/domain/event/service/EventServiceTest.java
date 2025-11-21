@@ -1,13 +1,41 @@
 package com.example.skillup.domain.event.service;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.*;
-import com.example.skillup.domain.event.enums.*;
-import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventAction;
+import com.example.skillup.domain.event.entity.EventViewDaily;
+import com.example.skillup.domain.event.entity.HashTag;
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventViewDailyRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,22 +47,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.lang.Thread.sleep;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -274,7 +286,7 @@ public class EventServiceTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
-    void hideEvent_Success_Test() throws Exception {
+    void visibilityEvent_Success_Test() throws Exception {
 
         Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
 

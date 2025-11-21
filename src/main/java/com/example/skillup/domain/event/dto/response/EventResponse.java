@@ -2,14 +2,13 @@ package com.example.skillup.domain.event.dto.response;
 
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 public class EventResponse {
 
@@ -38,8 +37,8 @@ public class EventResponse {
         private Integer price;
 
         private Boolean isOnline;
-        private String locationText;
-        private String locationLink;
+        private String locationText; //TODO : 위치 자표를 받는 거 고민
+        private String locationLink; //TODO : 필요한지 고민
 
         private String applyLink;
 
@@ -50,6 +49,8 @@ public class EventResponse {
         private String description;
 
         private Set<String> hashTags;
+
+        private boolean bookmarked;
 
         private Set<String> targetRoles;
     }

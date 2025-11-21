@@ -2,7 +2,11 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.*;
+import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventBanner;
+import com.example.skillup.domain.event.entity.EventLike;
+import com.example.skillup.domain.event.entity.HashTag;
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
@@ -11,26 +15,29 @@ import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
-import com.example.skillup.domain.event.repository.*;
-import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventBannerRepository;
+import com.example.skillup.domain.event.repository.EventLikeRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.search.service.EventIndexerService;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +46,16 @@ public class EventService {
     private final EventMapper eventMapper;
     private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
+    private final EventBookmarkService eventBookmarkService;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
     private final HashTagRepository hashTagRepository;
     private final EventIndexerService eventIndexerService;
+
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
                     EventCategory.NETWORKING_MENTORING,
@@ -89,8 +99,9 @@ public class EventService {
                 .distinct()
                 .forEach(hashtagName -> {
                     HashTag hashTag = hashTagRepository.findByName(hashtagName)
-                            .orElseThrow(() ->new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName+"에"));
-                            event.addHashTag(hashTag);
+                            .orElseThrow(
+                                    () -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName + "에"));
+                    event.addHashTag(hashTag);
                 });
         // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
         // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
@@ -142,7 +153,6 @@ public class EventService {
             });
         }
 
-
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
@@ -150,48 +160,42 @@ public class EventService {
 
 
     @Transactional
-    public EventResponse.CommonEventResponse hideEvent(Long eventId) {
+    public EventResponse.CommonEventResponse visibilityEvent(Long eventId , boolean isVisible) {
         Event event = eventRepository.getEvent(eventId);
 
-        if (event.getStatus() == EventStatus.HIDDEN) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_HIDDEN, "EventID가 " + eventId + "는");
+        EventStatus status = (isVisible ? EventStatus.PUBLISHED : EventStatus.HIDDEN);
+
+        event.setStatus(status);
+
+        if (isVisible) {
+            eventIndexerService.index(event);
+        }else {
+            eventIndexerService.delete(event.getId());
         }
-
-        event.setStatus(EventStatus.HIDDEN);
-
-        eventIndexerService.delete(event.getId());
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
-
-    @Transactional
-    public EventResponse.CommonEventResponse publishEvent(Long eventId) {
-        Event event = eventRepository.getEvent(eventId);
-        if (event.getStatus() == EventStatus.PUBLISHED) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED, "EventID가 " + eventId + "는");
-        }
-
-        event.setStatus(EventStatus.PUBLISHED);
-
-        eventIndexerService.index(event);
-
-        return new EventResponse.CommonEventResponse(event.getId());
-    }
-
     @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId,
-                                                            Collection<? extends GrantedAuthority> authorities) {
+                                                            UsersDetails user) {
         Event event = eventRepository.getEvent(eventId);
 
-        boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+        boolean isAdmin = false;
+        if (user != null) {
+            isAdmin = user.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+        }
 
-        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
+        //일반 사용자라면 북마크 여부 추가해주기 비회원인경우 패스
+        if (!isAdmin && user != null) {
+            boolean isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
+            return eventMapper.toEventDetailInfo(event, isBookmarked);
+        }
 
-        return eventMapper.toEventDetailInfo(event);
+        return eventMapper.toEventDetailInfo(event, false);
     }
 
     @Transactional(readOnly = true)
@@ -327,8 +331,9 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        int count=eventRepository.countByCategoryWithSearch(condition.getCategory().name(),condition.getIsOnline()
-                ,condition.getIsFree(),condition.getStartDate(),condition.getEndDate(),condition.getTargetRoles(),now);
+        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
+                now);
 
         return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {
@@ -377,28 +382,25 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId)
-    {
-        List<Event> events=eventRepository.findRecommendedEventForHome(actorId,since);
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId) {
+        List<Event> events = eventRepository.findRecommendedEventForHome(actorId, since);
 
         return events.stream()
                 .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
                 })
                 .toList();
     }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId)
-    {
+    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId) {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Event>events=eventActionRepository.findRecentEventsByActorId(actorId,pageable);
-
+        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable);
 
         return events.stream()
                 .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
                 })
                 .toList();
 

@@ -1,15 +1,13 @@
 package com.example.skillup.global.auth;
 
-import com.example.skillup.global.auth.jwt.JwtProperties;
-import com.example.skillup.global.auth.jwt.JwtProvider;
-import org.junit.jupiter.api.Test;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-import java.time.Duration;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
+
+import com.example.skillup.global.auth.jwt.JwtProperties;
+import com.example.skillup.global.auth.jwt.JwtProvider;
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 public class JwtProviderTest {
 
