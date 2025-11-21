@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import jakarta.validation.constraints.Max;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -110,6 +112,7 @@ public class EventServiceTest {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
                 .filter(r -> r.getName().equals("DESIGNER"))
                 .collect(Collectors.toSet());
+        roles.add(targetRoleRepository.findByName("AI_DEVELOPER").orElseThrow());
         Set<HashTag> tags = new HashSet<>();
         tags.add(hashTagRepository.findByName("#PLANNER").orElseThrow());
 
@@ -330,7 +333,7 @@ public class EventServiceTest {
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
         EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).targetRoles(List.of("DESIGNER","AI_DEVELOPER")).sort("latest").page(0).build());
         EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
