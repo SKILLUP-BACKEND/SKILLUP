@@ -1,5 +1,6 @@
 package com.example.skillup.domain.event.repository;
 
+import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.exception.EventErrorCode;
@@ -276,6 +277,28 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
 
 
+    @Query(value = """
+    SELECT COUNT(DISTINCT e.id)
+    FROM event e
+    LEFT JOIN event_target_role etr ON etr.event_id = e.id
+    LEFT JOIN target_role tr ON tr.id = etr.role_id
+    WHERE (:category IS NULL OR e.category = :category)
+      AND (e.event_end IS NULL OR e.event_end >= :now)
+      AND (e.status = 'PUBLISHED')
+      AND (:isOnline IS NULL OR e.is_online = :isOnline)
+      AND (:isFree IS NULL OR e.is_free = :isFree)
+      AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
+      AND (:targetRoles IS NULL OR tr.name IN (:targetRoles))
+""", nativeQuery = true)
+    int countByCategoryWithSearch(
+            @Param("category") String category,
+            @Param("isOnline") Boolean isOnline,
+            @Param("isFree") Boolean isFree,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("targetRoles") List<String> targetRoles,
+            @Param("now") LocalDateTime now
+    );
 
 
 

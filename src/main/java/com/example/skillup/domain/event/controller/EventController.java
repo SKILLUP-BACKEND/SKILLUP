@@ -142,10 +142,10 @@ public class EventController {
 
     @PostMapping("category-page/search")
     @Operation(summary = "행사 카테고리 페이지에서 검색하는 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getEventBySearch(
+    public BaseResponse<EventResponse.SearchEventResponseList> getEventBySearch(
             @Valid @RequestBody EventRequest.EventSearchCondition condition
     ){
-        List<EventResponse.HomeEventResponse> response = eventService.getEventBySearch(condition);
+        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
     @GetMapping("category-page/recommended")
