@@ -99,8 +99,9 @@ public class EventService {
                 .distinct()
                 .forEach(hashtagName -> {
                     HashTag hashTag = hashTagRepository.findByName(hashtagName)
-                            .orElseThrow(() ->new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName+"에"));
-                            event.addHashTag(hashTag);
+                            .orElseThrow(
+                                    () -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName + "에"));
+                    event.addHashTag(hashTag);
                 });
         // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
         // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
@@ -152,7 +153,6 @@ public class EventService {
             });
         }
 
-
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
@@ -160,34 +160,21 @@ public class EventService {
 
 
     @Transactional
-    public EventResponse.CommonEventResponse hideEvent(Long eventId) {
+    public EventResponse.CommonEventResponse visibilityEvent(Long eventId , boolean isVisible) {
         Event event = eventRepository.getEvent(eventId);
 
-        if (event.getStatus() == EventStatus.HIDDEN) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_HIDDEN, "EventID가 " + eventId + "는");
+        EventStatus status = (isVisible ? EventStatus.PUBLISHED : EventStatus.HIDDEN);
+
+        event.setStatus(status);
+
+        if (isVisible) {
+            eventIndexerService.index(event);
+        }else {
+            eventIndexerService.delete(event.getId());
         }
-
-        event.setStatus(EventStatus.HIDDEN);
-
-        eventIndexerService.delete(event.getId());
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
-
-    @Transactional
-    public EventResponse.CommonEventResponse publishEvent(Long eventId) {
-        Event event = eventRepository.getEvent(eventId);
-        if (event.getStatus() == EventStatus.PUBLISHED) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED, "EventID가 " + eventId + "는");
-        }
-
-        event.setStatus(EventStatus.PUBLISHED);
-
-        eventIndexerService.index(event);
-
-        return new EventResponse.CommonEventResponse(event.getId());
-    }
-
     @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId,
                                                             UsersDetails user) {
@@ -344,8 +331,9 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        int count=eventRepository.countByCategoryWithSearch(condition.getCategory().name(),condition.getIsOnline()
-                ,condition.getIsFree(),condition.getStartDate(),condition.getEndDate(),condition.getTargetRoles(),now);
+        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
+                now);
 
         return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {
@@ -394,28 +382,25 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId)
-    {
-        List<Event> events=eventRepository.findRecommendedEventForHome(actorId,since);
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId) {
+        List<Event> events = eventRepository.findRecommendedEventForHome(actorId, since);
 
         return events.stream()
                 .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
                 })
                 .toList();
     }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId)
-    {
+    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId) {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Event>events=eventActionRepository.findRecentEventsByActorId(actorId,pageable);
-
+        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable);
 
         return events.stream()
                 .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false,event.isRecommendedManual() , event.isAd(), null);
+                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
                 })
                 .toList();
 

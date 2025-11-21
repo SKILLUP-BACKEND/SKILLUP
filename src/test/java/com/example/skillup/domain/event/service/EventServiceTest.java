@@ -286,7 +286,7 @@ public class EventServiceTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
-    void hideEvent_Success_Test() throws Exception {
+    void visibilityEvent_Success_Test() throws Exception {
 
         Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
 
