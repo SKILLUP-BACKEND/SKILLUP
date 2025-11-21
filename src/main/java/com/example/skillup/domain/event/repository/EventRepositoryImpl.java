@@ -82,11 +82,19 @@ public class EventRepositoryImpl implements EventRepositoryNative {
           AND (:isOnline IS NULL OR e.is_online = :isOnline)
           AND (:isFree IS NULL OR e.is_free = :isFree)
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
-        GROUP BY e.id
         """;
 
-        if (cond.getTargetRoles() != null && !cond.getTargetRoles().isEmpty()) {
-            baseQuery+="AND tr.name IN (:targetRoles) ";
+        boolean hasTargetRoles = cond.getTargetRoles() != null && !cond.getTargetRoles().isEmpty();
+
+        if (hasTargetRoles) {
+            baseQuery += " AND tr.name IN (:targetRoles) ";
+        }
+
+        baseQuery += " GROUP BY e.id ";
+
+        if (hasTargetRoles) {
+            //교집합 조건
+            baseQuery += " HAVING COUNT(DISTINCT tr.name) = :targetRoleCount ";
         }
 
         String orderBy = switch (cond.getSort()) {
@@ -101,9 +109,17 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
-                .setParameter("targetRoles", cond.getTargetRoles())
                 .setParameter("since", since)
                 .setParameter("now", now);
+
+
+        if (hasTargetRoles) {
+            query.setParameter("targetRoles", cond.getTargetRoles());
+            query.setParameter("targetRoleCount", cond.getTargetRoles().size());
+        }
+
+
+
 
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
