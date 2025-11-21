@@ -101,6 +101,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
+                .setParameter("targetRoles", cond.getTargetRoles())
                 .setParameter("since", since)
                 .setParameter("now", now);
 
