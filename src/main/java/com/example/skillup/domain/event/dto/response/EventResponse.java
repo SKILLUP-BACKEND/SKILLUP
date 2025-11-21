@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.dto.response;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -47,7 +48,7 @@ public class EventResponse {
 
         private String description;
 
-        private String hashtags;
+        private Set<String> hashTags;
 
         private boolean bookmarked;
 
@@ -97,7 +98,7 @@ public class EventResponse {
 
         private EventCategory category;
         //점수 제대로 뜨는지 확인 용
-        private double recommendedRate;
+        private Double recommendedRate;
     }
 
     @Getter @Builder
@@ -113,8 +114,9 @@ public class EventResponse {
 
     @Getter @Builder
     public static class SearchEventResponseList{
-        private Integer total;
-        private List<HomeEventResponse> homeEventResponseList;
+        private int total;
+        @Builder.Default
+        private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
     }
 
     @Getter @Builder

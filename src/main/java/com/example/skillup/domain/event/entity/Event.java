@@ -1,18 +1,31 @@
 package com.example.skillup.domain.event.entity;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.global.common.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.SQLRestriction;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import static lombok.AccessLevel.PROTECTED;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
@@ -80,9 +93,16 @@ public class Event extends BaseEntity {
     // 행사 설명
     @Column(columnDefinition = "TEXT")
     private String description;
-    //최대 다섯개
-    @Column(columnDefinition = "TEXT")
-    private String hashtags;
+
+    @Builder.Default
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "event_hash_tags",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "hash_tags_id")
+    )
+    private Set<HashTag> hashTags= new HashSet<>();
+
 
     @Column(name = "views_count", nullable = false)
     private long viewsCount = 0L;
@@ -106,6 +126,10 @@ public class Event extends BaseEntity {
         role.getEvents().add(this);
     }
 
+    public void addHashTag(HashTag tag) {
+        hashTags.add(tag);
+    }
+
 
     public void update(EventRequest.UpdateEvent request) {
         this.title = request.getTitle();
@@ -124,6 +148,6 @@ public class Event extends BaseEntity {
         this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
-        this.hashtags = request.getHashtags();
+
     }
 }

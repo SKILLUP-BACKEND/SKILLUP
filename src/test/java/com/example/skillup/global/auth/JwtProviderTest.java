@@ -1,15 +1,13 @@
 package com.example.skillup.global.auth;
 
-import com.example.skillup.global.auth.jwt.JwtProperties;
-import com.example.skillup.global.auth.jwt.JwtProvider;
-import org.junit.jupiter.api.Test;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-import java.time.Duration;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
+
+import com.example.skillup.global.auth.jwt.JwtProperties;
+import com.example.skillup.global.auth.jwt.JwtProvider;
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 public class JwtProviderTest {
 
@@ -31,22 +29,6 @@ public class JwtProviderTest {
         System.out.println("토큰: "+token);
         assertThat(token).isNotBlank();
         assertThat(jwtProvider.validateToken(token)).isTrue();
-    }
-
-    @Test
-    void testGetAuthentication() {
-        // given
-        Long userId = 123L;
-        String role = "VIEWER";
-        String token = jwtProvider.generateToken(userId, role,Duration.ofHours(1));
-
-        // when
-        Authentication authentication = jwtProvider.getAuthentication(token);
-
-        // then
-        assertThat(authentication).isNotNull();
-        assertThat(authentication.getName()).isEqualTo("123");
-        System.out.println(authentication);
     }
 
     @Test

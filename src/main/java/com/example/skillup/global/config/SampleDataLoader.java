@@ -21,16 +21,15 @@ import com.example.skillup.global.search.entity.SynonymGroup;
 import com.example.skillup.global.search.entity.SynonymTerm;
 import com.example.skillup.global.search.repository.SynonymGroupRepository;
 import com.example.skillup.global.search.repository.SynonymTermRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @Profile("local-seed") // 실행 프로필: local-seed 일 때만 동작
@@ -82,7 +81,6 @@ public class SampleDataLoader implements CommandLineRunner {
                 .locationText("서울 강남")
                 .locationLink("https://maps.example.com/abc")
                 .contact("admin@example.com")
-                .hashtags("#백엔드,#부트캠프")
                 .recommendedManual(false)
                 .ad(false)
                 .description("실무형 백엔드 집중 과정")
@@ -108,7 +106,6 @@ public class SampleDataLoader implements CommandLineRunner {
                 .applyLink("https://example.com/apply/hack")
                 .locationText("온라인")
                 .contact("hack@example.com")
-                .hashtags("#AI,#해커톤")
                 .recommendedManual(false)
                 .ad(false)
                 .description("인공지능 주제 해커톤")
@@ -135,7 +132,6 @@ public class SampleDataLoader implements CommandLineRunner {
                 .applyLink("https://example.com/apply/seminar")
                 .locationText("판교 테크노밸리")
                 .contact("seminar@example.com")
-                .hashtags("#클라우드,#세미나")
                 .recommendedManual(false)
                 .ad(false)
                 .description("클라우드 최신 동향 공유")
@@ -161,7 +157,6 @@ public class SampleDataLoader implements CommandLineRunner {
                 .applyLink("https://example.com/apply/fe")
                 .locationText("서울 서초")
                 .contact("fe@example.com")
-                .hashtags("#프론트,#부트캠프")
                 .recommendedManual(false)
                 .ad(false)
                 .description("프론트엔드 집중 과정")

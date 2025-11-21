@@ -1,0 +1,65 @@
+name: CI-CD Deploy (DEV)
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Build Project (skip tests)
+        run: ./gradlew clean build -x test
+
+      - name: Build Docker Image
+        run: |
+          docker build  -f Dockerfile_dev -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME }}:dev .
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME }}:dev
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.DEV_EC2_HOST }}
+          username: ${{ secrets.DEV_EC2_USER }}
+          key: ${{ secrets.DEV_EC2_SSH_KEY }}
+          script: |
+            echo "📦 최신 이미지 Pull"
+            sudo docker compose pull
+
+            echo "📦 기존 컨테이너 제거"
+            docker compose down --rmi all --volumes
+            
+            echo "🚀 서비스 재시작"
+            sudo docker compose up -d
+
+            echo "⏳ MySQL 부팅 대기중..."
+            until docker exec skillup-mysql mysqladmin ping -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} --silent; do
+              sleep 1
+            done
+
+            
+            docker exec -i skillup-mysql sh -c "mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} skillup" < seed.sql
+            echo "🎉 Seed 데이터 삽입 성공"
+      
+            echo "🎉 DEV 배포 완료!"
