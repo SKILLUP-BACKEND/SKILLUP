@@ -82,7 +82,7 @@ public class EventMapper {
         String priceText = event.getIsFree() != null && event.getIsFree()
                 ? "무료"
                 : (event.getPrice() != null
-                        ? NumberFormat.getNumberInstance(Locale.KOREA).format(event.getPrice()) + "₩"
+                        ? NumberFormat.getNumberInstance(Locale.KOREA).format(event.getPrice()) + "원"
                         : null);
 
         String d_day = calcDdayLabel(event.getRecruitEnd());

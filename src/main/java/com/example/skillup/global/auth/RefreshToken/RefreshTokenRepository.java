@@ -10,8 +10,9 @@ import java.util.Optional;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long>
 {
     @Modifying
-    @Query("UPDATE RefreshToken r SET r.refreshToken = :refreshToken WHERE r.userId = :userId")
-    int updateTokenByUserId(@Param("userId") Long userId, @Param("refreshToken") String refreshToken);
+    @Query("UPDATE RefreshToken r SET r.refreshToken = :refreshToken WHERE r.email = :email")
+    int updateTokenByUserId(@Param("email") String email, @Param("refreshToken") String refreshToken);
 
-    Optional<RefreshToken> findByUserId(Long userId);
+    Optional<RefreshToken> findByEmail(String email);
+
 }

@@ -20,12 +20,12 @@ public class JwtProviderTest {
     @Test
     void testGenerateAndValidateToken() {
         // given
-        Long userId = 123L;
+        String email = "VIEWER";
         String role = "VIEWER";
 
 
         // when
-        String token = jwtProvider.generateToken(userId, role, Duration.ofHours(1));
+        String token = jwtProvider.generateToken(email, role, Duration.ofHours(1));
 
         // then
         System.out.println("토큰: "+token);

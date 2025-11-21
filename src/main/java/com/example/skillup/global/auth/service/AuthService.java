@@ -4,6 +4,8 @@ import com.example.skillup.global.auth.RefreshToken.RefreshToken;
 import com.example.skillup.global.auth.RefreshToken.RefreshTokenRepository;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.jwt.JwtProvider;
+import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +23,23 @@ public class AuthService
     private static final Duration ACCESS_TOKEN_EXP = Duration.ofHours(1);
 
     @Transactional
-    public TokenResponse login(Long id, String role) {
+    public TokenResponse login(String email, String role) {
 
-        String accessToken = jwtProvider.generateToken(id,role,ACCESS_TOKEN_EXP);
-        String refreshToken = jwtProvider.generateToken(id,role,REFRESH_TOKEN_EXP);
+        String accessToken = jwtProvider.generateToken(email,role,ACCESS_TOKEN_EXP);
+        String refreshToken = jwtProvider.generateToken(email,role,REFRESH_TOKEN_EXP);
 
-        if(id == null){
-            refreshTokenRepository.save(RefreshToken.of(refreshToken));
-        }
-        else {
-            refreshTokenRepository.findByUserId(id)
+            refreshTokenRepository.findByEmail(email)
                     .ifPresentOrElse(
-                            existing -> refreshTokenRepository.updateTokenByUserId(id, refreshToken),
-                            () -> refreshTokenRepository.save(RefreshToken.of(id, refreshToken))
+                            exiting -> refreshTokenRepository.updateTokenByUserId(email, refreshToken),
+                            () -> refreshTokenRepository.save(RefreshToken.builder().email(email).refreshToken(refreshToken).build())
                     );
-        }
 
-        return TokenResponse.of(accessToken,refreshToken);
+
+        return TokenResponse.of(accessToken);
+    }
+
+    public RefreshToken getRefreshTokenByUserId(String email) {
+        return refreshTokenRepository.findByEmail(email)
+                .orElseThrow(() -> new GlobalException(CommonErrorCode.DATA_NOT_FOUND));
     }
 }

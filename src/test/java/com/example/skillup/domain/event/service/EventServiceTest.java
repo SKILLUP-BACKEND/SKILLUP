@@ -112,8 +112,8 @@ public class EventServiceTest {
                 .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
                 .recruitStart(LocalDateTime.of(2025, 9, 12, 10, 0))
-                .isFree(true)
-                .price(null)
+                .isFree(false)
+                .price(15000)
                 .isOnline(true)
                 .locationLink("http://example.com")
                 .locationText("test")
@@ -325,6 +325,7 @@ public class EventServiceTest {
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
 
+        System.out.println(resultByCategory.get(0).getPriceText());
         assertThat(resultByCategory).isNotEmpty();
         assertEquals(12, resultByCategory.size());
         assertEquals(8, resultByCategory2.size());
