@@ -43,6 +43,7 @@ public class Users extends BaseEntity
     @Column(length = 10, nullable = false)
     private String role;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private UserStatus status;
 
@@ -55,7 +56,8 @@ public class Users extends BaseEntity
     private LocalDateTime lastLoginAt;
 
     private String socialId;
-
+    
+    @Enumerated(EnumType.STRING)
     private SocialLoginType socialLoginType;
 
 
