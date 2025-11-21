@@ -36,11 +36,10 @@ public class JwtProvider {
 
     public String generateToken(String email, String role, Duration expiredAt)
     {
-        String subject = email==null ? "admin":  email;
         Date now = new Date();
 
         return Jwts.builder()
-                .setSubject(subject)
+                .setSubject(email)
                 .setIssuer(jwtProperties.getIssuer())
                 .claim("roles", role)
                 .setIssuedAt(new Date())
