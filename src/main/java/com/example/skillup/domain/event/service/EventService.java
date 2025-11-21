@@ -331,9 +331,7 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
-                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
-                now);
+        int count = eventRepository.countAllEvents();
 
         return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {

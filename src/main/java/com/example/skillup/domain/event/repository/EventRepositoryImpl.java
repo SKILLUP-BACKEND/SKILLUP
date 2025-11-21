@@ -82,9 +82,12 @@ public class EventRepositoryImpl implements EventRepositoryNative {
           AND (:isOnline IS NULL OR e.is_online = :isOnline)
           AND (:isFree IS NULL OR e.is_free = :isFree)
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
-          AND (:targetRoles IS NULL OR tr.name IN (:targetRoles))
         GROUP BY e.id
         """;
+
+        if (cond.getTargetRoles() != null && !cond.getTargetRoles().isEmpty()) {
+            baseQuery+="AND tr.name IN (:targetRoles) ";
+        }
 
         String orderBy = switch (cond.getSort()) {
             case "latest" -> " ORDER BY e.created_at DESC";
@@ -98,7 +101,6 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
-                .setParameter("targetRoles", cond.getTargetRoles())
                 .setParameter("since", since)
                 .setParameter("now", now);
 
