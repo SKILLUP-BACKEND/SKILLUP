@@ -3,6 +3,7 @@ package com.example.skillup.global.config;
 
 import com.example.skillup.global.auth.jwt.JwtAuthenticationFilter;
 import com.example.skillup.global.auth.jwt.JwtProvider;
+import java.util.Arrays;
 import com.example.skillup.global.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/*").permitAll()
                         .requestMatchers("/events/closing-soon").permitAll()
                         .requestMatchers("/oauth/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()));
         return http.build();
     }

@@ -4,18 +4,16 @@ import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
-import org.springframework.data.domain.Pageable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import java.util.Set;
 
 public interface EventRepository extends JpaRepository<Event, Long>, EventRepositoryNative {
     default Event getEvent(Long eventId) {
@@ -275,7 +273,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
 
 
-
+    @Query("SELECT COUNT(e) FROM Event e")
+    int countAllEvents();
 
 
     // 위에는 점수까지 포함(test 용) 아래는 점수 포함하지 않은 쿼리문

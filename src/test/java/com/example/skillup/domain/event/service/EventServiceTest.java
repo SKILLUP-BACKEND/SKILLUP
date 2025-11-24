@@ -1,17 +1,44 @@
 package com.example.skillup.domain.event.service;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.*;
-import com.example.skillup.domain.event.enums.*;
-import com.example.skillup.domain.event.exception.EventException;
-import com.example.skillup.domain.event.exception.HashTagErrorCode;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
-import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventAction;
+import com.example.skillup.domain.event.entity.EventViewDaily;
+import com.example.skillup.domain.event.entity.HashTag;
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventViewDailyRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,21 +49,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.lang.Thread.sleep;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -100,6 +115,7 @@ public class EventServiceTest {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
                 .filter(r -> r.getName().equals("DESIGNER"))
                 .collect(Collectors.toSet());
+        roles.add(targetRoleRepository.findByName("AI_DEVELOPER").orElseThrow());
         Set<HashTag> tags = new HashSet<>();
         tags.add(hashTagRepository.findByName("#PLANNER").orElseThrow());
 
@@ -276,7 +292,7 @@ public class EventServiceTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
-    void hideEvent_Success_Test() throws Exception {
+    void visibilityEvent_Success_Test() throws Exception {
 
         Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
 
@@ -318,17 +334,18 @@ public class EventServiceTest {
 
         for(int i=0;i<20;i++)
             eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
-        List<EventResponse.HomeEventResponse> resultByCategory
+        EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(0).build());
-        List<EventResponse.HomeEventResponse> resultByCategory2
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).targetRoles(List.of("DESIGNER","AI_DEVELOPER")).sort("latest").page(0).build());
+        EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
 
-        System.out.println(resultByCategory.get(0).getPriceText());
-        assertThat(resultByCategory).isNotEmpty();
-        assertEquals(12, resultByCategory.size());
-        assertEquals(8, resultByCategory2.size());
+        assertThat(resultByCategory).isNotNull();
+        System.out.println(resultByCategory.getTotal());
+        assertEquals(12, resultByCategory.getHomeEventResponseList().size());
+        assertEquals(8, resultByCategory2.getHomeEventResponseList().size());
+
     }
 
     @Test
@@ -446,26 +463,29 @@ public class EventServiceTest {
 
 
 
-        List<EventResponse.HomeEventResponse> resultsByPopularity = eventService.getEventBySearch(condPopularity);
+        EventResponse.SearchEventResponseList resultsByPopularity = eventService.getEventBySearch(condPopularity);
 
-        List<EventResponse.HomeEventResponse> resultsByLatest = eventService.getEventBySearch(condLatest);
+        EventResponse.SearchEventResponseList resultsByLatest = eventService.getEventBySearch(condLatest);
 
-        List<EventResponse.HomeEventResponse> resultsByDeadLine = eventService.getEventBySearch(condDeadline);
+        EventResponse.SearchEventResponseList resultsByDeadLine = eventService.getEventBySearch(condDeadline);
 
         // assertions
-        assertThat(resultsByDeadLine).isNotEmpty();
-        assertThat(resultsByDeadLine.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByDeadLine).isNotNull();
+        assertThat(resultsByDeadLine.getHomeEventResponseList().get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByDeadLine.getTotal()).isEqualTo(resultsByPopularity.getTotal());
 
-        assertThat(resultsByLatest).isNotEmpty();
-        assertThat(resultsByLatest.get(0).getId()).isEqualTo(event3.getId());
+        assertThat(resultsByLatest).isNotNull();
+        assertThat(resultsByLatest.getHomeEventResponseList().get(0).getId()).isEqualTo(event3.getId());
 
-        assertThat(resultsByPopularity).isNotEmpty();
-        assertThat(resultsByPopularity.get(0).getId()).isEqualTo(event2.getId());
+        assertThat(resultsByPopularity).isNotNull();
+        assertThat(resultsByPopularity.getHomeEventResponseList().get(0).getId()).isEqualTo(event2.getId());
 
-        for(EventResponse.HomeEventResponse event :resultsByPopularity)
+        for(EventResponse.HomeEventResponse event :resultsByPopularity.getHomeEventResponseList())
         {
             System.out.println(event.getRecommendedRate());
         }
+
+        System.out.println(resultsByLatest.getTotal());
 
 
 

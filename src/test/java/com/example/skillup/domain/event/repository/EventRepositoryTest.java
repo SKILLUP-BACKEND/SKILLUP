@@ -6,6 +6,10 @@ import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.enums.*;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.EntityManager;
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +94,7 @@ public class EventRepositoryTest
 
 
     @Test
+    @Transactional
     void 인덱스가_없는_상황에서_저장() throws NoSuchFieldException, IllegalAccessException {
         long start1 = System.nanoTime();
         for(int i=0;i<9000;i++)

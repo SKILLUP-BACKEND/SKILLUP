@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME }}:dev .
+          docker build  -f Dockerfile_dev -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME }}:dev .
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -48,8 +48,18 @@ jobs:
             sudo docker compose pull
 
             echo "📦 기존 컨테이너 제거"
-            sudo docker compose down
+            docker compose down --rmi all --volumes
+            
             echo "🚀 서비스 재시작"
             sudo docker compose up -d
 
+            echo "⏳ MySQL 부팅 대기중..."
+            until docker exec skillup-mysql mysqladmin ping -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} --silent; do
+              sleep 1
+            done
+
+            
+            docker exec -i skillup-mysql sh -c "mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} skillup" < seed.sql
+            echo "🎉 Seed 데이터 삽입 성공"
+      
             echo "🎉 DEV 배포 완료!"

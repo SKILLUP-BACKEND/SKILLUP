@@ -6,18 +6,15 @@ import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Pageable;
-
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @RequiredArgsConstructor
 public class EventRepositoryImpl implements EventRepositoryNative {
@@ -85,9 +82,20 @@ public class EventRepositoryImpl implements EventRepositoryNative {
           AND (:isOnline IS NULL OR e.is_online = :isOnline)
           AND (:isFree IS NULL OR e.is_free = :isFree)
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
-          AND (:targetRoles IS NULL OR tr.name IN (:targetRoles))
-        GROUP BY e.id
         """;
+
+        boolean hasTargetRoles = cond.getTargetRoles() != null && !cond.getTargetRoles().isEmpty();
+
+        if (hasTargetRoles) {
+            baseQuery += " AND tr.name IN (:targetRoles) ";
+        }
+
+        baseQuery += " GROUP BY e.id ";
+
+        if (hasTargetRoles) {
+            //교집합 조건
+            baseQuery += " HAVING COUNT(DISTINCT tr.name) = :targetRoleCount ";
+        }
 
         String orderBy = switch (cond.getSort()) {
             case "latest" -> " ORDER BY e.created_at DESC";
@@ -101,9 +109,16 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())
                 .setParameter("endDate", cond.getEndDate())
-                .setParameter("targetRoles", cond.getTargetRoles())
                 .setParameter("since", since)
                 .setParameter("now", now);
+
+
+        if (hasTargetRoles) {
+            query.setParameter("targetRoles", cond.getTargetRoles());
+            query.setParameter("targetRoleCount", cond.getTargetRoles().size());
+        }
+
+
 
 
         query.setFirstResult((int) pageable.getOffset());

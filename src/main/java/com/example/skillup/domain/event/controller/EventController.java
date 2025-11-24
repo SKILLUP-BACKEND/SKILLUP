@@ -14,12 +14,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/events")
@@ -39,7 +49,7 @@ public class EventController {
     ) {
         Event event = eventService.createEvent(request);
         String message = event.getStatus() == EventStatus.DRAFT ? "행사가 임시저장 되었습니다." : "행사가 등록되었습니다.";
-        return BaseResponse.success(message ,new EventResponse.CommonEventResponse(event.getId()));
+        return BaseResponse.success(message, new EventResponse.CommonEventResponse(event.getId()));
     }
 
     @PutMapping("/{eventId}")
@@ -50,27 +60,18 @@ public class EventController {
             @RequestBody @Valid EventRequest.UpdateEvent request
     ) {
 
-        return BaseResponse.success("행사가 수정되었습니다.", eventService.updateEvent(eventId,request));
+        return BaseResponse.success("행사가 수정되었습니다.", eventService.updateEvent(eventId, request));
     }
 
-    @PatchMapping("/{eventId}/hide")
+    @PatchMapping("/{eventId}/visibility")
     //@PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 숨김 API", description = "관리자가 특정 행사를 숨김 처리합니다.")
-    public BaseResponse<EventResponse.CommonEventResponse> hideEvent(
-            @PathVariable Long eventId
+    @Operation(summary = "행사 숨김/공개 API", description = "행사의 id 와 행사의 상태의 값을 입력해주세요 입력해주신 값으로 변경됩니다. true 공개 false 숨김")
+    public BaseResponse<EventResponse.CommonEventResponse> visibilityEvent(
+            @PathVariable Long eventId,
+            @RequestParam @NotNull boolean visibility
     ) {
-
-        return BaseResponse.success("행사가 숨김 처리되었습니다.", eventService.hideEvent(eventId));
-    }
-
-    @PatchMapping("/{eventId}/publish")
-    //@PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 공개 API" , description = "관리자가 특정 행사를 공개 처리합니다.")
-    public BaseResponse<EventResponse.CommonEventResponse> publishEvent(
-            @PathVariable Long eventId
-    ) {
-
-        return BaseResponse.success("행사가 공개되었습니다.", eventService.publishEvent(eventId));
+        String responseText = (visibility ? "공개" : "숨김");
+        return BaseResponse.success("행사가 " + responseText + " 처리되었습니다.", eventService.visibilityEvent(eventId , visibility));
     }
 
 
@@ -82,16 +83,16 @@ public class EventController {
     public BaseResponse<EventResponse.CommonEventResponse> deleteEvent(
             @PathVariable Long eventId
     ) {
-        return BaseResponse.success("행사가 삭제되었습니다." , eventService.deleteEvent(eventId));
+        return BaseResponse.success("행사가 삭제되었습니다.", eventService.deleteEvent(eventId));
     }
 
     @GetMapping("/{eventId}")
     @Operation(summary = "행사 상세 조회 API", description = "특정 행사의 상세 정보를 불러옵니다.")
     public BaseResponse<EventResponse.EventSelectResponse> getEventDetail(
             @PathVariable Long eventId,
-            @AuthenticationPrincipal UserDetails user
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId , user.getAuthorities());
+        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user);
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
@@ -134,36 +135,37 @@ public class EventController {
     }
 
     @GetMapping("/home/banners")
-    @Operation(summary = "메인 배너 및 서브 배너 리스트" , description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
-    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(){
-        return BaseResponse.success("배너 리스트 조회 성공" , eventService.getEventBanners());
+    @Operation(summary = "메인 배너 및 서브 배너 리스트", description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
+    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners() {
+        return BaseResponse.success("배너 리스트 조회 성공", eventService.getEventBanners());
     }
 
     @PostMapping("category-page/search")
-    @Operation(summary = "행사 카테고리 페이지에서 검색하는 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description="특정 조건의 행사들을 불러옵니다.")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getEventBySearch(
+    @Operation(summary = "행사 카테고리 페이지에서 검색하는 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description = "특정 조건의 행사들을 불러옵니다.")
+    public BaseResponse<EventResponse.SearchEventResponseList> getEventBySearch(
             @Valid @RequestBody EventRequest.EventSearchCondition condition
-    ){
-        List<EventResponse.HomeEventResponse> response = eventService.getEventBySearch(condition);
+    ) {
+        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
+
     @GetMapping("category-page/recommended")
     @Operation(summary = "행사 카테고리 페이지 검색에서 이벤트가 부족할 때 다른 카테고리의 이벤트를 불러옵니다"
-            , description="카테고리 화면 이벤트 보충 api")
+            , description = "카테고리 화면 이벤트 보충 api")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getSupplementaryEvents(
             @RequestParam EventCategory category) {
 
         List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category);
-        return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공",events);
+        return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공", events);
     }
 
     @GetMapping("home/recommended")
     @Operation(summary = "홈 화면에서 해쉬태그 기반으로 이벤트를 추천합니다"
-           , description="홈 화면 이벤트 추천 api")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(@AuthenticationPrincipal UsersDetails user)
-    {
+            , description = "홈 화면 이벤트 추천 api")
+    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(
+            @AuthenticationPrincipal UsersDetails user) {
         List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId());
-        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공",events);
+        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공", events);
     }
 
     @GetMapping("home/recent")
@@ -177,13 +179,13 @@ public class EventController {
                 eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
     }
+
     @GetMapping("/search/home")
-    @Operation(summary = "행사 검색 api", description="검색 내용의 행사들을 불러옵니다.")
+    @Operation(summary = "행사 검색 api", description = "검색 내용의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-           @Valid @ModelAttribute EventRequest.EventSearchRequest request)
-    {
+            @Valid @ModelAttribute EventRequest.EventSearchRequest request) {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
- 
+
     }
 
 }

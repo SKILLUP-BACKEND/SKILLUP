@@ -46,7 +46,7 @@ public class EventMapper {
                 .build();
     }
 
-    public EventResponse.EventSelectResponse toEventDetailInfo(Event event) {
+    public EventResponse.EventSelectResponse toEventDetailInfo(Event event , boolean isBookmarked) {
         return EventResponse.EventSelectResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -65,6 +65,7 @@ public class EventMapper {
                 .status(event.getStatus())
                 .contact(event.getContact())
                 .description(event.getDescription())
+                .bookmarked(isBookmarked)
                 .hashTags(event.getHashTags()
                         .stream()
                         .map(HashTag::getName)

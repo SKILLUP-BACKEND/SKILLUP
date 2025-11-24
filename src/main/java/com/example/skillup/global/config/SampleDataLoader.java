@@ -21,16 +21,15 @@ import com.example.skillup.global.search.entity.SynonymGroup;
 import com.example.skillup.global.search.entity.SynonymTerm;
 import com.example.skillup.global.search.repository.SynonymGroupRepository;
 import com.example.skillup.global.search.repository.SynonymTermRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @Profile("local-seed") // 실행 프로필: local-seed 일 때만 동작
