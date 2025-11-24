@@ -57,9 +57,9 @@ public class OauthController {
             @RequestParam(value = "state", required = false) String state) {
 
 
-        Long userId = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);
+        String email = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);
 
-        TokenResponse tokenResponse = authService.login(userId, "users");
+        TokenResponse tokenResponse = authService.login(email, "users");
 
         return BaseResponse.success("사용자 로그인에 성공했습니다.",tokenResponse);
 

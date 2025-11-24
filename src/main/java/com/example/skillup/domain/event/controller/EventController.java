@@ -5,10 +5,10 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.global.search.service.EventSearchService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
-import com.example.skillup.global.search.service.EventSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -173,7 +173,8 @@ public class EventController {
             description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId) {
+            @CookieValue(value = "guest_id", required = false) String guestId)
+    {
         List<EventResponse.HomeEventResponse> events =
                 eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
@@ -186,6 +187,5 @@ public class EventController {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
 
     }
-
 
 }

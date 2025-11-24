@@ -47,7 +47,7 @@ public class OauthService {
 
 
     @Transactional
-    public Long requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
+    public String requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
 
         SocialOauth client = oauthClientFactory.getClient(socialLoginType);
 
@@ -69,9 +69,9 @@ public class OauthService {
             Users users = UserMapper.of(oauthInfo.email(), oauthInfo.name()
                     , oauthInfo.socialId(), oauthInfo.socialLoginType(), oauthInfo.gender(), oauthInfo.age());
 
-            return userRepository.save(users).getId();
+            return userRepository.save(users).getEmail();
         }
-        return existingUser.get().getId();
+        return existingUser.get().getEmail();
     }
 
 }

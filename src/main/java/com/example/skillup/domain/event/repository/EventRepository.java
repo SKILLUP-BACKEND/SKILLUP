@@ -265,7 +265,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         SELECT ea2.event_id
         FROM event_action ea2
         WHERE ea2.actor_id = :actorId
-          AND ea2.action_type = 'VIEW'
     )
     GROUP BY e.id
     ORDER BY SUM(tt.score) DESC LIMIT 6

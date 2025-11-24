@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.validation.constraints.Max;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +49,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -125,8 +128,8 @@ public class EventServiceTest {
                 .category(category) // 전달받은 값 사용
                 .recruitEnd(LocalDateTime.of(2025, 9, 12, 12, 0))
                 .recruitStart(LocalDateTime.of(2025, 9, 12, 10, 0))
-                .isFree(true)
-                .price(null)
+                .isFree(false)
+                .price(15000)
                 .isOnline(true)
                 .locationLink("http://example.com")
                 .locationText("test")
@@ -342,6 +345,7 @@ public class EventServiceTest {
         System.out.println(resultByCategory.getTotal());
         assertEquals(12, resultByCategory.getHomeEventResponseList().size());
         assertEquals(8, resultByCategory2.getHomeEventResponseList().size());
+
     }
 
     @Test
@@ -564,6 +568,46 @@ public class EventServiceTest {
         }
 
     }
+
+    @Test
+    @DisplayName("getRole 실패 테스트")
+    public void getTargetRoleByName_Fail()
+    {
+        EventException exception =
+                assertThrows(EventException.class, () -> eventService.getRole("잘못된 이름"));
+        System.out.println(exception.getMessage());
+        System.out.println(exception.getResultCode());
+        assertEquals(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, exception.getResultCode());
+    }
+
+    @Test
+    @DisplayName("getRole 성공 테스트")
+    public void getTargetRoleByName_Success()
+    {
+        TargetRole targetRole =eventService.getRole("PLANNER");
+       assertEquals(targetRole.getName(), "PLANNER");
+    }
+
+    @Test
+    @DisplayName("getHashTag 실패 테스트")
+    public void getHashTagByName_Fail()
+    {
+        EventException exception =
+                assertThrows(EventException.class, () -> eventService.getHashTag("잘못된 이름"));
+        System.out.println(exception.getMessage());
+        System.out.println(exception.getResultCode());
+        assertEquals(HashTagErrorCode.HASH_TAG_NOT_FOUND, exception.getResultCode());
+    }
+
+    @Test
+    @DisplayName("getHashTag 성공 테스트")
+    public void getHashTagByName_Success()
+    {
+        HashTag targetRole =eventService.getHashTag("#스포츠");
+        assertEquals(targetRole.getName(), "#스포츠");
+    }
+
+
 
 
 

@@ -15,13 +15,9 @@ import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
-import com.example.skillup.domain.event.repository.EventActionRepository;
-import com.example.skillup.domain.event.repository.EventBannerRepository;
-import com.example.skillup.domain.event.repository.EventLikeRepository;
-import com.example.skillup.domain.event.repository.EventRepository;
-import com.example.skillup.domain.event.repository.EventRepositoryImpl;
-import com.example.skillup.domain.event.repository.HashTagRepository;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
@@ -83,6 +79,25 @@ public class EventService {
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
 
+    @ConvertNotFound(
+            exception = EventException.class,
+            errorCodeEnum = TargetRoleErrorCode.class,
+            errorCodeName = "TARGET_ROLE_NOT_FOUND"
+    )    public TargetRole getRole(String name) {
+        return targetRoleRepository.findByName(name).orElseThrow();
+    }
+
+    @ConvertNotFound(
+            exception = EventException.class,
+            errorCodeEnum = HashTagErrorCode.class,
+            errorCodeName = "HASH_TAG_NOT_FOUND"
+    )
+    public HashTag getHashTag(String name) {
+        return hashTagRepository.findByName(name).orElseThrow();
+    }
+
+
+
     @Transactional
     public Event createEvent(EventRequest.CreateEvent request) {
         Event event = eventMapper.toEntity(request);
@@ -90,18 +105,14 @@ public class EventService {
         request.getTargetRoles().stream()
                 .distinct()
                 .forEach(roleName -> {
-                    TargetRole role = targetRoleRepository.findByName(roleName)
-                            .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND,
-                                    roleName + "에"));
+                    TargetRole role = getRole(roleName);
                     event.addTargetRole(role);
                 });
         request.getHashTags().stream()
                 .distinct()
                 .forEach(hashtagName -> {
-                    HashTag hashTag = hashTagRepository.findByName(hashtagName)
-                            .orElseThrow(
-                                    () -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, hashtagName + "에"));
-                    event.addHashTag(hashTag);
+                    HashTag hashTag = getHashTag(hashtagName);
+                            event.addHashTag(hashTag);
                 });
         // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
         // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
@@ -138,8 +149,7 @@ public class EventService {
             event.getTargetRoles().clear();
 
             request.getTargetRoles().stream().distinct().forEach(name -> {
-                TargetRole role = targetRoleRepository.findByName(name)
-                        .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, name + "에"));
+                TargetRole role = getRole(name);
                 event.addTargetRole(role);
             });
         }
@@ -147,11 +157,11 @@ public class EventService {
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             event.getHashTags().clear();
             request.getHashTags().stream().distinct().forEach(name -> {
-                HashTag hashTag = hashTagRepository.findByName(name)
-                        .orElseThrow(() -> new EventException(HashTagErrorCode.HAST_TAG_NOT_FOUND, name + "에"));
+                HashTag hashTag = getHashTag(name);
                 event.addHashTag(hashTag);
             });
         }
+
 
         eventIndexerService.index(event);
 
@@ -175,6 +185,21 @@ public class EventService {
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
+
+    @Transactional
+    public EventResponse.CommonEventResponse publishEvent(Long eventId) {
+        Event event = eventRepository.getEvent(eventId);
+        if (event.getStatus() == EventStatus.PUBLISHED) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED, "EventID가 " + eventId + "는");
+        }
+
+        event.setStatus(EventStatus.PUBLISHED);
+
+        eventIndexerService.index(event);
+
+        return new EventResponse.CommonEventResponse(event.getId());
+    }
+
     @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId,
                                                             UsersDetails user) {
@@ -186,6 +211,7 @@ public class EventService {
                     .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
         }
 
+        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
@@ -204,9 +230,7 @@ public class EventService {
         String roleFilter = null;
 
         if (roleName != null) {
-            roleFilter = targetRoleRepository.findByName(roleName)
-                    .map(TargetRole::getName)
-                    .orElseThrow(() -> new EventException(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, roleName));
+            roleFilter = getRole(roleName).getName();
         }
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findPopularForHomeWithPopularity(
