@@ -27,6 +27,6 @@ public class UserController
     @GetMapping("/test-login")
     public BaseResponse<String> testLogin()
     {
-        return BaseResponse.success("테스트 용 엑세스 토큰입니다(모든 권한 허용)",authService.login(1L, "users").accessToken());
+        return BaseResponse.success("테스트 용 엑세스 토큰입니다(모든 권한 허용)",authService.login("test@example.com", "users").accessToken());
     }
 }
