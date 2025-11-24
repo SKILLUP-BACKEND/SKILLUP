@@ -85,7 +85,7 @@ public class EventService {
     @ConvertNotFound(
             exception = EventException.class,
             errorCodeEnum = HashTagErrorCode.class,
-            errorCodeName = "HAST_TAG_NOT_FOUND"
+            errorCodeName = "HASH_TAG_NOT_FOUND"
     )
     public HashTag getHashTag(String name) {
         return hashTagRepository.findByName(name).orElseThrow();

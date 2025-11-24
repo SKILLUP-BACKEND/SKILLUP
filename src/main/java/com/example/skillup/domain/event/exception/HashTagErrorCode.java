@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum HashTagErrorCode implements ResultCode {
 
-    HAST_TAG_NOT_FOUND("HAST_TAG_NOT_FOUND", "맞는 추천 대상이 DB 에 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+    HASH_TAG_NOT_FOUND("HASH_TAG_NOT_FOUND", "맞는 추천 대상이 DB 에 존재하지 않습니다.", HttpStatus.NOT_FOUND);
 
 
     private final String code;

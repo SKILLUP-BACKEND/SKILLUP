@@ -576,7 +576,7 @@ public class EventServiceTest {
                 assertThrows(EventException.class, () -> eventService.getHashTag("잘못된 이름"));
         System.out.println(exception.getMessage());
         System.out.println(exception.getResultCode());
-        assertEquals(HashTagErrorCode.HAST_TAG_NOT_FOUND, exception.getResultCode());
+        assertEquals(HashTagErrorCode.HASH_TAG_NOT_FOUND, exception.getResultCode());
     }
 
     @Test
