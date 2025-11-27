@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,11 +23,19 @@ import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.HashTagErrorCode;
+import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
+import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
@@ -34,11 +43,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.example.skillup.domain.event.exception.EventException;
-import com.example.skillup.domain.event.exception.HashTagErrorCode;import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +57,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -78,9 +83,12 @@ public class EventServiceTest {
     private EventViewDailyRepository eventViewDailyRepository;
 
     @Autowired
-    private EventActionRepository  eventActionRepository;
+    private EventActionRepository eventActionRepository;
     @Autowired
     private HashTagRepository hashTagRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private HashTag hashTag;
     private HashTag hashTag2;
@@ -90,6 +98,7 @@ public class EventServiceTest {
     private HashTag hashTag6;
     private HashTag hashTag7;
 
+
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
@@ -97,13 +106,14 @@ public class EventServiceTest {
         targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
-        hashTag=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
-        hashTag2=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
-        hashTag3=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
-        hashTag4=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#IT").build());
-        hashTag5=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#AI").build());
-        hashTag6=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#워크숍").build());
-        hashTag7=hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#PLANNER").build());
+        hashTag = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
+        hashTag2 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
+        hashTag3 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
+        hashTag4 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#IT").build());
+        hashTag5 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#AI").build());
+        hashTag6 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#워크숍").build());
+        hashTag7 = hashTagRepository.save(
+                HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#PLANNER").build());
 
     }
 
@@ -163,7 +173,7 @@ public class EventServiceTest {
                 "http://apply.example.com",
                 "010-1234-5678",
                 "이벤트 설명입니다",
-                List.of("#스포츠","#러닝")
+                List.of("#스포츠", "#러닝")
         );
 
         mockMvc.perform(post("/events")
@@ -201,7 +211,7 @@ public class EventServiceTest {
                 "http://apply.example.com",
                 "010-1234-5678",
                 "임시 저장 설명",
-                List.of("#서울","#IT")
+                List.of("#서울", "#IT")
         );
 
         mockMvc.perform(post("/events")
@@ -286,7 +296,7 @@ public class EventServiceTest {
                 updatedEvent.getHashTags().stream()
                         .map(HashTag::getName)
                         .collect(Collectors.toList())
-        ).containsExactlyInAnyOrder("#AI" , "#워크숍");
+        ).containsExactlyInAnyOrder("#AI", "#워크숍");
         assertThat(updatedEvent.getStatus()).isEqualTo(EventStatus.DRAFT);
     }
 
@@ -321,25 +331,25 @@ public class EventServiceTest {
                 .andExpect(jsonPath("$.message").value("행사가 공개되었습니다."))
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
 
-
         Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
         assertThat(publishedEvent.getStatus()).isEqualTo(EventStatus.PUBLISHED);
     }
 
     @Test
     @DisplayName("카테고리로 행사 조회 페이징 테스트")
-    void getEventBySearch_Paging_Test()
-    {
+    void getEventBySearch_Paging_Test() {
 
-
-        for(int i=0;i<20;i++)
-            eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
+        for (int i = 0; i < 20; i++) {
+            eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
+        }
         EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).targetRoles(List.of("DESIGNER","AI_DEVELOPER")).sort("latest").page(0).build());
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
+                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER")).sort("latest").page(0).build());
         EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest").page(1).build());
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest")
+                        .page(1).build());
 
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
@@ -399,7 +409,6 @@ public class EventServiceTest {
         eventRepository.save(event2);
         eventRepository.save(event3);
 
-
         // event는 3달 이후 조회수 2개 + 3달 이내 조회수 1개
         EventViewDaily oldView = EventViewDaily.builder()
                 .event(event1)
@@ -434,13 +443,13 @@ public class EventServiceTest {
                 .build();
         eventViewDailyRepository.save(recentView3);
 
-        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW).actorId("3L").build();
-        EventAction action2 = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.APPLY).actorId("3L").build();
+        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW)
+                .actorId("3L").build();
+        EventAction action2 = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.APPLY)
+                .actorId("3L").build();
 
         eventActionRepository.save(action);
         eventActionRepository.save(action2);
-
-
 
         // 조건 DTO
         EventRequest.EventSearchCondition condPopularity = EventRequest.EventSearchCondition.builder()
@@ -461,8 +470,6 @@ public class EventServiceTest {
                 .page(0)
                 .build();
 
-
-
         EventResponse.SearchEventResponseList resultsByPopularity = eventService.getEventBySearch(condPopularity);
 
         EventResponse.SearchEventResponseList resultsByLatest = eventService.getEventBySearch(condLatest);
@@ -480,27 +487,24 @@ public class EventServiceTest {
         assertThat(resultsByPopularity).isNotNull();
         assertThat(resultsByPopularity.getHomeEventResponseList().get(0).getId()).isEqualTo(event2.getId());
 
-        for(EventResponse.HomeEventResponse event :resultsByPopularity.getHomeEventResponseList())
-        {
+        for (EventResponse.HomeEventResponse event : resultsByPopularity.getHomeEventResponseList()) {
             System.out.println(event.getRecommendedRate());
         }
 
         System.out.println(resultsByLatest.getTotal());
 
 
-
-
     }
 
     @Test
     @DisplayName("행사 추천 기존 카테고리가 2개 이하여서 다른 카테고리로 보충 성공 테스트")
-    public void getSupplementaryEvents_Success()
-    {
-        Event savedEvent1 =eventRepository.save(createEvent("저장",EventCategory.COMPETITION_HACKATHON));
-        Event savedEvent2 =eventRepository.save(createEvent("저장",EventCategory.CONFERENCE_SEMINAR));
-        Event savedEvent3 =eventRepository.save(createEvent("저장",EventCategory.NETWORKING_MENTORING));
+    public void getSupplementaryEvents_Success() {
+        Event savedEvent1 = eventRepository.save(createEvent("저장", EventCategory.COMPETITION_HACKATHON));
+        Event savedEvent2 = eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
+        Event savedEvent3 = eventRepository.save(createEvent("저장", EventCategory.NETWORKING_MENTORING));
 
-        List<EventResponse.HomeEventResponse> result=eventService.getSupplementaryEvents(EventCategory.NETWORKING_MENTORING);
+        List<EventResponse.HomeEventResponse> result = eventService.getSupplementaryEvents(
+                EventCategory.NETWORKING_MENTORING);
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
@@ -511,8 +515,7 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("해시태그 기반으로 이벤트 추천 테스트")
-    public void getRecommendedEvent_Success()
-    {
+    public void getRecommendedEvent_Success() {
 
         Event event1 = Event.builder()
                 .title("테스트 이벤트1")
@@ -550,20 +553,20 @@ public class EventServiceTest {
                 .recruitEnd(LocalDateTime.now().plusDays(1000))
                 .eventStart(LocalDateTime.now().minusDays(20))
                 .eventEnd(LocalDateTime.now().plusDays(20))
-                .hashTags(new HashSet<>(List.of(hashTag6, hashTag7, hashTag3,hashTag2)))
+                .hashTags(new HashSet<>(List.of(hashTag6, hashTag7, hashTag3, hashTag2)))
                 .build();
 
         eventRepository.saveAll(List.of(event1, event2, event3));
 
-        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW).actorId("3L").build();
+        EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW)
+                .actorId("3L").build();
 
         eventActionRepository.save(action);
 
-        List<EventResponse.HomeEventResponse> events=eventService.getRecommendedEvents(3L);
+        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(3L);
         assertThat(events).isNotEmpty();
         assertThat(events.size()).isEqualTo(2);
-        for(EventResponse.HomeEventResponse event :events)
-        {
+        for (EventResponse.HomeEventResponse event : events) {
             System.out.println(event.getTitle());
         }
 
@@ -571,8 +574,7 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("getRole 실패 테스트")
-    public void getTargetRoleByName_Fail()
-    {
+    public void getTargetRoleByName_Fail() {
         EventException exception =
                 assertThrows(EventException.class, () -> eventService.getRole("잘못된 이름"));
         System.out.println(exception.getMessage());
@@ -582,16 +584,14 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("getRole 성공 테스트")
-    public void getTargetRoleByName_Success()
-    {
-        TargetRole targetRole =eventService.getRole("PLANNER");
-       assertEquals(targetRole.getName(), "PLANNER");
+    public void getTargetRoleByName_Success() {
+        TargetRole targetRole = eventService.getRole("PLANNER");
+        assertEquals(targetRole.getName(), "PLANNER");
     }
 
     @Test
     @DisplayName("getHashTag 실패 테스트")
-    public void getHashTagByName_Fail()
-    {
+    public void getHashTagByName_Fail() {
         EventException exception =
                 assertThrows(EventException.class, () -> eventService.getHashTag("잘못된 이름"));
         System.out.println(exception.getMessage());
@@ -601,14 +601,74 @@ public class EventServiceTest {
 
     @Test
     @DisplayName("getHashTag 성공 테스트")
-    public void getHashTagByName_Success()
-    {
-        HashTag targetRole =eventService.getHashTag("#스포츠");
+    public void getHashTagByName_Success() {
+        HashTag targetRole = eventService.getHashTag("#스포츠");
         assertEquals(targetRole.getName(), "#스포츠");
     }
 
+    @Test
+    @DisplayName("일반유저 및 비회원 행사 조회 및 조회수 , 최근기록 성공 테스트")
+    public void getEventDetail_User_Success() {
+        Users u1 = userRepository.save(
+                Users.builder()
+                        .email("seed1@ex.com")
+                        .name("Seed1")
+                        .gender("남")
+                        .age("15")
+                        .jobGroup("개발자")
+                        .notificationFlag("Y")
+                        .socialId("test")
+                        .regDatetime(LocalDateTime.now())
+                        .socialLoginType(SocialLoginType.google)
+                        .lastLoginAt(LocalDateTime.now())
+                        .status(UserStatus.ACTIVE)
+                        .role("일반 사용자")
+                        .build()
+        );
+
+        Event savedEvent = createEvent("test");
+
+        eventRepository.save(savedEvent);
+
+        UsersDetails principal = new UsersDetails(u1);
+
+        EventResponse.EventSelectResponse result =
+                eventService.getEventDetail(savedEvent.getId(), principal, null);
+
+        assertThat(result).isNotNull();
+
+        Event reloadEvent = eventRepository.getEvent(result.getId());
+
+        assertThat(reloadEvent.getViewsCount()).isEqualTo(1L);
+
+        Optional<EventViewDaily> eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent , LocalDate.now());
+        assertThat(eventViewDaily).isPresent();
+        assertThat(eventViewDaily.get().getCnt()).isEqualTo(1L);
 
 
+        Optional<EventAction> EventAction =
+                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent, principal.getUser().getId().toString() , ActionType.VIEW);
+        assertThat(EventAction).isPresent();
+        assertThat(EventAction.get().getActorType()).isEqualTo(ActorType.USER);
 
+
+        String guestId = "guest-123";
+
+        EventResponse.EventSelectResponse result2 =
+                eventService.getEventDetail(result.getId(), null, guestId);
+
+        assertThat(result2).isNotNull();
+        reloadEvent = eventRepository.getEvent(result2.getId());
+
+        assertThat(reloadEvent.getViewsCount()).isEqualTo(2L);
+        eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent , LocalDate.now());
+        assertThat(eventViewDaily).isPresent();
+        assertThat(eventViewDaily.get().getCnt()).isEqualTo(2L);
+
+        EventAction =
+                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent, guestId , ActionType.VIEW);
+        assertThat(EventAction).isPresent();
+        assertThat(EventAction.get().getActorType()).isEqualTo(ActorType.GUEST);
+    }
 
 }
