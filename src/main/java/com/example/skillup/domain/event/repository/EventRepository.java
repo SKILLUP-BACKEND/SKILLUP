@@ -22,7 +22,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
     Page<Event> findAllByCategoryIn(Set<EventCategory> categories, Pageable pageable);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE event SET views_count = views_count + 1 WHERE id = :eventId", nativeQuery = true)
     void incrementViews(@Param("eventId") Long eventId);
 

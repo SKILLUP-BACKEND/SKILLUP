@@ -1,12 +1,14 @@
 package com.example.skillup.domain.event.repository;
 
+import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventViewDaily;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 
 public interface EventViewDailyRepository extends JpaRepository<EventViewDaily,Long> {
     // 오늘 카운트 +1 (없으면 insert, 있으면 cnt+1)
@@ -35,4 +37,6 @@ public interface EventViewDailyRepository extends JpaRepository<EventViewDaily,L
           AND createdAt >= CURRENT_DATE - INTERVAL 13 DAY
         """, nativeQuery = true)
     long sumLast14Days(@Param("eventId") Long eventId);
+
+    Optional<EventViewDaily> findByEventAndViewDate(Event event, LocalDate viewDate);
 }

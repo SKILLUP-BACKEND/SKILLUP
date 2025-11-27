@@ -3,10 +3,13 @@ package com.example.skillup.domain.event.service;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
@@ -15,12 +18,18 @@ import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
-import com.example.skillup.domain.event.repository.*;
-import com.example.skillup.global.aop.ConvertNotFound;
-import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventBannerRepository;
+import com.example.skillup.domain.event.repository.EventLikeRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.event.repository.EventViewDailyRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
@@ -28,6 +37,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +58,8 @@ public class EventService {
     private final EventActionRepository eventActionRepository;
     private final HashTagRepository hashTagRepository;
     private final EventIndexerService eventIndexerService;
+    private final EventViewDailyRepository eventViewDailyRepository;
+    private final EventViewService eventViewService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -83,7 +95,8 @@ public class EventService {
             exception = EventException.class,
             errorCodeEnum = TargetRoleErrorCode.class,
             errorCodeName = "TARGET_ROLE_NOT_FOUND"
-    )    public TargetRole getRole(String name) {
+    )
+    public TargetRole getRole(String name) {
         return targetRoleRepository.findByName(name).orElseThrow();
     }
 
@@ -95,7 +108,6 @@ public class EventService {
     public HashTag getHashTag(String name) {
         return hashTagRepository.findByName(name).orElseThrow();
     }
-
 
 
     @Transactional
@@ -112,7 +124,7 @@ public class EventService {
                 .distinct()
                 .forEach(hashtagName -> {
                     HashTag hashTag = getHashTag(hashtagName);
-                            event.addHashTag(hashTag);
+                    event.addHashTag(hashTag);
                 });
         // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
         // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
@@ -162,7 +174,6 @@ public class EventService {
             });
         }
 
-
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
@@ -170,7 +181,7 @@ public class EventService {
 
 
     @Transactional
-    public EventResponse.CommonEventResponse visibilityEvent(Long eventId , boolean isVisible) {
+    public EventResponse.CommonEventResponse visibilityEvent(Long eventId, boolean isVisible) {
         Event event = eventRepository.getEvent(eventId);
 
         EventStatus status = (isVisible ? EventStatus.PUBLISHED : EventStatus.HIDDEN);
@@ -179,31 +190,21 @@ public class EventService {
 
         if (isVisible) {
             eventIndexerService.index(event);
-        }else {
+        } else {
             eventIndexerService.delete(event.getId());
         }
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
+
     @Transactional
-    public EventResponse.CommonEventResponse publishEvent(Long eventId) {
-        Event event = eventRepository.getEvent(eventId);
-        if (event.getStatus() == EventStatus.PUBLISHED) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED, "EventID가 " + eventId + "는");
-        }
-
-        event.setStatus(EventStatus.PUBLISHED);
-
-        eventIndexerService.index(event);
-
-        return new EventResponse.CommonEventResponse(event.getId());
-    }
-
-    @Transactional(readOnly = true)
     public EventResponse.EventSelectResponse getEventDetail(Long eventId,
-                                                            UsersDetails user) {
+                                                            UsersDetails user,
+                                                            String guestId) {
         Event event = eventRepository.getEvent(eventId);
+
+        //admin 아이디의 경우 변형 없음
 
         boolean isAdmin = false;
         if (user != null) {
@@ -215,13 +216,41 @@ public class EventService {
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
-        //일반 사용자라면 북마크 여부 추가해주기 비회원인경우 패스
+
+        //일반 사용자라면 북마크 여부 추가해주기
         if (!isAdmin && user != null) {
             boolean isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
-            return eventMapper.toEventDetailInfo(event, isBookmarked);
         }
 
+        String actorId = user != null ? user.getUser().getId().toString() : guestId;
+        ActorType actorType = user != null ? ActorType.USER : ActorType.GUEST;
+        ReadEvent(actorId, event, actorType);
+
+        event = eventRepository.getEvent(eventId);
+
         return eventMapper.toEventDetailInfo(event, false);
+    }
+
+    private void ReadEvent(String actorId, Event event, ActorType actorType) {
+
+        //전체 조회수 및 event_view_daily 업데이트
+        eventViewService.recordView(event.getId());
+
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId,ActionType.VIEW);
+
+        if (eventAction.isPresent()) {
+            eventAction.get().setUpdatedAt();
+            return;
+        }
+
+        EventAction newEventAction = EventAction.builder()
+                .actorId(actorId)
+                .actionType(ActionType.VIEW)
+                .actorType(actorType)
+                .event(event)
+                .build();
+
+        eventActionRepository.save(newEventAction);
     }
 
     @Transactional(readOnly = true)
