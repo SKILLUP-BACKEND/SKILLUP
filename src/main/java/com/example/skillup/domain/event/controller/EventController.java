@@ -3,8 +3,10 @@ package com.example.skillup.domain.event.controller;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.service.EventBookmarkService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EventController {
     private final EventService eventService;
     private final EventSearchService eventSearchService;
+    private final EventBookmarkService eventBookmarkService;
 
     @PostMapping
     //@PreAuthorize("hasRole('OWNER')")
@@ -71,7 +74,18 @@ public class EventController {
             @RequestParam @NotNull boolean visibility
     ) {
         String responseText = (visibility ? "공개" : "숨김");
-        return BaseResponse.success("행사가 " + responseText + " 처리되었습니다.", eventService.visibilityEvent(eventId , visibility));
+        return BaseResponse.success("행사가 " + responseText + " 처리되었습니다.",
+                eventService.visibilityEvent(eventId, visibility));
+    }
+
+    @PatchMapping("/{eventId}/bookmarked")
+    @Operation(summary = "행사를 북마크하거나 취소합니다.", description = "비회원 , admin 의 경우에는 error 처리하며 반환값으로는 북마크 여부를 반환합니다.")
+    public BaseResponse<String> bookmarkEvent(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal UsersDetails user
+    ) {
+        EventBookmark eventBookmark = eventBookmarkService.updateBookmarked(user, eventId);
+        return BaseResponse.success("북마크가 수정되었습니다." , "북마크 상태 " + eventBookmark.getIsBookmarked().toString());
     }
 
 
@@ -93,7 +107,7 @@ public class EventController {
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user,
             @CookieValue(value = "guest_id", required = false) String guestId
     ) {
-        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user , guestId);
+        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user, guestId);
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
@@ -174,8 +188,7 @@ public class EventController {
             description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId)
-    {
+            @CookieValue(value = "guest_id", required = false) String guestId) {
         List<EventResponse.HomeEventResponse> events =
                 eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
