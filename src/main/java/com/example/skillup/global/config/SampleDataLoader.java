@@ -194,7 +194,7 @@ public class SampleDataLoader implements CommandLineRunner {
                         .socialLoginType(SocialLoginType.google)
                         .lastLoginAt(LocalDateTime.now())
                         .status(UserStatus.ACTIVE)
-                        .role("일반 사용자")
+                        .role("USER")
                         .build()
         );
 
@@ -211,7 +211,7 @@ public class SampleDataLoader implements CommandLineRunner {
                         .socialLoginType(SocialLoginType.kakao)
                         .lastLoginAt(LocalDateTime.now())
                         .status(UserStatus.ACTIVE)
-                        .role("일반 사용자")
+                        .role("USER")
                         .build()
         );
 

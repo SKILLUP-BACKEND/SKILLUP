@@ -20,7 +20,7 @@ public class UserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException{
         Users user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserException(CommonErrorCode.DATA_NOT_FOUND));
+                .orElseThrow(() -> new UserException(CommonErrorCode.DATA_NOT_FOUND , email + "에 해당하는 유저가 존재하지 않습니다."));
 
         return new UsersDetails(user);
 
