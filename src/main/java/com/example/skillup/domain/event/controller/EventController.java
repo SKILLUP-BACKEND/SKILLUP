@@ -5,10 +5,10 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.global.search.service.EventSearchService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
+import com.example.skillup.global.search.service.EventSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -90,9 +90,10 @@ public class EventController {
     @Operation(summary = "행사 상세 조회 API", description = "특정 행사의 상세 정보를 불러옵니다.")
     public BaseResponse<EventResponse.EventSelectResponse> getEventDetail(
             @PathVariable Long eventId,
-            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user,
+            @CookieValue(value = "guest_id", required = false) String guestId
     ) {
-        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user);
+        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user , guestId);
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 

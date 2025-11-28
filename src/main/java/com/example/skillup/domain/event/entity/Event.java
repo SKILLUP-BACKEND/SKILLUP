@@ -104,19 +104,24 @@ public class Event extends BaseEntity {
     private Set<HashTag> hashTags= new HashSet<>();
 
 
+    @Builder.Default
     @Column(name = "views_count", nullable = false)
     private long viewsCount = 0L;
 
+    @Builder.Default
     @Column(name = "likes_count", nullable = false)
     private long likesCount = 0L;
 
+    @Builder.Default
     @Column(name = "apply_clicks", nullable = false)
     private long applyClicks = 0L;         // 신청 버튼 클릭 수
 
     // 운영 태그
+    @Builder.Default
     @Column(name = "recommended_manual", nullable = false)
     private boolean recommendedManual = false; // 운영진 수동 추천
 
+    @Builder.Default
     @Column(name = "ad_flag", nullable = false)
     private boolean ad = false;                // 광고/제휴 노출 여부
 

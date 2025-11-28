@@ -31,4 +31,7 @@ public abstract class BaseEntity {
             createdAt = LocalDateTime.now().withNano(0);
         }
     }
+    public void setUpdatedAt(){
+        updatedAt = LocalDateTime.now();
+    }
 }

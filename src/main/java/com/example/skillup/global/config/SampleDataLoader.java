@@ -183,7 +183,7 @@ public class SampleDataLoader implements CommandLineRunner {
 
         Users u1 = usersRepository.save(
                 Users.builder()
-                        .email("seed1@ex.com")
+                        .email("test@example.com")
                         .name("Seed1")
                         .gender("남")
                         .age("15")
@@ -270,6 +270,7 @@ public class SampleDataLoader implements CommandLineRunner {
 
             EventViewDaily row = EventViewDaily.builder()
                     .event(event)
+                    .viewDate(d)
                     .cnt(cnt)
                     .build();
             eventViewDailyRepository.save(row);
