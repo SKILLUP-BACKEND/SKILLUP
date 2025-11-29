@@ -26,6 +26,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     @Query(value = "UPDATE event SET views_count = views_count + 1 , updated_at = CURRENT_TIMESTAMP WHERE id = :eventId", nativeQuery = true)
     void incrementViews(@Param("eventId") Long eventId);
 
+    @Modifying(clearAutomatically = true)
+    @Query(value = "UPDATE event SET apply_clicks = apply_clicks + 1 , updated_at = CURRENT_TIMESTAMP WHERE id = :eventId", nativeQuery = true)
+    void incrementApplys(@Param("eventId") Long eventId);
+
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
