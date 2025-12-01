@@ -12,4 +12,13 @@ public class UserResponse {
         private String name;
         private String email;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class MyPageBookMarkResponse {
+        private String name;
+        private String email;
+
+    }
 }

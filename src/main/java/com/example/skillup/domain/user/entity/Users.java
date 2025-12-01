@@ -1,23 +1,19 @@
 package com.example.skillup.domain.user.entity;
 
-import static lombok.AccessLevel.PROTECTED;
-
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDateTime;
+
+import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter
@@ -45,8 +41,9 @@ public class Users extends BaseEntity
     @Column(nullable = false)
     private LocalDateTime regDatetime;
 
-    @Column(length = 10, nullable = false)
-    private String role;
+    @JoinColumn(nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    private TargetRole role;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)

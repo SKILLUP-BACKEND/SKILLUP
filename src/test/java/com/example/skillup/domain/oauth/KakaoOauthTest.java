@@ -1,24 +1,16 @@
 package com.example.skillup.domain.oauth;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 
 import com.example.skillup.domain.oauth.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.global.auth.oauth.component.KakaoOauth;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Map;
 
 class KakaoOauthTest {
 
@@ -67,7 +59,7 @@ class KakaoOauthTest {
                 }
                 """;
 
-        OauthInfo info = kakaoOauth.parse(userInfoJson, "dummyAccessToken");
+        OauthInfoRequest info = kakaoOauth.parse(userInfoJson, "dummyAccessToken");
 
         assertEquals("123456", info.socialId());
         assertEquals("KakaoUserProps", info.name()); // properties nickname 우선
@@ -87,7 +79,7 @@ class KakaoOauthTest {
                 }
                 """;
 
-        OauthInfo info = kakaoOauth.parse(userInfoJson, "dummyAccessToken");
+        OauthInfoRequest info = kakaoOauth.parse(userInfoJson, "dummyAccessToken");
 
         assertEquals("123456", info.socialId());
         assertEquals(null, info.name());

@@ -1,7 +1,7 @@
 package com.example.skillup.global.auth.oauth.component;
 
 import com.example.skillup.domain.oauth.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.google.gson.JsonObject;
@@ -91,7 +91,7 @@ public class KakaoOauth implements SocialOauth {
     }
 
     @Override
-    public OauthInfo parse(String userInfo, String accessToken) {
+    public OauthInfoRequest parse(String userInfo, String accessToken) {
         JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
         String socialId = jsonObject.get("id").getAsString();
 
@@ -130,7 +130,7 @@ public class KakaoOauth implements SocialOauth {
                 ? kakaoAccount.get("age_range").getAsString()
                 : null;
 
-        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
+        return OauthInfoRequest.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

@@ -32,4 +32,9 @@ public class UserController
     public UserResponse.MyPageHomeResponse getMyPageHome(@AuthenticationPrincipal UsersDetails user) {
         return userService.getMyPageHome(user.getUser());
     }
+
+    @GetMapping("/my-page/bookmark")
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(@AuthenticationPrincipal UsersDetails user) {
+        return userService.getMyPageBookMark(user.getUser());
+    }
 }

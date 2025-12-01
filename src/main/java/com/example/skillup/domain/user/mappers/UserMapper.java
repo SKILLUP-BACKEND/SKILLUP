@@ -1,5 +1,6 @@
 package com.example.skillup.domain.user.mappers;
 
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
@@ -11,13 +12,13 @@ import java.time.LocalDateTime;
 @Component
 public class UserMapper {
 
-    public static Users of(String email, String name, String socialId, SocialLoginType socialLoginType, String gender, String age) {
+    public static Users of(String email, String name, String socialId, SocialLoginType socialLoginType, String gender, String age, TargetRole role) {
         return Users.builder()
                 .email(email)
                 .name(name)
                 .regDatetime(LocalDateTime.now())
-                .role("USER")
                 .status(UserStatus.ACTIVE)
+                .role(role)
                 .jobGroup("UNKNOWN")
                 .notificationFlag("Y")
                 .lastLoginAt(LocalDateTime.now())

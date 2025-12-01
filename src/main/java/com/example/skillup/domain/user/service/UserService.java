@@ -24,4 +24,7 @@ public class UserService
     {
         return userMapper.toMyPageHomeResponse(user);
     }
+
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user) {
+    }
 }
