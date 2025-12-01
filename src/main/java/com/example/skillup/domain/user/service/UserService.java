@@ -4,6 +4,7 @@ package com.example.skillup.domain.user.service;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
@@ -35,9 +36,9 @@ public class UserService
     }
 
     @Transactional
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user)
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category)
     {
-        List<EventResponse.HomeEventResponse> eventBookmarks=eventBookmarkRepository.findEventsByUser(user).stream()
+        List<EventResponse.HomeEventResponse> eventBookmarks=eventBookmarkRepository.findEventsByUser(user,category).stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
                 .toList();;
 

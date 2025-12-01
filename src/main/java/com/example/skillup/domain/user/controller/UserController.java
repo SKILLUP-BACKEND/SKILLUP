@@ -1,6 +1,7 @@
 package com.example.skillup.domain.user.controller;
 
 
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.service.UserService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -34,7 +36,9 @@ public class UserController
     }
 
     @GetMapping("/my-page/bookmark")
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(@AuthenticationPrincipal UsersDetails user) {
-        return userService.getMyPageBookMark(user.getUser());
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(
+            @AuthenticationPrincipal UsersDetails user,
+            @RequestParam EventCategory category) {
+        return userService.getMyPageBookMark(user.getUser(),category);
     }
 }
