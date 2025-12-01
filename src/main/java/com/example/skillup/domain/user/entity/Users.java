@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import static lombok.AccessLevel.PROTECTED;
 
@@ -61,6 +63,15 @@ public class Users extends BaseEntity
     
     @Enumerated(EnumType.STRING)
     private SocialLoginType socialLoginType;
+
+    @Builder.Default
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "users_interest",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private Set<Interest> interests = new HashSet<>();
 
 
 }

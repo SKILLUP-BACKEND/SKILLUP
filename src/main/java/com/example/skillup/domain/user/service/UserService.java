@@ -4,12 +4,15 @@ package com.example.skillup.domain.user.service;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.mappers.UserMapper;
+import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class UserService
     final private UserRepository usersRepository;
     final private UserMapper userMapper;
     final private EventBookmarkRepository eventBookmarkRepository;
+    final private InterestRepository interestRepository;
     final private EventMapper eventMapper;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user)
@@ -54,5 +58,10 @@ public class UserService
                 onGoingEvents.add(event);
         }
         return userMapper.toMyPageBookMarkResponse(user,onGoingEvents,completedEvents);
+    }
+
+    public List<UserResponse.InterestResponse> getInterestByRole(TargetRole role)
+    {
+        return interestRepository.findByRole(role).stream().map(userMapper::toInterestResponse).toList();
     }
 }

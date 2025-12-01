@@ -1,6 +1,7 @@
 package com.example.skillup.domain.user.controller;
 
 
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -40,5 +43,11 @@ public class UserController
             @AuthenticationPrincipal UsersDetails user,
             @RequestParam EventCategory category) {
         return userService.getMyPageBookMark(user.getUser(),category);
+    }
+
+    @GetMapping("/my-page/profile/interest")
+    public List<UserResponse.InterestResponse> getInterestByRole(@RequestParam TargetRole role)
+    {
+        return userService.getInterestByRole(role);
     }
 }

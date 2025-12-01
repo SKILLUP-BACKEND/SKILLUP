@@ -28,4 +28,11 @@ public class UserResponse {
         String role;
         int bookmarkCount;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class InterestResponse {
+     private String name;
+    }
 }

@@ -4,8 +4,10 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -49,6 +51,10 @@ public class UserMapper {
                 .name(user.getName())
                 .role(user.getRole().toString())
                 .build();
+    }
+
+    public UserResponse.InterestResponse toInterestResponse(Interest interest) {
+        return
     }
 
 }
