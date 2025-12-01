@@ -1,10 +1,7 @@
 package com.example.skillup.domain.user.mappers;
 
-import com.example.skillup.domain.event.dto.request.EventRequest;
-import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
-import com.example.skillup.domain.user.dto.response.UserResponseDto;
+import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
 import org.springframework.stereotype.Component;
@@ -31,9 +28,11 @@ public class UserMapper {
                 .build();
     }
 
-    public static UserResponseDto from(Users users) {
-        return new UserResponseDto(
-                users.getName()
-        );
+    public UserResponse.MyPageHomeResponse toMyPageHomeResponse(Users user) {
+        return UserResponse.MyPageHomeResponse.builder()
+                .email(user.getEmail())
+                .name(user.getName())
+                .build();
     }
+
 }

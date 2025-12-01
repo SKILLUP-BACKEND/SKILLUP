@@ -1,7 +1,7 @@
 package com.example.skillup.domain.user.service;
 
 
-import com.example.skillup.domain.user.dto.response.UserResponseDto;
+import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
@@ -17,21 +17,11 @@ import java.util.List;
 public class UserService
 {
     final private UserRepository usersRepository;
+    final private UserMapper userMapper;
 
-    public List<UserResponseDto> findAll()
+
+    public UserResponse.MyPageHomeResponse getMyPageHome(Users user)
     {
-        return toDtoList(usersRepository.findAll());
+        return userMapper.toMyPageHomeResponse(user);
     }
-
-    //@ThrowIfEmpty
-   //public List<UserResponseDto> findDeletedUsers() {}
-
-    private List<UserResponseDto> toDtoList(List<Users> users)
-    {
-            return users.stream()
-                    .map(UserMapper::from)
-                    .toList();
-    }
-
-
 }
