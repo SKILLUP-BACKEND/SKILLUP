@@ -3,9 +3,16 @@ package com.example.skillup.domain.event.repository;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.user.entity.Users;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Long> {
     Optional<EventBookmark> findByUserAndEvent(Users user, Event event);
+
+    @Query("select eb.event from EventBookmark eb where eb.user = :user")
+    List<Event> findEventsByUser(@Param("user") Users user);
 }

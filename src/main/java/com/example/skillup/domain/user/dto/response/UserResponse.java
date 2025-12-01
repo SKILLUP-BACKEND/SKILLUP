@@ -1,8 +1,12 @@
 package com.example.skillup.domain.user.dto.response;
 
+import com.example.skillup.domain.event.dto.response.EventResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserResponse {
     @Getter
@@ -19,6 +23,9 @@ public class UserResponse {
     public static class MyPageBookMarkResponse {
         private String name;
         private String email;
-
+        List<EventResponse.HomeEventResponse> onGoingEvents;
+        List<EventResponse.HomeEventResponse> completedEvents;
+        String role;
+        int bookmarkCount;
     }
 }
