@@ -15,6 +15,7 @@ import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.mappers.UserMapper;
+import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
@@ -31,12 +32,12 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class UserService
 {
-    final private UserRepository usersRepository;
     final private UserMapper userMapper;
     final private EventBookmarkRepository eventBookmarkRepository;
     final private InterestRepository interestRepository;
     final private EventMapper eventMapper;
     final private TargetRoleRepository targetRoleRepository;
+    final private InquiryRepository inquiryRepository;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user)
     {
@@ -88,5 +89,10 @@ public class UserService
         Set<Interest> interests=interestRepository.findByNameIn(request.getInterests());
         user.update(request,role,interests);
         return userMapper.toUserProfileResponse(user);
+    }
+
+    public List<UserResponse.InquiryResponse> getAllInquiry()
+    {
+        return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
     }
 }

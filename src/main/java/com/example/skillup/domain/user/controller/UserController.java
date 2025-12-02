@@ -72,4 +72,11 @@ public class UserController
         return BaseResponse.success("유저 업데이트 성공", userService.updateUser(userDetails.getUser(), request));
     }
 
+    @GetMapping("/my-page/qna")
+    @Operation(summary = "마이페이지 고객센터 문의 목록 조회", description = "사용자가 마이페이지에서 등록한 모든 문의 내역을 조회하는 API")
+    public BaseResponse<List<UserResponse.InquiryResponse>> getAllInquiry()
+    {
+        return BaseResponse.success("모든 문의 내용 조회 성공", userService.getAllInquiry());
+    }
+
 }

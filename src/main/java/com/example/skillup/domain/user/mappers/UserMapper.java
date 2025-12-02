@@ -4,6 +4,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
@@ -68,6 +69,14 @@ public class UserMapper {
                 .gender(user.getGender())
                 .interests(user.getInterests().stream().map(Interest::getName).collect(Collectors.toList()))
                 .role(user.getRole().getName())
+                .build();
+    }
+
+    public UserResponse.InquiryResponse toInquiryResponse(Inquiry inquiry) {
+        return UserResponse.InquiryResponse.builder()
+                .question(inquiry.getQuestion())
+                .answerContent(inquiry.getAnswerContent())
+                .answerTitle(inquiry.getAnswerTitle())
                 .build();
     }
 

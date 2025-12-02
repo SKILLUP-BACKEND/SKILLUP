@@ -1,6 +1,7 @@
 package com.example.skillup.domain.user.dto.response;
 
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,5 +46,15 @@ public class UserResponse {
         private String gender;
         private String role;
         private List<String> interests;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class InquiryResponse
+    {
+        private String question;
+        private String answerTitle;
+        private String answerContent;
     }
 }
