@@ -7,6 +7,8 @@ import com.example.skillup.domain.user.entity.Users;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +26,8 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
         order by eb.createdAt desc
        """)
     List<Event> findEventsByUserWithLatest(@Param("user") Users user,
-                                 @Param("category") EventCategory category);
+                                 @Param("category") EventCategory category,
+                                           Pageable pageable);
 
 
     @Query("""
@@ -35,6 +38,6 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
         order by eb.event.recruitEnd asc
        """)
     List<Event> findEventsByUserWithDeadLine(@Param("user") Users user,
-                               @Param("category") EventCategory category);
+                               @Param("category") EventCategory category, Pageable pageable);
 
 }

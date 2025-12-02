@@ -20,6 +20,8 @@ import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +50,12 @@ public class UserService
     public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category,String sort)
     {
         List<Event> eventBookmarks=new ArrayList<>();
+        Pageable pageable = PageRequest.of(0, 9);
+
 
         switch (sort) {
-            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, category);
-            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, category);
+            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, category,pageable);
+            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, category,pageable);
         }
         List<EventResponse.HomeEventResponse> eventBookmarksDto=eventBookmarks.stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
