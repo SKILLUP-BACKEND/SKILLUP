@@ -21,7 +21,7 @@ public class Interest
     private Long id;
 
     @JoinColumn(nullable = false)
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private TargetRole role;
 
     private String name;
