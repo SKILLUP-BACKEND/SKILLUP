@@ -98,12 +98,13 @@ public class EventServiceTest {
     private HashTag hashTag6;
     private HashTag hashTag7;
 
+    private TargetRole targetRole;
 
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
         targetRoleRepository.deleteAll();
-        targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
+        targetRole=targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
         hashTag = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
@@ -622,7 +623,7 @@ public class EventServiceTest {
                         .socialLoginType(SocialLoginType.google)
                         .lastLoginAt(LocalDateTime.now())
                         .status(UserStatus.ACTIVE)
-                        .role("일반 사용자")
+                        .role(targetRole)
                         .build()
         );
 

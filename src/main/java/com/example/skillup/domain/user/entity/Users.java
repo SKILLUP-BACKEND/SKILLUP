@@ -1,23 +1,22 @@
 package com.example.skillup.domain.user.entity;
 
-import static lombok.AccessLevel.PROTECTED;
-
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter
@@ -45,8 +44,9 @@ public class Users extends BaseEntity
     @Column(nullable = false)
     private LocalDateTime regDatetime;
 
-    @Column(length = 10, nullable = false)
-    private String role;
+    @JoinColumn(nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    private TargetRole role;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
@@ -65,5 +65,27 @@ public class Users extends BaseEntity
     @Enumerated(EnumType.STRING)
     private SocialLoginType socialLoginType;
 
+    @Builder.Default
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "users_interest",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private Set<Interest> interests = new HashSet<>();
+
+    private String profileImageUrl;
+
+    private boolean marketingAgreement;
+
+    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests) {
+        if (dto.getName() != null) this.name = dto.getName();
+        if (dto.getProfileImageUrl() != null) this.profileImageUrl = dto.getProfileImageUrl();
+        if (dto.getAge() != null) this.age = dto.getAge();
+        if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
+        if (dto.getGender() != null) this.gender = dto.getGender();
+        if (dto.getRole() != null) this.role = role;
+        if (dto.getInterests() != null) this.interests = interests;
+    }
 
 }
