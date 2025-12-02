@@ -20,6 +20,7 @@ public enum CommonErrorCode implements ResultCode {
     AWS_S3_SERVICE_ERROR("AWS_S3_SERVICE_ERROR", "S3 에 파일 업로드중 오류가 발생했습니다.", HttpStatus.SERVICE_UNAVAILABLE),
     INVALID_FILE_TYPE("INVALID_FILE_TYPE", "지원하지 않는 파일 확장자 입니다.(jpg , png 만 가능합니다.)", HttpStatus.BAD_REQUEST),
     FILE_SIZE_EXCEED("FILE_SIZE_EXCEED", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
+    FILE_DELETE_ERROR("FILE_DELETE_ERROR" , "파일 삭제중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST),
     ;
 
 
