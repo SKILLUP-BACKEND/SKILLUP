@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
@@ -54,7 +55,20 @@ public class UserMapper {
     }
 
     public UserResponse.InterestResponse toInterestResponse(Interest interest) {
-        return
+        return UserResponse.InterestResponse.builder()
+                .name(interest.getName())
+                .build();
+    }
+
+    public UserResponse.UserProfileResponse toUserProfileResponse(Users user) {
+        return UserResponse.UserProfileResponse.builder()
+                .name(user.getName())
+                .profileImageUrl(user.getProfileImageUrl())
+                .age(user.getAge())
+                .gender(user.getGender())
+                .interests(user.getInterests().stream().map(Interest::getName).collect(Collectors.toList()))
+                .role(user.getRole().toString())
+                .build();
     }
 
 }

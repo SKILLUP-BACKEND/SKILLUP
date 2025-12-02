@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class UserResponse {
@@ -34,5 +33,17 @@ public class UserResponse {
     @Builder
     public static class InterestResponse {
      private String name;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class UserProfileResponse {
+        private String name;
+        private String profileImageUrl;
+        private String age;
+        private String gender;
+        private String role;
+        private List<String> interests;
     }
 }

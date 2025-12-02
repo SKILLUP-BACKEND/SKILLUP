@@ -2,6 +2,7 @@ package com.example.skillup.domain.user.entity;
 
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
@@ -73,5 +74,18 @@ public class Users extends BaseEntity
     )
     private Set<Interest> interests = new HashSet<>();
 
+    private String profileImageUrl;
+
+    private boolean marketingAgreement;
+
+    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests) {
+        if (dto.getName() != null) this.name = dto.getName();
+        if (dto.getProfileImageUrl() != null) this.profileImageUrl = dto.getProfileImageUrl();
+        if (dto.getAge() != null) this.age = dto.getAge();
+        if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
+        if (dto.getGender() != null) this.gender = dto.getGender();
+        if (dto.getRole() != null) this.role = role;
+        if (dto.getInterests() != null) this.interests = interests;
+    }
 
 }
