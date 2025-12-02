@@ -24,11 +24,11 @@ public class EventMapper {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
-    public Event toEntity(EventRequest.CreateEvent request) {
+    public Event toEntity(EventRequest.CreateEvent request , String thumbnailUrl) {
 
         return Event.builder()
                 .title(request.getTitle())
-                .thumbnailUrl(request.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .category(request.getCategory())
                 .eventStart(request.getEventStart())
                 .eventEnd(request.getEventEnd())

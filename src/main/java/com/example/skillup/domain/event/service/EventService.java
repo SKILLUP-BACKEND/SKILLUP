@@ -35,6 +35,7 @@ import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.global.service.S3Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,7 @@ public class EventService {
     private final EventIndexerService eventIndexerService;
     private final EventViewDailyRepository eventViewDailyRepository;
     private final EventViewService eventViewService;
+    private final S3Service s3Service;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -113,8 +116,11 @@ public class EventService {
 
 
     @Transactional
-    public Event createEvent(EventRequest.CreateEvent request) {
-        Event event = eventMapper.toEntity(request);
+    public Event createEvent(EventRequest.CreateEvent request , MultipartFile thumbnailImage) {
+
+        String thumbnailUrl =  s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+
+        Event event = eventMapper.toEntity(request , thumbnailUrl);
 
         request.getTargetRoles().stream()
                 .distinct()
@@ -142,6 +148,9 @@ public class EventService {
     public EventResponse.CommonEventResponse deleteEvent(Long eventId) {
         Event event = eventRepository.getEvent(eventId);
 
+        //현재 소프트 삭제를 하고 있어서 사진은 S3 에 납두는걸로 로직을 작성했습니다.
+        //s3Service.deleteFileFromUrl(event.getThumbnailUrl());
+
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
         }
@@ -154,10 +163,21 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request) {
+    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request , MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
-        event.update(request);
+        String thumbnailUrl = event.getThumbnailUrl();
+
+        if(thumbnailImage != null && !thumbnailImage.isEmpty()) {
+
+            if(thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
+                s3Service.deleteFileFromUrl(thumbnailUrl);
+            }
+
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+        }
+
+        event.update(request , thumbnailUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();

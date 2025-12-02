@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +33,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/events")
@@ -43,28 +46,29 @@ public class EventController {
     private final EventSearchService eventSearchService;
     private final EventBookmarkService eventBookmarkService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
     @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
     public BaseResponse<EventResponse.CommonEventResponse> createEvent(
-            @RequestBody @Valid EventRequest.CreateEvent request
+            @RequestPart("request") @Valid EventRequest.CreateEvent request,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
     ) {
-        Event event = eventService.createEvent(request);
+        Event event = eventService.createEvent(request, thumbnailImage);
         String message = event.getStatus() == EventStatus.DRAFT ? "행사가 임시저장 되었습니다." : "행사가 등록되었습니다.";
         return BaseResponse.success(message, new EventResponse.CommonEventResponse(event.getId()));
     }
 
-    @PutMapping("/{eventId}")
+    @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 수정 API", description = "관리자가 특정 행사를 수정합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> updateEvent(
             @PathVariable Long eventId,
-            @RequestBody @Valid EventRequest.UpdateEvent request
+            @RequestPart("request") @Valid EventRequest.UpdateEvent request,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
     ) {
-
-        return BaseResponse.success("행사가 수정되었습니다.", eventService.updateEvent(eventId, request));
+        return BaseResponse.success("행사가 수정되었습니다.", eventService.updateEvent(eventId, request, thumbnailImage));
     }
 
     @PatchMapping("/{eventId}/visibility")

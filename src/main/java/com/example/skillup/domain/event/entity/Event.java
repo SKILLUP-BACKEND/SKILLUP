@@ -136,9 +136,9 @@ public class Event extends BaseEntity {
     }
 
 
-    public void update(EventRequest.UpdateEvent request) {
+    public void update(EventRequest.UpdateEvent request , String thumbnailImage) {
         this.title = request.getTitle();
-        this.thumbnailUrl = request.getThumbnailUrl();
+        this.thumbnailUrl = thumbnailImage;
         this.category = request.getCategory();
         this.eventStart = request.getEventStart();
         this.eventEnd = request.getEventEnd();
