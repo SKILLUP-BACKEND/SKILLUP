@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import com.example.skillup.global.common.CommonResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -122,7 +124,7 @@ public class EventResponse {
         private int total;
         @Builder.Default
         private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
-        private PageInfoResponse pageInfoResponse;
+        private CommonResponse.PageInfoResponse pageInfoResponse;
     }
 
     @Getter
@@ -147,14 +149,6 @@ public class EventResponse {
     }
 
 
-
-    @Getter
-    @Builder
-    @AllArgsConstructor
-    public static class PageInfoResponse {
-        private int currentPage;
-        private int pageSize;
-        private int totalPages;
 
     @Getter
     @Builder

@@ -709,7 +709,7 @@ public class EventServiceTest {
                 .socialLoginType(SocialLoginType.google)
                 .lastLoginAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
-                .role("USER")
+                .role(targetRole)
                 .build();
 
         UsersDetails usersDetails = new UsersDetails(user);
@@ -750,7 +750,7 @@ public class EventServiceTest {
                 .socialLoginType(SocialLoginType.google)
                 .lastLoginAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
-                .role("USER")
+                .role(targetRole)
                 .build();
 
         UsersDetails usersDetails = new UsersDetails(user);

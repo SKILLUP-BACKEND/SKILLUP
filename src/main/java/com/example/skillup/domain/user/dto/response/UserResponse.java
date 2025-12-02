@@ -1,6 +1,7 @@
 package com.example.skillup.domain.user.dto.response;
 
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.global.common.CommonResponse;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,7 @@ public class UserResponse {
         List<EventResponse.HomeEventResponse> completedEvents;
         String role;
         int bookmarkCount;
+        CommonResponse.PageInfoResponse pageInfo;
     }
 
     @Getter

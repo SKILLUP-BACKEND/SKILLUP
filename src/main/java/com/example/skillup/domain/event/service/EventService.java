@@ -32,6 +32,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
+import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
 import java.time.LocalDate;
@@ -396,7 +397,7 @@ public class EventService {
                 now,
                 targetRoleCount,
                 targetRolesIsEmpty);
-        EventResponse.PageInfoResponse pageInfoResponse = EventResponse.PageInfoResponse
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
                 .builder()
                 .currentPage(condition.getPage()+1)
                 .pageSize(pageable.getPageSize())
