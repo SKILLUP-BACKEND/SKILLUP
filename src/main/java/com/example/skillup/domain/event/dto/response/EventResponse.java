@@ -117,6 +117,7 @@ public class EventResponse {
         private int total;
         @Builder.Default
         private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
+        private PageInfoResponse pageInfoResponse;
     }
 
     @Getter @Builder
@@ -136,5 +137,15 @@ public class EventResponse {
     public static class EventBannersResponseList {
         private List<EventBannerResponse> eventMainBannerReponseList;
         private List<EventBannerResponse> eventSubBannerResponse;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class PageInfoResponse {
+        private int currentPage;
+        private int pageSize;
+        private int totalPages;
     }
 }

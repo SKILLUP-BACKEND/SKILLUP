@@ -273,8 +273,42 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
 
 
-    @Query("SELECT COUNT(e) FROM Event e")
-    int countAllEvents();
+    @Query(value = """
+    SELECT COUNT(*)
+    FROM (
+        SELECT e.id
+        FROM event e
+        LEFT JOIN event_target_role etr ON etr.event_id = e.id
+        LEFT JOIN target_role tr ON tr.id = etr.role_id
+        WHERE (:category IS NULL OR e.category = :category)
+          AND (e.event_end IS NULL OR e.event_end >= :now)
+          AND (e.status = 'PUBLISHED')
+          AND (:isOnline IS NULL OR e.is_online = :isOnline)
+          AND (:isFree IS NULL OR e.is_free = :isFree)
+          AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
+          AND (
+                :targetRolesIsEmpty = TRUE
+                OR tr.name IN (:targetRoles)
+          )
+        GROUP BY e.id
+        HAVING (
+                :targetRolesIsEmpty = TRUE
+                OR COUNT(DISTINCT tr.name) = :targetRoleCount
+        )
+    ) AS counted
+""", nativeQuery = true)
+    int countByCategoryWithSearch(
+            @Param("category") String category,
+            @Param("isOnline") Boolean isOnline,
+            @Param("isFree") Boolean isFree,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("targetRoles") List<String> targetRoles,
+            @Param("now") LocalDateTime now,
+            @Param("targetRoleCount") Integer targetRoleCount,
+            @Param("targetRolesIsEmpty") Boolean targetRolesIsEmpty
+    );
+
 
 
     // 위에는 점수까지 포함(test 용) 아래는 점수 포함하지 않은 쿼리문
