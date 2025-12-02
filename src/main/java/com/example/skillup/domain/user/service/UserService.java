@@ -19,6 +19,7 @@ import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.common.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,10 +48,11 @@ public class UserService
     }
 
     @Transactional(readOnly = true)
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category,String sort)
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category,String sort,int page)
     {
         List<Event> eventBookmarks=new ArrayList<>();
-        Pageable pageable = PageRequest.of(0, 9);
+        Pageable pageable = PageRequest.of(page, 9);
+
 
 
         switch (sort) {
@@ -61,6 +63,12 @@ public class UserService
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
                 .toList();
 
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
+                .builder()
+                .currentPage(page+1)
+                .pageSize(pageable.getPageSize())
+                .totalPages((int) Math.ceil((double) eventBookmarksDto.size() / (pageable.getPageSize())))
+                .build();
 
         List<EventResponse.HomeEventResponse> onGoingEvents=new ArrayList<>();
         List<EventResponse.HomeEventResponse> completedEvents=new ArrayList<>();
@@ -72,7 +80,7 @@ public class UserService
             else
                 onGoingEvents.add(event);
         }
-        return userMapper.toMyPageBookMarkResponse(user,onGoingEvents,completedEvents);
+        return userMapper.toMyPageBookMarkResponse(user,onGoingEvents,completedEvents,pageInfoResponse);
     }
 
     @Transactional(readOnly = true)

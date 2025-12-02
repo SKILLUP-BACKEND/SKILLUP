@@ -352,10 +352,24 @@ public class EventServiceTest {
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest")
                         .page(1).build());
 
+        EventResponse.SearchEventResponseList resultByCategory3
+                = eventService.getEventBySearch
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
+                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER","PLANNER")).sort("latest").page(0).build());
+
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
+
         assertEquals(12, resultByCategory.getHomeEventResponseList().size());
+        assertEquals(2,resultByCategory.getPageInfoResponse().getTotalPages());
+        assertEquals(1,resultByCategory.getPageInfoResponse().getCurrentPage());
+        assertEquals(12,resultByCategory.getPageInfoResponse().getPageSize());
+
+
         assertEquals(8, resultByCategory2.getHomeEventResponseList().size());
+
+        assertEquals(0, resultByCategory3.getHomeEventResponseList().size());
+        assertEquals(0, resultByCategory3.getTotal());
 
     }
 
@@ -414,6 +428,7 @@ public class EventServiceTest {
         EventViewDaily oldView = EventViewDaily.builder()
                 .event(event1)
                 .cnt(1L)
+                .viewDate(LocalDate.now().minusMonths(4))
                 .build();
         createdField.set(oldView, LocalDate.now().minusMonths(4).atStartOfDay());
         eventViewDailyRepository.save(oldView);
@@ -421,6 +436,7 @@ public class EventServiceTest {
         EventViewDaily oldView2 = EventViewDaily.builder()
                 .event(event1)
                 .cnt(1L)
+                .viewDate(LocalDate.now().minusMonths(5))
                 .build();
         createdField.set(oldView, LocalDate.now().minusMonths(5).atStartOfDay());
         eventViewDailyRepository.save(oldView2);
@@ -428,6 +444,7 @@ public class EventServiceTest {
         EventViewDaily recentView = EventViewDaily.builder()
                 .event(event1)
                 .cnt(1L)
+                .viewDate(LocalDate.now())
                 .build();
         eventViewDailyRepository.save(recentView);
 
@@ -435,12 +452,14 @@ public class EventServiceTest {
         EventViewDaily recentView2 = EventViewDaily.builder()
                 .event(event2)
                 .cnt(1L)
+                .viewDate(LocalDate.now())
                 .build();
         eventViewDailyRepository.save(recentView2);
 
         EventViewDaily recentView3 = EventViewDaily.builder()
                 .event(event2)
                 .cnt(1L)
+                .viewDate(LocalDate.now().minusDays(1))
                 .build();
         eventViewDailyRepository.save(recentView3);
 
@@ -690,7 +709,7 @@ public class EventServiceTest {
                 .socialLoginType(SocialLoginType.google)
                 .lastLoginAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
-                .role("USER")
+                .role(targetRole)
                 .build();
 
         UsersDetails usersDetails = new UsersDetails(user);
@@ -731,7 +750,7 @@ public class EventServiceTest {
                 .socialLoginType(SocialLoginType.google)
                 .lastLoginAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
-                .role("USER")
+                .role(targetRole)
                 .build();
 
         UsersDetails usersDetails = new UsersDetails(user);

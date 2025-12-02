@@ -32,6 +32,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
+import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
 import java.time.LocalDate;
@@ -386,7 +387,22 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        int count = eventRepository.countAllEvents();
+
+        boolean targetRolesIsEmpty = condition.getTargetRoles() == null|| condition.getTargetRoles().isEmpty();
+        int targetRoleCount = targetRolesIsEmpty ? 0:condition.getTargetRoles().size() ;
+
+
+        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
+                now,
+                targetRoleCount,
+                targetRolesIsEmpty);
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
+                .builder()
+                .currentPage(condition.getPage()+1)
+                .pageSize(pageable.getPageSize())
+                .totalPages((int) Math.ceil((double) count / (pageable.getPageSize())))
+                .build();
 
         return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {
@@ -394,7 +410,7 @@ public class EventService {
                     double score = r.getPopularity();
                     return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
                 })
-                .toList()).total(count).build();
+                .toList()).total(count).pageInfoResponse(pageInfoResponse).build();
     }
 
     @Transactional(readOnly = true)

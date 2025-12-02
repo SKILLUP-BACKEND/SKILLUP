@@ -36,7 +36,7 @@ sns:
       id: ${NAVER_CLIENT_ID}
       secret: ${NAVER_CLIENT_SECRET}
     callback:
-      url: http://localhost:8080/oauth/naver/callback
+      url: ${NAVER_CALLBACK}
     token:
       url: https://nid.naver.com/oauth2.0/token
 
@@ -46,7 +46,7 @@ sns:
       id: ${KAKAO_CLIENT_ID}
       secret: ${KAKAO_CLIENT_SECRET}
     callback:
-      url: http://localhost:8080/oauth/kakao/callback
+      url: ${KAKAO_CALLBACK}
     token:
       url: https://kauth.kakao.com/oauth/token
 
@@ -56,7 +56,7 @@ sns:
       id: ${GOOGLE_CLIENT_ID}
       secret: ${GOOGLE_CLIENT_SECRET}
     callback:
-      url: http://localhost:8080/oauth/google/callback
+      url: ${GOOGLE_CALLBACK}
     token:
       url: https://oauth2.googleapis.com/token
 

@@ -8,6 +8,7 @@ import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.global.common.CommonResponse;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class UserMapper {
     }
 
     public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user, List<EventResponse.HomeEventResponse> onGoingEvents,
-            List<EventResponse.HomeEventResponse> completedEvents)
+                                                                        List<EventResponse.HomeEventResponse> completedEvents, CommonResponse.PageInfoResponse pageInfoResponse)
     {
         return UserResponse.MyPageBookMarkResponse.builder()
                 .bookmarkCount(onGoingEvents.size()+completedEvents.size())
@@ -51,6 +52,7 @@ public class UserMapper {
                 .completedEvents(completedEvents)
                 .email(user.getEmail())
                 .name(user.getName())
+                .pageInfo(pageInfoResponse)
                 .role(user.getRole().getName())
                 .build();
     }
