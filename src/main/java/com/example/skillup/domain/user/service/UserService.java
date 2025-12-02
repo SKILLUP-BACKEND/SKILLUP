@@ -2,6 +2,7 @@ package com.example.skillup.domain.user.service;
 
 
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.exception.EventException;
@@ -43,17 +44,23 @@ public class UserService
     }
 
     @Transactional(readOnly = true)
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category)
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category,String sort)
     {
-        List<EventResponse.HomeEventResponse> eventBookmarks=eventBookmarkRepository.findEventsByUser(user,category).stream()
+        List<Event> eventBookmarks=new ArrayList<>();
+
+        switch (sort) {
+            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, category);
+            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, category);
+        }
+        List<EventResponse.HomeEventResponse> eventBookmarksDto=eventBookmarks.stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
-                .toList();;
+                .toList();
 
 
         List<EventResponse.HomeEventResponse> onGoingEvents=new ArrayList<>();
         List<EventResponse.HomeEventResponse> completedEvents=new ArrayList<>();
 
-        for(EventResponse.HomeEventResponse event:eventBookmarks)
+        for(EventResponse.HomeEventResponse event:eventBookmarksDto)
         {
             if (event.getD_dayLabel().equals("마감"))
                 completedEvents.add(event);

@@ -1,5 +1,7 @@
 package com.example.skillup.global.auth.service;
 
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
@@ -31,10 +33,15 @@ class AuthServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TargetRoleRepository targetRoleRepository;
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
+        TargetRole role=targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
+
         userRepository.save(Users.builder().email("aa@a").name("sd").regDatetime(LocalDateTime.now())
-                .role("sd").status(UserStatus.ACTIVE).jobGroup("sd").notificationFlag("n").build());
+                .role(role).status(UserStatus.ACTIVE).jobGroup("sd").notificationFlag("n").build());
     }
 
     @Test
@@ -54,7 +61,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_성공테스트_리프레쉬토큰_업데이트_체크() throws InterruptedException {
+    void login_성공테스트_리프레쉬토큰_업데이트_체크(){
         // given
         String email= "aa@a";
         String role = "USER";

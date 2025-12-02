@@ -50,7 +50,7 @@ public class UserMapper {
                 .completedEvents(completedEvents)
                 .email(user.getEmail())
                 .name(user.getName())
-                .role(user.getRole().toString())
+                .role(user.getRole().getName())
                 .build();
     }
 
@@ -67,7 +67,7 @@ public class UserMapper {
                 .age(user.getAge())
                 .gender(user.getGender())
                 .interests(user.getInterests().stream().map(Interest::getName).collect(Collectors.toList()))
-                .role(user.getRole().toString())
+                .role(user.getRole().getName())
                 .build();
     }
 

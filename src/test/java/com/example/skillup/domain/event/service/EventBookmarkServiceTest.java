@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventException;
@@ -62,7 +63,7 @@ public class EventBookmarkServiceTest {
                 .socialLoginType(SocialLoginType.google)
                 .lastLoginAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
-                .role("USER")
+                .role(TargetRole.builder().name("PLANNER").build())
                 .build();
 
         usersDetails = new UsersDetails(user);

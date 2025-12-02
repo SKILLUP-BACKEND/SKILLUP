@@ -10,7 +10,7 @@ import com.example.skillup.domain.user.service.UserService;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.constraints.Null;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -41,12 +41,16 @@ public class UserController
     }
 
     @GetMapping("/my-page/bookmark")
-    @Operation(summary = "마이페이지에서 유저가 북마크 한 이벤트 불러옵니다."
+    @Operation(summary = "마이페이지에서 유저가 북마크 한 이벤트 불러옵니다.(sort 값 latest, deadline)"
             , description = "마이페이지 북마크 페이지 API")
     public  BaseResponse<UserResponse.MyPageBookMarkResponse> getMyPageBookMark(
             @AuthenticationPrincipal UsersDetails user,
-            @RequestParam EventCategory category) {
-        return  BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",userService.getMyPageBookMark(user.getUser(),category));
+            @RequestParam EventCategory category,
+            @Parameter(
+                    description = "정렬 기준 (latest, deadline)"
+            )
+            @RequestParam String sort) {
+        return  BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",userService.getMyPageBookMark(user.getUser(),category,sort));
     }
 
     @GetMapping("/my-page/profile/interest")
