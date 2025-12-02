@@ -78,7 +78,8 @@ public class EventResponse {
         private Set<String> targetRoles;
     }
 
-    @Getter @Builder
+    @Getter
+    @Builder
     public static class HomeEventResponse {
         private Long id;
         private String thumbnailUrl;
@@ -101,27 +102,31 @@ public class EventResponse {
         private Double recommendedRate;
     }
 
-    @Getter @Builder
+    @Getter
+    @Builder
     public static class featuredEventResponseList {
         private String tab;               //  ex )"IT 전체", "기획", "디자인", "개발", "AI"
         private List<HomeEventResponse> homeEventResponseList;
     }
-    @Getter @Builder
+
+    @Getter
+    @Builder
     public static class CategoryEventResponseList {
         private EventCategory category;
         private List<HomeEventResponse> homeEventResponseList;
     }
 
-    @Getter @Builder
-    public static class SearchEventResponseList{
+    @Getter
+    @Builder
+    public static class SearchEventResponseList {
         private int total;
         @Builder.Default
         private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
     }
 
-    @Getter @Builder
-    public static class EventBannerResponse
-    {
+    @Getter
+    @Builder
+    public static class EventBannerResponse {
         private int displayOrder;
 
         private String title;
@@ -132,9 +137,19 @@ public class EventResponse {
 
     }
 
-    @Getter @Builder @AllArgsConstructor
+    @Getter
+    @Builder
+    @AllArgsConstructor
     public static class EventBannersResponseList {
         private List<EventBannerResponse> eventMainBannerReponseList;
         private List<EventBannerResponse> eventSubBannerResponse;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventApplyResponse{
+        private Long eventId;
+        private String comment;
     }
 }
