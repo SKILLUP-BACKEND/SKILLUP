@@ -1,20 +1,16 @@
 package com.example.skillup.domain.oauth;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 
 import com.example.skillup.domain.oauth.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.global.auth.oauth.component.GoogleOauth;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 
@@ -60,7 +56,7 @@ class GoogleOauthTest {
                 }
                 """;
 
-        OauthInfo oauthInfo = googleOauth.parse(userInfoJson, "dummyAccessToken");
+        OauthInfoRequest oauthInfo = googleOauth.parse(userInfoJson, "dummyAccessToken");
 
         assertEquals("1234567890", oauthInfo.socialId());
         assertEquals("John Doe", oauthInfo.name());

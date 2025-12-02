@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.controller;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.enums.EventCategory;
@@ -85,7 +86,7 @@ public class EventController {
             @AuthenticationPrincipal UsersDetails user
     ) {
         EventBookmark eventBookmark = eventBookmarkService.updateBookmarked(user, eventId);
-        return BaseResponse.success("북마크가 수정되었습니다." , "북마크 상태 " + eventBookmark.getIsBookmarked().toString());
+        return BaseResponse.success("북마크가 수정되었습니다.", "북마크 상태 " + eventBookmark.getIsBookmarked().toString());
     }
 
 
@@ -200,6 +201,17 @@ public class EventController {
             @Valid @ModelAttribute EventRequest.EventSearchRequest request) {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
 
+    }
+
+    @PatchMapping("/{eventId}/apply")
+    @Operation(summary = "행사 신청 api",
+            description = "행사 신청률 측정을 위한 api 입니다. 행사에서 지원버튼을 누를때를 기준으로 하며 이미 신청한 경우 증가하지 않습니다.")
+    public BaseResponse<EventApplyResponse> applyEvent(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal UsersDetails user,
+            @CookieValue(required = false) String guestId
+    ) {
+        return BaseResponse.success("지원 성공", eventService.applyEvent(eventId, user, guestId));
     }
 
 }

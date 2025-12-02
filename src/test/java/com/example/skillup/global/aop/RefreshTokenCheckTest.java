@@ -1,5 +1,7 @@
 package com.example.skillup.global.aop;
 
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
@@ -40,17 +42,20 @@ public class RefreshTokenCheckTest {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private TargetRoleRepository targetRoleRepository;
     @BeforeEach
     void setUp() {
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
+        TargetRole role=targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
 
         userRepository.save(
                 Users.builder()
                         .email("aa@a")
                         .name("sd")
                         .regDatetime(LocalDateTime.now())
-                        .role("USER")
+                        .role(role)
                         .status(UserStatus.ACTIVE)
                         .jobGroup("sd")
                         .notificationFlag("n")

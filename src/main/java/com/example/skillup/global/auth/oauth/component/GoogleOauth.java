@@ -1,14 +1,13 @@
 package com.example.skillup.global.auth.oauth.component;
 
 import com.example.skillup.domain.oauth.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
@@ -90,7 +89,7 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
-    public OauthInfo parse(String userInfo, String accessToken) {
+    public OauthInfoRequest parse(String userInfo, String accessToken) {
         JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
 
         String socialId = jsonObject.get("sub").getAsString();
@@ -105,7 +104,7 @@ public class GoogleOauth implements SocialOauth {
                 ? jsonObject.get("birthdate").getAsString()
                 : null;
 
-        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
+        return OauthInfoRequest.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

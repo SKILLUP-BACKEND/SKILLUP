@@ -1,7 +1,7 @@
 package com.example.skillup.global.auth.oauth.component;
 
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 
 public interface SocialOauth {
 
@@ -11,7 +11,7 @@ public interface SocialOauth {
 
     String requestAccessToken(String code);
 
-    OauthInfo parse(String userInfo, String accessToken);
+    OauthInfoRequest parse(String userInfo, String accessToken);
 
     default SocialLoginType getSocialType () {
         if (this instanceof GoogleOauth) {

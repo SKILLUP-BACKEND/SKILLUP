@@ -1,7 +1,7 @@
 package com.example.skillup.global.auth.oauth.component;
 
 import com.example.skillup.domain.oauth.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfo;
+import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.google.gson.JsonObject;
@@ -9,15 +9,12 @@ import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
@@ -103,7 +100,7 @@ public class NaverOauth implements SocialOauth {
     }
 
     @Override
-    public OauthInfo parse(String userInfo, String accessToken) {
+    public OauthInfoRequest parse(String userInfo, String accessToken) {
         JsonObject response = JsonParser.parseString(userInfo)
                 .getAsJsonObject()
                 .getAsJsonObject("response");
@@ -123,7 +120,7 @@ public class NaverOauth implements SocialOauth {
                 ? response.get("age").getAsString()
                 : null;
 
-        return OauthInfo.of(email, name, socialId, getSocialType(), gender, age);
+        return OauthInfoRequest.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

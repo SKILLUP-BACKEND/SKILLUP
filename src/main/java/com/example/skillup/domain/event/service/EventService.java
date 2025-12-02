@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventBanner;
@@ -31,6 +32,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
+import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
 import java.time.LocalDate;
@@ -236,7 +238,8 @@ public class EventService {
         //전체 조회수 및 event_view_daily 업데이트
         eventViewService.recordView(event.getId());
 
-        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId,ActionType.VIEW);
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId,
+                ActionType.VIEW);
 
         if (eventAction.isPresent()) {
             eventAction.get().setUpdatedAt();
@@ -384,7 +387,22 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
-        int count = eventRepository.countAllEvents();
+
+        boolean targetRolesIsEmpty = condition.getTargetRoles() == null|| condition.getTargetRoles().isEmpty();
+        int targetRoleCount = targetRolesIsEmpty ? 0:condition.getTargetRoles().size() ;
+
+
+        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
+                now,
+                targetRoleCount,
+                targetRolesIsEmpty);
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
+                .builder()
+                .currentPage(condition.getPage()+1)
+                .pageSize(pageable.getPageSize())
+                .totalPages((int) Math.ceil((double) count / (pageable.getPageSize())))
+                .build();
 
         return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
                 .map(r -> {
@@ -392,7 +410,7 @@ public class EventService {
                     double score = r.getPopularity();
                     return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
                 })
-                .toList()).total(count).build();
+                .toList()).total(count).pageInfoResponse(pageInfoResponse).build();
     }
 
     @Transactional(readOnly = true)
@@ -455,5 +473,38 @@ public class EventService {
                 })
                 .toList();
 
+    }
+
+    @Transactional
+    public EventResponse.EventApplyResponse applyEvent(Long eventId, UsersDetails users, String guestId) {
+        Event event = eventRepository.getEvent(eventId);
+
+        String actorId = (users != null) ? users.getUser().getId().toString() : guestId;
+
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId, ActionType.APPLY);
+        if(eventAction.isPresent()) {
+            return EventResponse.EventApplyResponse.builder()
+                    .eventId(eventId)
+                    .comment("이미 신청한 이력이 있습니다. 정상적으로 처리 되었습니다.")
+                    .build();
+        }
+
+        ActorType actorType = users != null ? ActorType.USER : ActorType.GUEST;
+
+        EventAction newEventAction = EventAction.builder()
+                .event(event)
+                .actorId(actorId)
+                .actorType(actorType)
+                .actionType(ActionType.APPLY)
+                .build();
+
+       eventRepository.incrementApplys(eventId);
+
+        eventActionRepository.save(newEventAction);
+
+        return EventApplyResponse.builder()
+                .eventId(eventId)
+                .comment("성공적으로 신청되었습니다.")
+                .build();
     }
 }
