@@ -98,12 +98,13 @@ public class EventServiceTest {
     private HashTag hashTag6;
     private HashTag hashTag7;
 
+    private TargetRole targetRole;
 
     @BeforeEach
     void setUp() {
         eventRepository.deleteAll();
         targetRoleRepository.deleteAll();
-        targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
+        targetRole=targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
         hashTag = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
@@ -641,7 +642,7 @@ public class EventServiceTest {
                         .socialLoginType(SocialLoginType.google)
                         .lastLoginAt(LocalDateTime.now())
                         .status(UserStatus.ACTIVE)
-                        .role("일반 사용자")
+                        .role(targetRole)
                         .build()
         );
 
@@ -660,16 +661,16 @@ public class EventServiceTest {
 
         assertThat(reloadEvent.getViewsCount()).isEqualTo(1L);
 
-        Optional<EventViewDaily> eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent , LocalDate.now());
+        Optional<EventViewDaily> eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent,
+                LocalDate.now());
         assertThat(eventViewDaily).isPresent();
         assertThat(eventViewDaily.get().getCnt()).isEqualTo(1L);
 
-
         Optional<EventAction> EventAction =
-                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent, principal.getUser().getId().toString() , ActionType.VIEW);
+                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent,
+                        principal.getUser().getId().toString(), ActionType.VIEW);
         assertThat(EventAction).isPresent();
         assertThat(EventAction.get().getActorType()).isEqualTo(ActorType.USER);
-
 
         String guestId = "guest-123";
 
@@ -680,14 +681,104 @@ public class EventServiceTest {
         reloadEvent = eventRepository.getEvent(result2.getId());
 
         assertThat(reloadEvent.getViewsCount()).isEqualTo(2L);
-        eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent , LocalDate.now());
+        eventViewDaily = eventViewDailyRepository.findByEventAndViewDate(reloadEvent, LocalDate.now());
         assertThat(eventViewDaily).isPresent();
         assertThat(eventViewDaily.get().getCnt()).isEqualTo(2L);
 
         EventAction =
-                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent, guestId , ActionType.VIEW);
+                eventActionRepository.findByEventAndActorIdAndActionType(reloadEvent, guestId, ActionType.VIEW);
         assertThat(EventAction).isPresent();
         assertThat(EventAction.get().getActorType()).isEqualTo(ActorType.GUEST);
+    }
+
+    @Test
+    @DisplayName("행사 신청 시 EventAction 이 존재하지 않으면 신청 수 1 증가하고 EventAction 을 만든다. 성공 테스트")
+    void applyEventUser_Success() {
+        Event event = eventRepository.save(createEvent("저장"));
+
+        Users user = Users.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Seed1")
+                .gender("남")
+                .age("15")
+                .jobGroup("개발자")
+                .notificationFlag("Y")
+                .socialId("test")
+                .regDatetime(LocalDateTime.now())
+                .socialLoginType(SocialLoginType.google)
+                .lastLoginAt(LocalDateTime.now())
+                .status(UserStatus.ACTIVE)
+                .role("USER")
+                .build();
+
+        UsersDetails usersDetails = new UsersDetails(user);
+
+        EventResponse.EventApplyResponse eventApplyResponse = eventService.applyEvent(event.getId(), usersDetails,
+                null);
+
+        assertThat(eventApplyResponse).isNotNull();
+        assertThat(eventApplyResponse.getComment()).isEqualTo("성공적으로 신청되었습니다.");
+
+        Event newEvent = eventRepository.getEvent(event.getId());
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(newEvent,
+                user.getId().toString(), ActionType.APPLY);
+
+        assertThat(eventAction).isPresent();
+        assertThat(eventAction.get().getActorType()).isEqualTo(ActorType.USER);
+        assertThat(eventAction.get().getActionType()).isEqualTo(ActionType.APPLY);
+
+        assertThat(newEvent.getApplyClicks()).isEqualTo(1L);
+
+    }
+
+    @Test
+    @DisplayName("행사 신청 시 EventAction 이 존재하면 신청 수 증가하지않고 반환. 성공 테스트")
+    void applyEventDuplicateUser_Success() {
+        Event event = eventRepository.save(createEvent("저장"));
+
+        Users user = Users.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Seed1")
+                .gender("남")
+                .age("15")
+                .jobGroup("개발자")
+                .notificationFlag("Y")
+                .socialId("test")
+                .regDatetime(LocalDateTime.now())
+                .socialLoginType(SocialLoginType.google)
+                .lastLoginAt(LocalDateTime.now())
+                .status(UserStatus.ACTIVE)
+                .role("USER")
+                .build();
+
+        UsersDetails usersDetails = new UsersDetails(user);
+
+        eventActionRepository.save(
+                EventAction.builder()
+                        .actionType(ActionType.APPLY)
+                        .actorId(user.getId().toString())
+                        .actorType(ActorType.USER)
+                        .event(event)
+                        .build()
+        );
+
+        EventResponse.EventApplyResponse eventApplyResponse = eventService.applyEvent(event.getId(), usersDetails,
+                null);
+
+        assertThat(eventApplyResponse).isNotNull();
+        assertThat(eventApplyResponse.getComment()).isEqualTo("이미 신청한 이력이 있습니다. 정상적으로 처리 되었습니다.");
+
+        Event newEvent = eventRepository.getEvent(event.getId());
+
+        List<EventAction> actions =
+                eventActionRepository.findAllByEventAndActionType(event, ActionType.APPLY);
+
+        assertThat(actions).hasSize(1);
+
+        assertThat(newEvent.getApplyClicks()).isEqualTo(0L);
+
     }
 
 }

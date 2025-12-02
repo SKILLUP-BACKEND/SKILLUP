@@ -23,5 +23,7 @@ public interface EventActionRepository extends JpaRepository<EventAction, Long> 
 """)
     List<Event> findRecentEventsByActorId(@Param("actorId")String actorId, Pageable pageable);
 
+    List<EventAction> findAllByEventAndActionType(Event event, ActionType actionType);
+
     Optional<EventAction> findByEventAndActorIdAndActionType(Event event, String actorId , ActionType actionType);
 }

@@ -359,7 +359,6 @@ public class EventRepositoryTest
         print("6) Top6 선정", t12 - t11);
         print("7 최종 이벤트 엔티티 조회", t14 - t13);
        // print("7-1) 최종 이벤트 엔티티 조회(최적화 전)", t20 - t19);
-
     }
 
     private void print(String label, long nanos) {
