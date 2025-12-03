@@ -41,6 +41,7 @@ public class UserService
     final private EventMapper eventMapper;
     final private TargetRoleRepository targetRoleRepository;
     final private InquiryRepository inquiryRepository;
+    private final UserRepository userRepository;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user)
     {
@@ -53,7 +54,8 @@ public class UserService
         List<Event> eventBookmarks=new ArrayList<>();
         Pageable pageable = PageRequest.of(page, 9);
 
-
+        //user를 영속성 컨텍스트로 만들기 위해서
+        user=userRepository.findById(user.getId()).orElse(null);
 
         switch (sort) {
             case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, category,pageable);
@@ -94,15 +96,17 @@ public class UserService
             errorCodeEnum = TargetRoleErrorCode.class,
             errorCodeName = "TARGET_ROLE_NOT_FOUND"
     )
-    @Transactional(readOnly = true)
+    @Transactional()
     public UserResponse.UserProfileResponse updateUser(Users user, UserRequest.UserUpdateRequest request)
     {
         TargetRole role=targetRoleRepository.findByName(request.getRole()).orElseThrow();
         Set<Interest> interests=interestRepository.findByNameIn(request.getInterests());
         user.update(request,role,interests);
+        userRepository.save(user);
         return userMapper.toUserProfileResponse(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse.InquiryResponse> getAllInquiry()
     {
         return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
