@@ -24,8 +24,8 @@ public class UserResponse {
     public static class MyPageBookMarkResponse {
         private String name;
         private String email;
-        List<EventResponse.HomeEventResponse> onGoingEvents;
-        List<EventResponse.HomeEventResponse> completedEvents;
+        List<EventResponse.HomeEventResponse> recruitingEvents;
+        List<EventResponse.HomeEventResponse> closedEvents;
         String role;
         int bookmarkCount;
         CommonResponse.PageInfoResponse pageInfo;
