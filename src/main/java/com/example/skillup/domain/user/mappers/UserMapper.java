@@ -43,13 +43,13 @@ public class UserMapper {
                 .build();
     }
 
-    public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user, List<EventResponse.HomeEventResponse> onGoingEvents,
-                                                                        List<EventResponse.HomeEventResponse> completedEvents, CommonResponse.PageInfoResponse pageInfoResponse)
+    public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user, List<EventResponse.HomeEventResponse> recruitingEvents,
+                                                                        List<EventResponse.HomeEventResponse> closedEvents, CommonResponse.PageInfoResponse pageInfoResponse)
     {
         return UserResponse.MyPageBookMarkResponse.builder()
-                .bookmarkCount(onGoingEvents.size()+completedEvents.size())
-                .onGoingEvents(onGoingEvents)
-                .completedEvents(completedEvents)
+                .bookmarkCount(recruitingEvents.size()+closedEvents.size())
+                .recruitingEvents(recruitingEvents)
+                .closedEvents(closedEvents)
                 .email(user.getEmail())
                 .name(user.getName())
                 .pageInfo(pageInfoResponse)

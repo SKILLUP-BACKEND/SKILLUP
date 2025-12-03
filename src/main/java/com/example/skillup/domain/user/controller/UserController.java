@@ -58,9 +58,9 @@ public class UserController
     @GetMapping("/my-page/profile/interest")
     @Operation(summary = "유저 프로필상 직무별 관심사를 불러옵니다(관심사의 유지 보수 및 정합성 관리를 위하여 DB 레벨에서 관리) "
             , description = "유저 프로필상 직무별 관심사를 가져오는 API ")
-    public BaseResponse<List<UserResponse.InterestResponse>> getInterestByRole(@RequestParam TargetRole role)
+    public BaseResponse<List<UserResponse.InterestResponse>> getInterestByRole(@RequestParam String roleName)
     {
-        return BaseResponse.success("직무별 관심사 조회 성공",userService.getInterestByRole(role));
+        return BaseResponse.success("직무별 관심사 조회 성공",userService.getInterestByRole(roleName));
     }
 
     @PutMapping("/my-page/profile/update")

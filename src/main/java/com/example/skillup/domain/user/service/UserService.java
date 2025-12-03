@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -72,23 +73,24 @@ public class UserService
                 .totalPages((int) Math.ceil((double) eventBookmarksDto.size() / (pageable.getPageSize())))
                 .build();
 
-        List<EventResponse.HomeEventResponse> onGoingEvents=new ArrayList<>();
-        List<EventResponse.HomeEventResponse> completedEvents=new ArrayList<>();
+        List<EventResponse.HomeEventResponse> recruitingEvents=new ArrayList<>();
+        List<EventResponse.HomeEventResponse> closedEvents=new ArrayList<>();
 
         for(EventResponse.HomeEventResponse event:eventBookmarksDto)
         {
             if (event.getD_dayLabel().equals("마감"))
-                completedEvents.add(event);
+                closedEvents.add(event);
             else
-                onGoingEvents.add(event);
+                recruitingEvents.add(event);
         }
-        return userMapper.toMyPageBookMarkResponse(user,onGoingEvents,completedEvents,pageInfoResponse);
+        return userMapper.toMyPageBookMarkResponse(user,recruitingEvents,closedEvents,pageInfoResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse.InterestResponse> getInterestByRole(TargetRole role)
+    public List<UserResponse.InterestResponse> getInterestByRole(String roleName)
     {
-        return interestRepository.findByRole(role).stream().map(userMapper::toInterestResponse).toList();
+        Optional<TargetRole> targetRole=targetRoleRepository.findByName(roleName);
+        return interestRepository.findByRole(targetRole.orElseThrow()).stream().map(userMapper::toInterestResponse).toList();
     }
 
     @ConvertNotFound(
