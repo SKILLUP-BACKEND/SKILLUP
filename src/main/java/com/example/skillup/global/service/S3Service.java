@@ -37,7 +37,7 @@ public class S3Service {
 
     public String uploadFile(MultipartFile file, String dirName) {
 
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             throw new S3UploadException(CommonErrorCode.FILE_UPLOAD_ERROR, "업로드할 파일이 비어있습니다.");
         }
 
