@@ -7,11 +7,11 @@ import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.global.search.exception.SearchException;
-import com.example.skillup.global.search.exception.SearchErrorCode;
-import com.example.skillup.global.search.mapper.EventDocumentMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.global.search.document.EventDocument;
+import com.example.skillup.global.search.exception.SearchErrorCode;
+import com.example.skillup.global.search.exception.SearchException;
+import com.example.skillup.global.search.mapper.EventDocumentMapper;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,8 @@ public class EventIndexerService {
                     .refresh(Refresh.True)
             ));
         } catch (IOException e) {
-            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR, "elasticsearch 생성/업데이트 시 에러 발생");
+            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR,
+                    e.getMessage() + "elasticsearch 생성/업데이트 시 에러 발생");
         }
     }
 
