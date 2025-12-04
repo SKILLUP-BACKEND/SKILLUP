@@ -6,12 +6,15 @@ import com.example.skillup.domain.admin.repository.AdminRepository;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.EventViewDaily;
+import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.entity.Users;
@@ -44,6 +47,7 @@ public class SampleDataLoader implements CommandLineRunner {
     private final AdminRepository adminRepository;
     private final SynonymGroupRepository synonymGroupRepository;
     private final SynonymTermRepository synonymTermRepository;
+    private final HashTagRepository hashTagRepository;
 
     @Override
     @Transactional
@@ -52,8 +56,13 @@ public class SampleDataLoader implements CommandLineRunner {
         TargetRole dev = getOrCreateRole("개발자");
         TargetRole design = getOrCreateRole("디자이너");
         TargetRole planner = getOrCreateRole("기획자");
+        TargetRole targetRoleTest = getOrCreateRole("string");
 
-        targetRoleRepository.saveAll(List.of(dev, design, planner));
+        targetRoleRepository.saveAll(List.of(dev, design, planner , targetRoleTest));
+
+        HashTag hashTagTest = getOrCreateHashTag("string");
+
+        hashTagRepository.saveAll(List.of(hashTagTest));
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -247,6 +256,11 @@ public class SampleDataLoader implements CommandLineRunner {
     private TargetRole getOrCreateRole(String name) {
         return targetRoleRepository.findByName(name)
                 .orElseGet(() -> targetRoleRepository.save(TargetRole.builder().name(name).build()));
+    }
+
+    private HashTag getOrCreateHashTag(String name) {
+        return hashTagRepository.findByName(name)
+                .orElseGet(() -> hashTagRepository.save(HashTag.builder().name(name).category(HashTagCategory.CAREER_GOAL).build()));
     }
 
     private void seedViews14(Event event, int minTotal, int maxTotal) {
