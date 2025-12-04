@@ -5,9 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,6 +36,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -53,9 +53,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -104,7 +106,7 @@ public class EventServiceTest {
     void setUp() {
         eventRepository.deleteAll();
         targetRoleRepository.deleteAll();
-        targetRole=targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
+        targetRole = targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
         hashTag = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
@@ -371,7 +373,8 @@ public class EventServiceTest {
 
         Event event = eventRepository.save(createEvent("숨김용 테스트 행사"));
 
-        mockMvc.perform(patch("/events/{id}/hide", event.getId())
+        mockMvc.perform(patch("/events/{eventId}/visibility", event.getId())
+                        .param("visibility", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("행사가 숨김 처리되었습니다."))
@@ -390,10 +393,11 @@ public class EventServiceTest {
         event.setStatus(EventStatus.HIDDEN);
         Event hidden_event = eventRepository.save(event);
 
-        mockMvc.perform(patch("/events/{id}/publish", hidden_event.getId())
+        mockMvc.perform(patch("/events/{eventId}/visibility", hidden_event.getId())
+                        .param("visibility", "true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("행사가 공개되었습니다."))
+                .andExpect(jsonPath("$.message").value("행사가 공개 처리되었습니다."))
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
 
         Event publishedEvent = eventRepository.findById(hidden_event.getId()).orElseThrow();
@@ -419,16 +423,15 @@ public class EventServiceTest {
         EventResponse.SearchEventResponseList resultByCategory3
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER","PLANNER")).sort("latest").page(0).build());
+                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER", "PLANNER")).sort("latest").page(0).build());
 
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
 
         assertEquals(12, resultByCategory.getHomeEventResponseList().size());
-        assertEquals(2,resultByCategory.getPageInfoResponse().getTotalPages());
-        assertEquals(1,resultByCategory.getPageInfoResponse().getCurrentPage());
-        assertEquals(12,resultByCategory.getPageInfoResponse().getPageSize());
-
+        assertEquals(2, resultByCategory.getPageInfoResponse().getTotalPages());
+        assertEquals(1, resultByCategory.getPageInfoResponse().getCurrentPage());
+        assertEquals(12, resultByCategory.getPageInfoResponse().getPageSize());
 
         assertEquals(8, resultByCategory2.getHomeEventResponseList().size());
 
