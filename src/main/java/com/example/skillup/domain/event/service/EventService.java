@@ -118,7 +118,11 @@ public class EventService {
     @Transactional
     public Event createEvent(EventRequest.CreateEvent request , MultipartFile thumbnailImage) {
 
-        String thumbnailUrl =  s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+        String thumbnailUrl = null;
+
+        if( thumbnailImage != null ) {
+            thumbnailUrl =  s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+        }
 
         Event event = eventMapper.toEntity(request , thumbnailUrl);
 
@@ -166,18 +170,18 @@ public class EventService {
     public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request , MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
-        String thumbnailUrl = event.getThumbnailUrl();
+        String imageUrl = event.getThumbnailUrl();
 
         if(thumbnailImage != null && !thumbnailImage.isEmpty()) {
 
-            if(thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
-                s3Service.deleteFileFromUrl(thumbnailUrl);
+            if(imageUrl != null && !imageUrl.isEmpty()) {
+                s3Service.deleteFileFromUrl(imageUrl);
             }
 
-            thumbnailUrl = s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+            imageUrl = s3Service.uploadFile(thumbnailImage , "event/thumbnail");
         }
 
-        event.update(request , thumbnailUrl);
+        event.update(request , imageUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
