@@ -152,13 +152,22 @@ public class EventServiceTest {
                 .build();
     }
 
+    private MockMultipartFile createThumbnailImage(String fileName) {
+        return new MockMultipartFile("thumbnailImage", fileName, MediaType.IMAGE_JPEG_VALUE,
+                "test-image-content".getBytes());
+    }
+
+    private MockMultipartFile createEventRequest(EventRequest.CreateEvent request) throws Exception {
+        return new MockMultipartFile("request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(request));
+    }
+
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
     void createEvent_Success_Test() throws Exception {
 
         EventRequest.CreateEvent request = new EventRequest.CreateEvent(
                 "행사 생성 테스트",
-                "http://example.com/thumb.png",
                 EventCategory.BOOTCAMP_CLUB,
                 LocalDateTime.of(2025, 9, 12, 10, 0),
                 LocalDateTime.of(2025, 9, 12, 12, 0),
@@ -177,9 +186,13 @@ public class EventServiceTest {
                 List.of("#스포츠", "#러닝")
         );
 
-        mockMvc.perform(post("/events")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MockMultipartFile thumbnail = createThumbnailImage("thumb.jpg");
+
+        MockMultipartFile jsonPart = createEventRequest(request);
+
+        mockMvc.perform(multipart("/events")
+                        .file(thumbnail)
+                        .file(jsonPart))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.eventId").isNumber())
                 .andExpect(jsonPath("$.message").value("행사가 등록되었습니다."))
@@ -196,7 +209,6 @@ public class EventServiceTest {
     void createEvent_Draft_Success_Test() throws Exception {
         EventRequest.CreateEvent request = new EventRequest.CreateEvent(
                 "임시 저장 테스트",
-                "http://example.com/thumb.png",
                 EventCategory.BOOTCAMP_CLUB,
                 LocalDateTime.of(2025, 9, 12, 10, 0),
                 LocalDateTime.of(2025, 9, 12, 12, 0),
@@ -215,9 +227,13 @@ public class EventServiceTest {
                 List.of("#서울", "#IT")
         );
 
-        mockMvc.perform(post("/events")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MockMultipartFile thumbnail = createThumbnailImage("thumb.jpg");
+
+        MockMultipartFile jsonPart = createEventRequest(request);
+
+        mockMvc.perform(multipart("/events")
+                        .file(jsonPart)
+                        .file(thumbnail))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.eventId").isNumber())
                 .andExpect(jsonPath("$.message").value("행사가 임시저장 되었습니다."))
@@ -243,11 +259,45 @@ public class EventServiceTest {
     @Test
     @WithMockUser(username = "admin", roles = {"OWNER"})
     void updateEvent_Success_Test() throws Exception {
-        Event event = eventRepository.save(createEvent("원본 제목"));
 
-        EventRequest.UpdateEvent request = new EventRequest.UpdateEvent(
+        EventRequest.CreateEvent request = new EventRequest.CreateEvent(
+                "원본 제목",
+                EventCategory.BOOTCAMP_CLUB,
+                LocalDateTime.of(2025, 9, 12, 10, 0),
+                LocalDateTime.of(2025, 9, 12, 12, 0),
+                LocalDateTime.of(2025, 9, 1, 0, 0),
+                LocalDateTime.of(2025, 9, 10, 23, 59),
+                true,
+                null,
+                List.of("DESIGNER"),
+                false,
+                true,
+                "서울 올림픽공원",
+                "http://maps.example.com",
+                "http://apply.example.com",
+                "010-1234-5678",
+                "이벤트 설명입니다",
+                List.of("#스포츠", "#러닝")
+        );
+
+        MockMultipartFile thumbnail = createThumbnailImage("thumb.jpg");
+
+        MockMultipartFile jsonPart = createEventRequest(request);
+
+        MvcResult createResult = mockMvc.perform(multipart("/events")
+                        .file(thumbnail)
+                        .file(jsonPart))
+                .andExpect(status().isOk())
+                .andReturn();
+        String createResponseBody = createResult.getResponse().getContentAsString();
+        JsonNode createRoot = objectMapper.readTree(createResponseBody);
+
+        long eventId = createRoot.path("data").path("eventId").asLong();
+
+        System.out.println(eventId);
+
+        EventRequest.UpdateEvent newRequest = new EventRequest.UpdateEvent(
                 "수정된 제목",
-                "http://example.com/new-thumb.png",
                 EventCategory.COMPETITION_HACKATHON,
                 LocalDateTime.of(2025, 10, 1, 14, 0),
                 LocalDateTime.of(2025, 10, 1, 16, 0),
@@ -265,16 +315,30 @@ public class EventServiceTest {
                 "완전히 수정된 이벤트 설명",
                 List.of("#AI", "#워크숍")
         );
-        mockMvc.perform(put("/events/{id}", event.getId()) // PUT 메서드 사용
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+
+        MockMultipartFile newThumbnail = createThumbnailImage("new.jpg");
+
+        MockMultipartFile newJsonPart = new MockMultipartFile(
+                "request",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(newRequest)
+        );
+
+        mockMvc.perform(multipart("/events/{id}", eventId) // PUT 메서드 사용
+                        .file(newThumbnail)
+                        .file(newJsonPart)
+                        .with(r -> {
+                            r.setMethod("PUT");
+                            return r;
+                        }))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("행사가 수정되었습니다."))
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
 
-        Event updatedEvent = eventRepository.getEvent(event.getId());
+        Event updatedEvent = eventRepository.getEvent(eventId);
         assertThat(updatedEvent.getTitle()).isEqualTo("수정된 제목");
-        assertThat(updatedEvent.getThumbnailUrl()).isEqualTo("http://example.com/new-thumb.png");
+        assertThat(updatedEvent.getThumbnailUrl()).endsWith("new.jpg");
         assertThat(updatedEvent.getCategory()).isEqualTo(EventCategory.COMPETITION_HACKATHON);
         assertThat(updatedEvent.getEventStart()).isEqualTo(LocalDateTime.of(2025, 10, 1, 14, 0));
         assertThat(updatedEvent.getEventEnd()).isEqualTo(LocalDateTime.of(2025, 10, 1, 16, 0));
