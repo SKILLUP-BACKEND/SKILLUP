@@ -116,6 +116,7 @@ public class UserService
     }
 
     public UserResponse.UserProfileResponse getUsers(Users user) {
+        user=userRepository.findById(user.getId()).orElse(null);
         return userMapper.toUserProfileResponse(user);
     }
 }
