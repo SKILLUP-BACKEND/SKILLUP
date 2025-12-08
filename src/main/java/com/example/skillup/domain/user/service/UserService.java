@@ -21,6 +21,7 @@ import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -46,39 +47,40 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, String sort, int page) {
-        List<Event> eventBookmarks = new ArrayList<>();
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user,String sort,int page)
+    {
+        List<Event> eventBookmarks=new ArrayList<>();
         Pageable pageable = PageRequest.of(page, 9);
 
         //user를 영속성 컨텍스트로 만들기 위해서
-        user = userRepository.findById(user.getId()).orElse(null);
+        user=userRepository.findById(user.getId()).orElse(null);
 
         switch (sort) {
-            case "latest" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
-            case "deadline" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
+            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
+            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
         }
-        List<EventResponse.HomeEventResponse> eventBookmarksDto = eventBookmarks.stream()
+        List<EventResponse.HomeEventResponse> eventBookmarksDto=eventBookmarks.stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
                 .toList();
 
         CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
                 .builder()
-                .currentPage(page + 1)
+                .currentPage(page+1)
                 .pageSize(pageable.getPageSize())
                 .totalPages((int) Math.ceil((double) eventBookmarksDto.size() / (pageable.getPageSize())))
                 .build();
 
-        List<EventResponse.HomeEventResponse> recruitingEvents = new ArrayList<>();
-        List<EventResponse.HomeEventResponse> closedEvents = new ArrayList<>();
+        List<EventResponse.HomeEventResponse> recruitingEvents=new ArrayList<>();
+        List<EventResponse.HomeEventResponse> closedEvents=new ArrayList<>();
 
-        for (EventResponse.HomeEventResponse event : eventBookmarksDto) {
-            if (event.getD_dayLabel().equals("마감")) {
+        for(EventResponse.HomeEventResponse event:eventBookmarksDto)
+        {
+            if (event.getD_dayLabel().equals("마감"))
                 closedEvents.add(event);
-            } else {
+            else
                 recruitingEvents.add(event);
-            }
         }
-        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse);
+        return userMapper.toMyPageBookMarkResponse(user,recruitingEvents,closedEvents,pageInfoResponse);
     }
 
     @Transactional(readOnly = true)
@@ -107,5 +109,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserResponse.InquiryResponse> getAllInquiry() {
         return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
+    }
+
+    public UserResponse.UserProfileResponse getUsers(Users user) {
+        return userMapper.toUserProfileResponse(user);
     }
 }

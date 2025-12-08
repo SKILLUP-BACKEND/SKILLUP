@@ -2,10 +2,6 @@ package com.example.skillup.domain.user.service;
 
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
@@ -24,7 +20,6 @@ import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
-import com.example.skillup.global.service.S3Service;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,9 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -164,23 +157,23 @@ public class UserServiceTest {
         eventBookmarkRepository.save(EventBookmark.builder().event(event3).user(u1).build());
         eventBookmarkRepository.save(EventBookmark.builder().event(event4).user(u1).build());
 
-        UserResponse.MyPageBookMarkResponse response = userService.getMyPageBookMark(u1,
-                EventCategory.CONFERENCE_SEMINAR, "deadline", 0);
+        UserResponse.MyPageBookMarkResponse response= userService.getMyPageBookMark(u1,"deadline",0);
 
         assertThat(u1.getEmail()).isEqualTo(response.getEmail());
         assertThat(response.getPageInfo().getCurrentPage()).isEqualTo(1);
         assertThat(response.getPageInfo().getTotalPages()).isEqualTo(1);
         assertThat(response.getPageInfo().getPageSize()).isEqualTo(9);
         assertThat(u1.getName()).isEqualTo(response.getName());
-        assertThat(event1.getId()).isEqualTo(response.getCompletedEvents().get(0).getId());
-        assertThat(event4.getId()).isEqualTo(response.getOnGoingEvents().get(0).getId());
-        assertThat(1).isEqualTo(response.getCompletedEvents().size());
-        assertThat(2).isEqualTo(response.getOnGoingEvents().size());
+        assertThat(event1.getId()).isEqualTo(response.getClosedEvents().get(0).getId());
+        assertThat(event4.getId()).isEqualTo(response.getRecruitingEvents().get(0).getId());
+        assertThat(1).isEqualTo(response.getClosedEvents().size());
+        assertThat(3).isEqualTo(response.getRecruitingEvents().size());
 
-        UserResponse.MyPageBookMarkResponse response2 = userService.getMyPageBookMark(u1,
-                EventCategory.CONFERENCE_SEMINAR, "latest", 0);
+        UserResponse.MyPageBookMarkResponse response2= userService.getMyPageBookMark(u1,"latest",0);
 
-        assertThat(event4.getId()).isEqualTo(response2.getOnGoingEvents().get(0).getId());
+        assertThat(event2.getId()).isEqualTo(response2.getRecruitingEvents().get(2).getId());
+
+
 
 
     }

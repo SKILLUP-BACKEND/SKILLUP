@@ -29,6 +29,13 @@ public class UserController {
     private final UserService userService;
     private final AuthService authService;
 
+    @GetMapping()
+    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user)
+    {
+        return BaseResponse.success("유저 조회 성공"
+        ,userService.getUsers(user.getUser()));
+
+    }
 
     @GetMapping("/test-login")
     public BaseResponse<String> testLogin() {
