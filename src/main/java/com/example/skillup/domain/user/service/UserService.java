@@ -14,6 +14,7 @@ import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
@@ -50,7 +51,7 @@ public class UserService
     }
 
     @Transactional(readOnly = true)
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, EventCategory category,String sort,int page)
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user,String sort,int page)
     {
         List<Event> eventBookmarks=new ArrayList<>();
         Pageable pageable = PageRequest.of(page, 9);
@@ -59,8 +60,8 @@ public class UserService
         user=userRepository.findById(user.getId()).orElse(null);
 
         switch (sort) {
-            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, category,pageable);
-            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, category,pageable);
+            case "latest" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
+            case "deadline" -> eventBookmarks=eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
         }
         List<EventResponse.HomeEventResponse> eventBookmarksDto=eventBookmarks.stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
@@ -112,5 +113,9 @@ public class UserService
     public List<UserResponse.InquiryResponse> getAllInquiry()
     {
         return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
+    }
+
+    public UserResponse.UserProfileResponse getUsers(Users user) {
+        return userMapper.toUserProfileResponse(user);
     }
 }

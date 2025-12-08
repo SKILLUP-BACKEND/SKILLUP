@@ -25,6 +25,13 @@ public class UserController
     private final UserService userService;
     private final AuthService authService;
 
+    @GetMapping()
+    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user)
+    {
+        return BaseResponse.success("유저 조회 성공"
+        ,userService.getUsers(user.getUser()));
+
+    }
 
     @GetMapping("/test-login")
     public BaseResponse<String> testLogin()
@@ -45,14 +52,13 @@ public class UserController
             , description = "마이페이지 북마크 페이지 API")
     public  BaseResponse<UserResponse.MyPageBookMarkResponse> getMyPageBookMark(
             @AuthenticationPrincipal UsersDetails user,
-            @RequestParam EventCategory category,
             @Parameter(
                     description = "정렬 기준 (latest, deadline)"
             )
             @RequestParam String sort,
             @RequestParam int page
     ) {
-        return  BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",userService.getMyPageBookMark(user.getUser(),category,sort,page));
+        return  BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",userService.getMyPageBookMark(user.getUser(),sort,page));
     }
 
     @GetMapping("/my-page/profile/interest")
