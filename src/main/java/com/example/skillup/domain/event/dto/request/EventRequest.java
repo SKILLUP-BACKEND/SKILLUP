@@ -24,8 +24,8 @@ public class EventRequest {
         @NotNull(message = "제목을 입력해주세요.")
         private String title;
 
-        @NotNull(message = "썸네일 URL을 입력해주세요.")
-        private String thumbnailUrl;
+        //@NotNull(message = "썸네일 URL을 입력해주세요.")
+        //private String thumbnailUrl;
 
         @NotNull(message = "카테고리를 선택해주세요.")
         private EventCategory category;
@@ -74,8 +74,8 @@ public class EventRequest {
         @NotNull(message = "제목을 입력해주세요.")
         private String title;
 
-        @NotNull(message = "썸네일 URL을 입력해주세요.")
-        private String thumbnailUrl;
+        //@NotNull(message = "썸네일 URL을 입력해주세요.")
+        //private String thumbnailUrl;
 
         @NotNull(message = "카테고리를 선택해주세요.")
         private EventCategory category;

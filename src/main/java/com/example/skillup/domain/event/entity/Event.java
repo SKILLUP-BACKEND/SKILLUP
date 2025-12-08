@@ -42,7 +42,7 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column
+    @Column(length = 512)
     private String thumbnailUrl;
 
     @Column(nullable = false)
@@ -101,7 +101,7 @@ public class Event extends BaseEntity {
             joinColumns = @JoinColumn(name = "event_id"),
             inverseJoinColumns = @JoinColumn(name = "hash_tags_id")
     )
-    private Set<HashTag> hashTags= new HashSet<>();
+    private Set<HashTag> hashTags = new HashSet<>();
 
 
     @Builder.Default
@@ -136,9 +136,9 @@ public class Event extends BaseEntity {
     }
 
 
-    public void update(EventRequest.UpdateEvent request) {
+    public void update(EventRequest.UpdateEvent request, String thumbnailImage) {
         this.title = request.getTitle();
-        this.thumbnailUrl = request.getThumbnailUrl();
+        this.thumbnailUrl = thumbnailImage;
         this.category = request.getCategory();
         this.eventStart = request.getEventStart();
         this.eventEnd = request.getEventEnd();
