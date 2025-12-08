@@ -48,6 +48,7 @@ public class UserResponse {
         private String gender;
         private String role;
         private List<String> interests;
+        private boolean marketingAgreement;
     }
 
     @Getter

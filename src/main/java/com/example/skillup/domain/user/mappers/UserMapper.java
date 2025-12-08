@@ -71,6 +71,7 @@ public class UserMapper {
                 .gender(user.getGender())
                 .interests(user.getInterests().stream().map(Interest::getName).collect(Collectors.toList()))
                 .role(user.getRole().getName())
+                .marketingAgreement(user.isMarketingAgreement())
                 .build();
     }
 
