@@ -112,7 +112,7 @@ public class UserService
     @Transactional(readOnly = true)
     public List<UserResponse.InquiryResponse> getAllInquiry()
     {
-        return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
+        return inquiryRepository.findAllByOrderByIdAsc().stream().map(userMapper::toInquiryResponse).toList();
     }
 
     public UserResponse.UserProfileResponse getUsers(Users user) {
