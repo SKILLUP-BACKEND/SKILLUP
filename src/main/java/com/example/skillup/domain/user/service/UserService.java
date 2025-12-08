@@ -4,6 +4,7 @@ package com.example.skillup.domain.user.service;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -13,21 +14,25 @@ import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import com.example.skillup.global.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
