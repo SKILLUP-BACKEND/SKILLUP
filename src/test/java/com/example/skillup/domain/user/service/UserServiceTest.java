@@ -1,6 +1,12 @@
 package com.example.skillup.domain.user.service;
 
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.entity.TargetRole;
@@ -18,24 +24,24 @@ import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-
+import com.example.skillup.global.service.S3Service;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class UserServiceTest
-{
+public class UserServiceTest {
     @Autowired
     private UserService userService;
 
@@ -54,13 +60,17 @@ public class UserServiceTest
     @Autowired
     private EventBookmarkRepository eventBookmarkRepository;
 
+    @MockitoBean
+    private S3Service s3Service;
+
     private Users u1;
     private TargetRole role;
+
     @BeforeEach
     void setUp() {
         targetRoleRepository.deleteAll();
         userRepository.deleteAll();
-        role =targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
+        role = targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
         u1 = userRepository.save(
@@ -82,9 +92,8 @@ public class UserServiceTest
     }
 
     @Test
-    public void getMyPageHome_Success()
-    {
-        UserResponse.MyPageHomeResponse response=userService.getMyPageHome(u1);
+    public void getMyPageHome_Success() {
+        UserResponse.MyPageHomeResponse response = userService.getMyPageHome(u1);
         assertThat(u1.getEmail()).isEqualTo(response.getEmail());
         assertThat(u1.getName()).isEqualTo(response.getName());
 
@@ -144,9 +153,9 @@ public class UserServiceTest
                 .eventEnd(LocalDateTime.now().plusDays(200))
                 .build();
 
-        eventRepository.saveAll(List.of(event1, event2, event3,event4));
+        eventRepository.saveAll(List.of(event1, event2, event3, event4));
 
-        EventBookmark oldEventBookmark =EventBookmark.builder().event(event2).user(u1).build();
+        EventBookmark oldEventBookmark = EventBookmark.builder().event(event2).user(u1).build();
         createdField.set(oldEventBookmark, LocalDate.now().minusMonths(5).atStartOfDay());
 
         eventBookmarkRepository.save(oldEventBookmark);
@@ -172,19 +181,28 @@ public class UserServiceTest
         assertThat(event2.getId()).isEqualTo(response2.getRecruitingEvents().get(2).getId());
 
 
-
-
     }
 
     @Test
-    public void updateUser_Success()
-    {
+    public void updateUser_Success() {
         interestRepository.save(Interest.builder().role(role).name("코딩").build());
-        UserRequest.UserUpdateRequest request=UserRequest.UserUpdateRequest.builder().age("22").name("김").profileImageUrl("www")
+        UserRequest.UserUpdateRequest request = UserRequest.UserUpdateRequest.builder().age("22").name("김")
                 .gender("남").role("AI_DEVELOPER").interests(List.of("코딩")).build();
-        UserResponse.UserProfileResponse response=userService.updateUser(u1,request);
 
-        assertThat(response.getProfileImageUrl()).isEqualTo("www");
+        MultipartFile profileImage = new MockMultipartFile(
+                "profileImage",
+                "test-profile.jpg",
+                "image/jpeg",
+                "test image bytes".getBytes()
+        );
+
+        when(s3Service.uploadFile(any(MultipartFile.class), anyString())).thenReturn("test-profile.jpg");
+
+        UserResponse.UserProfileResponse response = userService.updateUser(u1, request, profileImage);
+
+        verify(s3Service).uploadFile(any(MultipartFile.class), anyString());
+
+        assertThat(response.getProfileImageUrl()).endsWith("test-profile.jpg");
         assertThat(response.getAge()).isEqualTo("22");
         assertThat(response.getRole()).isEqualTo("AI_DEVELOPER");
         assertThat(response.getGender()).isEqualTo("남");
