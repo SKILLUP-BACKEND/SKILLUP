@@ -13,6 +13,7 @@ import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
@@ -29,7 +30,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -86,10 +91,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse.InterestResponse> getInterestByRole(String roleName) {
-        Optional<TargetRole> targetRole = targetRoleRepository.findByName(roleName);
-        return interestRepository.findByRole(targetRole.orElseThrow()).stream().map(userMapper::toInterestResponse)
-                .toList();
+    public List<UserResponse.InterestResponse> getInterestByRole(String roleName)
+    {
+        Optional<TargetRole> targetRole=targetRoleRepository.findByName(roleName);
+        return interestRepository.findByRole(targetRole.orElseThrow()).stream().map(userMapper::toInterestResponse).toList();
     }
 
     @ConvertNotFound(
@@ -109,8 +114,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse.InquiryResponse> getAllInquiry() {
-        return inquiryRepository.findAll().stream().map(userMapper::toInquiryResponse).toList();
+    public List<UserResponse.InquiryResponse> getAllInquiry()
+    {
+        return inquiryRepository.findAllByOrderByIdAsc().stream().map(userMapper::toInquiryResponse).toList();
     }
 
     public UserResponse.UserProfileResponse getUsers(Users user) {

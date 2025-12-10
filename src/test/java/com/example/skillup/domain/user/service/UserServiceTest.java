@@ -175,6 +175,10 @@ public class UserServiceTest {
         assertThat(1).isEqualTo(response.getClosedEvents().size());
         assertThat(3).isEqualTo(response.getRecruitingEvents().size());
 
+        UserResponse.MyPageBookMarkResponse response2= userService.getMyPageBookMark(u1,"latest",0);
+
+        assertThat(event2.getId()).isEqualTo(response2.getRecruitingEvents().get(2).getId());
+
         UserResponse.MyPageBookMarkResponse response2 = userService.getMyPageBookMark(u1, "latest", 0);
 
         assertThat(event2.getId()).isEqualTo(response2.getRecruitingEvents().get(2).getId());
