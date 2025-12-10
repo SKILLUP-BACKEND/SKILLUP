@@ -5,13 +5,11 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
-import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.ActionType;
 import com.example.skillup.domain.event.enums.ActorType;
-import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
@@ -116,15 +114,15 @@ public class EventService {
 
 
     @Transactional
-    public Event createEvent(EventRequest.CreateEvent request , MultipartFile thumbnailImage) {
+    public Event createEvent(EventRequest.CreateEvent request, MultipartFile thumbnailImage) {
 
         String thumbnailUrl = null;
 
-        if( thumbnailImage != null ) {
-            thumbnailUrl =  s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+        if (thumbnailImage != null) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        Event event = eventMapper.toEntity(request , thumbnailUrl);
+        Event event = eventMapper.toEntity(request, thumbnailUrl);
 
         request.getTargetRoles().stream()
                 .distinct()
@@ -167,21 +165,22 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request , MultipartFile thumbnailImage) {
+    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request,
+                                                         MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
         String imageUrl = event.getThumbnailUrl();
 
-        if(thumbnailImage != null && !thumbnailImage.isEmpty()) {
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 
-            if(imageUrl != null && !imageUrl.isEmpty()) {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
                 s3Service.deleteFileFromUrl(imageUrl);
             }
 
-            imageUrl = s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+            imageUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        event.update(request , imageUrl);
+        event.update(request, imageUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
@@ -356,21 +355,6 @@ public class EventService {
         return eventMapper.toCategoryEventResponseList(items, category);
     }
 
-    @Transactional(readOnly = true)
-    public EventResponse.EventBannersResponseList getEventBanners() {
-
-        List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now,
-                PageRequest.of(0, 5));
-        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER, now,
-                PageRequest.of(0, 1));
-
-        List<EventResponse.EventBannerResponse> mainEventBanners = eventMapper.toEventBannerResponse(mainBanners);
-        List<EventResponse.EventBannerResponse> subEventBanners = eventMapper.toEventBannerResponse(subBanner);
-
-        return eventMapper.toEventBannersResponseList(mainEventBanners, subEventBanners);
-
-    }
-
     private double calcPopularity(Event event) {
         //현재는 쿼리에서 직접 가져오는걸로 수정
         double views = event.getViewsCount();
@@ -412,9 +396,8 @@ public class EventService {
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
 
-        boolean targetRolesIsEmpty = condition.getTargetRoles() == null|| condition.getTargetRoles().isEmpty();
-        int targetRoleCount = targetRolesIsEmpty ? 0:condition.getTargetRoles().size() ;
-
+        boolean targetRolesIsEmpty = condition.getTargetRoles() == null || condition.getTargetRoles().isEmpty();
+        int targetRoleCount = targetRolesIsEmpty ? 0 : condition.getTargetRoles().size();
 
         int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
                 , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
@@ -423,7 +406,7 @@ public class EventService {
                 targetRolesIsEmpty);
         CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
                 .builder()
-                .currentPage(condition.getPage()+1)
+                .currentPage(condition.getPage() + 1)
                 .pageSize(pageable.getPageSize())
                 .totalPages((int) Math.ceil((double) count / (pageable.getPageSize())))
                 .build();
@@ -505,8 +488,9 @@ public class EventService {
 
         String actorId = (users != null) ? users.getUser().getId().toString() : guestId;
 
-        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId, ActionType.APPLY);
-        if(eventAction.isPresent()) {
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId,
+                ActionType.APPLY);
+        if (eventAction.isPresent()) {
             return EventResponse.EventApplyResponse.builder()
                     .eventId(eventId)
                     .comment("이미 신청한 이력이 있습니다. 정상적으로 처리 되었습니다.")
@@ -522,7 +506,7 @@ public class EventService {
                 .actionType(ActionType.APPLY)
                 .build();
 
-       eventRepository.incrementApplys(eventId);
+        eventRepository.incrementApplys(eventId);
 
         eventActionRepository.save(newEventAction);
 
