@@ -7,6 +7,7 @@ import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.service.EventBannerService;
 import com.example.skillup.domain.event.service.EventBookmarkService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -45,6 +46,7 @@ public class EventController {
     private final EventService eventService;
     private final EventSearchService eventSearchService;
     private final EventBookmarkService eventBookmarkService;
+    private final EventBannerService eventBannerService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
@@ -157,7 +159,43 @@ public class EventController {
     @GetMapping("/home/banners")
     @Operation(summary = "메인 배너 및 서브 배너 리스트", description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
     public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners() {
-        return BaseResponse.success("배너 리스트 조회 성공", eventService.getEventBanners());
+        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getEventBanners());
+    }
+
+    @PostMapping(value = "/home/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 등록 API", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
+    public BaseResponse<EventResponse.EventBannerResponse> createHomeBanners(
+            @RequestPart @Valid EventRequest.CreateEventBannerRequest request,
+            @RequestPart("bannerImage") MultipartFile bannerImage) {
+        return BaseResponse.success("배너 등록 성공", eventBannerService.createBanner(bannerImage, request));
+    }
+
+    @PutMapping(value = "/home/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(
+            summary = "배너 수정 API",
+            description = """
+                    배너 수정 API 입니다.
+                    - 배너 타입: MAIN_BANNER 또는 SUB_BANNER
+                    - 이미지 파일(profileImage)은 선택적으로 전송 가능합니다.
+                    """
+    )
+    public BaseResponse<EventResponse.EventBannerResponse> updateHomeBanner(
+            @PathVariable Long bannerId,
+            @RequestPart @Valid EventRequest.UpdateEventBannerRequest request,
+            @RequestPart(name = "bannerImage", required = false) MultipartFile bannerImage
+    ) {
+        return BaseResponse.success("배너 수정 성공", eventBannerService.updateBanner(bannerId, request, bannerImage));
+    }
+
+    @DeleteMapping("/home/banners/{bannerId}")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 삭제 API", description = "지우실 배너 아이디를 입력해주세요")
+    public BaseResponse<EventResponse.CommonBannerResponse> deleteHomeBanner(
+            @PathVariable Long bannerId
+    ){
+        return BaseResponse.success("배너 삭제 성공" , eventBannerService.deleteBanner(bannerId));
     }
 
     @PostMapping("category-page/search")
