@@ -1,10 +1,9 @@
 package com.example.skillup.domain.user.controller;
 
 
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.domain.user.dto.response.UserResponse.InterestResponse;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.service.UserService;
 import com.example.skillup.global.auth.service.AuthService;
@@ -13,14 +12,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")
@@ -30,10 +31,9 @@ public class UserController {
     private final AuthService authService;
 
     @GetMapping()
-    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user)
-    {
+    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user) {
         return BaseResponse.success("유저 조회 성공"
-        ,userService.getUsers(user.getUser()));
+                , userService.getUsers(user.getUser()));
 
     }
 
@@ -48,13 +48,13 @@ public class UserController {
     @Operation(summary = "마이페이지 첫 홈 화면 API로 유저의 이메일과 이름을 리턴합니다."
             , description = "마이페이지 첫 홈 화면 API")
     public BaseResponse<UserResponse.MyPageHomeResponse> getMyPageHome(@AuthenticationPrincipal UsersDetails user) {
-        return BaseResponse.success("마이 페이지 홈 조회 성공",userService.getMyPageHome(user.getUser()));
+        return BaseResponse.success("마이 페이지 홈 조회 성공", userService.getMyPageHome(user.getUser()));
     }
 
     @GetMapping("/my-page/bookmark")
     @Operation(summary = "마이페이지에서 유저가 북마크 한 이벤트 불러옵니다.(sort 값 latest, deadline)"
             , description = "마이페이지 북마크 페이지 API")
-    public  BaseResponse<UserResponse.MyPageBookMarkResponse> getMyPageBookMark(
+    public BaseResponse<UserResponse.MyPageBookMarkResponse> getMyPageBookMark(
             @AuthenticationPrincipal UsersDetails user,
             @Parameter(
                     description = "정렬 기준 (latest, deadline)"
@@ -62,15 +62,14 @@ public class UserController {
             @RequestParam String sort,
             @RequestParam int page
     ) {
-        return  BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",userService.getMyPageBookMark(user.getUser(),sort,page));
+        return BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공", userService.getMyPageBookMark(user.getUser(), sort, page));
     }
 
     @GetMapping("/my-page/profile/interest")
     @Operation(summary = "유저 프로필상 직무별 관심사를 불러옵니다(관심사의 유지 보수 및 정합성 관리를 위하여 DB 레벨에서 관리) "
             , description = "유저 프로필상 직무별 관심사를 가져오는 API ")
-    public BaseResponse<List<UserResponse.InterestResponse>> getInterestByRole(@RequestParam String roleName)
-    {
-        return BaseResponse.success("직무별 관심사 조회 성공",userService.getInterestByRole(roleName));
+    public BaseResponse<List<InterestResponse>> getInterestByRole(@RequestParam String roleName) {
+        return BaseResponse.success("직무별 관심사 조회 성공", userService.getInterestByRole(roleName));
     }
 
     @PutMapping(value = "/my-page/profile/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

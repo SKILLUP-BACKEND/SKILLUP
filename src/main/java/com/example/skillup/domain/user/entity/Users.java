@@ -35,8 +35,7 @@ import org.hibernate.annotations.SQLRestriction;
 @AllArgsConstructor
 @NoArgsConstructor(access = PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-public class Users extends BaseEntity
-{
+public class Users extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -72,7 +71,7 @@ public class Users extends BaseEntity
     private LocalDateTime lastLoginAt;
 
     private String socialId;
-    
+
     @Enumerated(EnumType.STRING)
     private SocialLoginType socialLoginType;
 
@@ -89,14 +88,29 @@ public class Users extends BaseEntity
 
     private boolean marketingAgreement;
 
-    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests , String userProfileImageUrl) {
-        if (dto.getName() != null) this.name = dto.getName();
-        if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
-        if (dto.getAge() != null) this.age = dto.getAge();
-        if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
-        if (dto.getGender() != null) this.gender = dto.getGender();
-        if (dto.getRole() != null) this.role = role;
-        if (dto.getInterests() != null) this.interests = interests;
+    public void update(UserRequest.UserUpdateRequest dto, TargetRole role, Set<Interest> interests,
+                       String userProfileImageUrl) {
+        if (dto.getName() != null) {
+            this.name = dto.getName();
+        }
+        if (userProfileImageUrl != null) {
+            this.profileImageUrl = userProfileImageUrl;
+        }
+        if (dto.getAge() != null) {
+            this.age = dto.getAge();
+        }
+        if (dto.getMarketingAgreement() != null) {
+            this.marketingAgreement = dto.getMarketingAgreement();
+        }
+        if (dto.getGender() != null) {
+            this.gender = dto.getGender();
+        }
+        if (dto.getRole() != null) {
+            this.role = role;
+        }
+        if (dto.getInterests() != null) {
+            this.interests = interests;
+        }
     }
 
 }
