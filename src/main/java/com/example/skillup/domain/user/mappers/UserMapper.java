@@ -83,4 +83,11 @@ public class UserMapper {
                 .build();
     }
 
+    public UserResponse.AdminUserResponse toAdminUserResponse(Users user) {
+        return new UserResponse.AdminUserResponse
+                (user.getName(), user.getEmail(), user.getCreatedAt(),
+                        user.getSocialLoginType(),user.getRole()
+                        , user.getDeletedAt() != null);
+    }
+
 }

@@ -45,7 +45,7 @@ public class Users extends BaseEntity
     private LocalDateTime regDatetime;
 
     @JoinColumn(nullable = false)
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private TargetRole role;
 
     @Enumerated(EnumType.STRING)

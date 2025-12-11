@@ -1,12 +1,18 @@
 package com.example.skillup.domain.admin.service;
 
 import com.example.skillup.domain.admin.dto.AdminLoginRequest;
+import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest.AddTermsReq;
 import com.example.skillup.domain.admin.dto.SynonymRequest.CreateSynonymRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.exception.AdminException;
+import com.example.skillup.domain.admin.mapper.AdminMapper;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
+import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.mappers.UserMapper;
+import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
@@ -18,6 +24,7 @@ import com.example.skillup.global.search.enums.SynonymStatus;
 import com.example.skillup.global.search.repository.SynonymGroupRepository;
 import com.example.skillup.global.search.repository.SynonymTermRepository;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,6 +42,9 @@ public class AdminService {
     private final SynonymMapper synonymMapper;
     private final SynonymGroupRepository synonymGroupRepository;
     private final SynonymTermRepository synonymTermRepository;
+    private final UserRepository userRepository;
+    private final AdminMapper adminMapper;
+    private final UserMapper  userMapper;
 
 
     public Admin login(AdminLoginRequest request) {
@@ -115,5 +125,30 @@ public class AdminService {
         publish(locale);
 
         return deletedTerms;
+    }
+
+    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted)
+    {
+
+        List<Users> users= userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted);
+        List<UserResponse.AdminUserResponse> adminUserResponse = new ArrayList<>();
+
+        for(Users user : users)
+            adminUserResponse.add(userMapper.toAdminUserResponse(user));
+
+        List<UserResponse.AdminUserResponse> devUsers = new ArrayList<>();
+        List<UserResponse.AdminUserResponse> designerUsers = new ArrayList<>();
+        List<UserResponse.AdminUserResponse> pmUsers = new ArrayList<>();
+
+        for (UserResponse.AdminUserResponse u : adminUserResponse) {
+            switch (u.getRole()) {
+                case "개발" -> devUsers.add(u);
+                case "디자인" -> designerUsers.add(u);
+                default -> pmUsers.add(u);
+            }
+        }
+
+        return adminMapper.toAdminUserPageResponse(adminUserResponse, devUsers, designerUsers, pmUsers);
+
     }
 }

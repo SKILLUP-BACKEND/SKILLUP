@@ -1,6 +1,7 @@
 package com.example.skillup.domain.admin.controller;
 
 import com.example.skillup.domain.admin.dto.AdminLoginRequest;
+import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.service.AdminService;
@@ -11,13 +12,9 @@ import com.example.skillup.global.search.service.EventIndexerService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -76,4 +73,13 @@ public class AdminController {
     public BaseResponse<String> deleteGroup(@PathVariable Long groupId) {
         return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " + adminService.deleteGroup(groupId));
     }
+
+
+    @GetMapping("/users")
+    @Operation(summary = "검색 조건으로 유저를 조회합니다.")
+    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyWard , @RequestParam boolean deleted) {
+        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted));
+    }
+
+
 }

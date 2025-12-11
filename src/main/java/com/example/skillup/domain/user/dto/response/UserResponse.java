@@ -1,15 +1,28 @@
 package com.example.skillup.domain.user.dto.response;
 
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class UserResponse {
+
+
+    public static String convertRole(TargetRole role) {
+        return switch (role.getName()) {
+            case "개발자" -> "개발";
+            case "디자이너" -> "디자인";
+            default ->  "기획";
+        };
+    }
     @Getter
     @AllArgsConstructor
     @Builder
@@ -59,5 +72,30 @@ public class UserResponse {
         private String question;
         private String answerTitle;
         private String answerContent;
+    }
+
+    @Getter
+    public static class AdminUserResponse
+    {
+        private String name;
+        private String email;
+        private String createdAt;
+        private String socialLoginType;
+        private String role;
+        private String status;
+
+        public AdminUserResponse(String name,
+                                     String email,
+                                     LocalDateTime createdAt,
+                                     SocialLoginType socialLoginType,
+                                     TargetRole role,
+                                     boolean isDeleted) {
+            this.name = name;
+            this.email = email;
+            this.createdAt = CommonMapper.toDatePattern(createdAt);
+            this.socialLoginType = socialLoginType.getToKorean();
+            this.role = convertRole(role);
+            this.status = isDeleted ? "탈퇴" : "활성";
+        }
     }
 }
