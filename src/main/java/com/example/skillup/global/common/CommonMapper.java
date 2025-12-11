@@ -1,5 +1,6 @@
 package com.example.skillup.global.common;
 
+import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 
@@ -11,5 +12,13 @@ public class CommonMapper {
     {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
         return dateTime.format(formatter);
+    }
+
+    public static String convertRole(TargetRole role) {
+        return switch (role.getName()) {
+            case "개발자" -> "개발";
+            case "디자이너" -> "디자인";
+            default ->  "기획";
+        };
     }
 }

@@ -16,13 +16,6 @@ import java.util.List;
 public class UserResponse {
 
 
-    public static String convertRole(TargetRole role) {
-        return switch (role.getName()) {
-            case "개발자" -> "개발";
-            case "디자이너" -> "디자인";
-            default ->  "기획";
-        };
-    }
     @Getter
     @AllArgsConstructor
     @Builder
@@ -94,7 +87,7 @@ public class UserResponse {
             this.email = email;
             this.createdAt = CommonMapper.toDatePattern(createdAt);
             this.socialLoginType = socialLoginType.getToKorean();
-            this.role = convertRole(role);
+            this.role = CommonMapper.convertRole(role);
             this.status = isDeleted ? "탈퇴" : "활성";
         }
     }
