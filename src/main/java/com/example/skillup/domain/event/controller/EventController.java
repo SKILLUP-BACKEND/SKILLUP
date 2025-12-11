@@ -156,13 +156,24 @@ public class EventController {
         return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
     }
 
-    @GetMapping("/home/banners")
-    @Operation(summary = "메인 배너 및 서브 배너 리스트", description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
-    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners() {
-        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getEventBanners());
+    @GetMapping("/home/admin/banners")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "관리자용 배너 리스트 API 입니다.", description = "관리자용 배너 조회 API 입니다. 현재 배너 + 이전 배너 를 반환합니다. page 값은 1부터 넣어주세요(이전 배너용 페이지)")
+    public BaseResponse<EventResponse.EventBannerAdminResponse> getBannersAll(
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getEventBanners(page));
     }
 
-    @PostMapping(value = "/home/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @GetMapping("/home/banners")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "메인 페이지에 나올 배너 조회 API 입니다.", description = "현재 날짜가 배너의 노출일과 마감일 사이에 있는 배너를 반환합니다.")
+    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(
+    ) {
+        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getActiveEventBanners());
+    }
+
+    @PostMapping(value = "/home/admin/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "배너 등록 API", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
     public BaseResponse<EventResponse.EventBannerResponse> createHomeBanners(
@@ -204,8 +215,8 @@ public class EventController {
     @Operation(summary = "배너 삭제 API", description = "지우실 배너 아이디를 입력해주세요")
     public BaseResponse<EventResponse.CommonBannerResponse> deleteHomeBanner(
             @PathVariable Long bannerId
-    ){
-        return BaseResponse.success("배너 삭제 성공" , eventBannerService.deleteBanner(bannerId));
+    ) {
+        return BaseResponse.success("배너 삭제 성공", eventBannerService.deleteBanner(bannerId));
     }
 
     @PostMapping("category-page/search")

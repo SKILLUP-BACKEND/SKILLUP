@@ -2,7 +2,7 @@ package com.example.skillup.domain.event.repository;
 
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.enums.BannerType;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +19,32 @@ public interface EventBannerRepository extends JpaRepository<EventBanner, Long> 
             order by b.displayOrder asc
                 
 """)
-    List<EventBanner> findActiveEventBannersByType(@Param("bannerType") BannerType bannerType, @Param("now")LocalDateTime now, Pageable pageable);
+    List<EventBanner> findActiveEventBannersByType(@Param("bannerType") BannerType bannerType, @Param("now") LocalDate now);
+
+    @Query("""
+        select eb
+        from EventBanner eb
+        where eb.type = :bannerType
+          and eb.endAt < :now
+        order by eb.endAt desc
+    """)
+    List<EventBanner> findPastEventBannersByType(
+            @Param("bannerType") BannerType bannerType,
+            @Param("now") LocalDate now,
+            Pageable pageable
+    );
+
+    @Query("""
+        select eb
+        from EventBanner eb
+        where eb.type = :bannerType
+          and (eb.endAt is null or eb.endAt >= :now)
+        order by eb.displayOrder asc
+    """)
+    List<EventBanner> findCurrentAndWaitingEventBannersByType(
+            @Param("bannerType") BannerType bannerType,
+            @Param("now") LocalDate now
+    );
 
     Optional<EventBanner> findTopByTypeOrderByDisplayOrderDesc(BannerType bannerType);
 

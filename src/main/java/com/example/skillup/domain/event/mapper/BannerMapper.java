@@ -15,6 +15,13 @@ public class BannerMapper {
         return new EventResponse.EventBannersResponseList(mainBanner);
     }
 
+    public EventResponse.EventBannerAdminResponse toEventBannerAdminResponse(
+            List<EventBannerResponse> mainBanner , List<EventBannerResponse> pastBanner
+    ){
+        return new EventResponse.EventBannerAdminResponse(mainBanner,pastBanner);
+    }
+
+
     public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
         return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
                 .title(eventBanner.getTitle())

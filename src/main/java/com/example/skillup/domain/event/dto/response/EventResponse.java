@@ -156,6 +156,14 @@ public class EventResponse {
         private List<EventBannerResponse> eventMainBannerReponseList;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventBannerAdminResponse{
+        private List<EventBannerResponse> eventActiveBannerList;
+        private List<EventBannerResponse> eventPastBannerList;
+    }
+
 
     @Getter
     @Builder
