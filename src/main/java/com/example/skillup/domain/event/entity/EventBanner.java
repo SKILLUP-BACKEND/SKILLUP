@@ -62,9 +62,6 @@ public class EventBanner extends BaseEntity {
 
 
     public void updateInfo(EventRequest.UpdateEventBannerRequest request) {
-        if (request.getBannerType() != null) {
-            this.type = request.getBannerType();
-        }
         if (request.getTitle() != null) {
             this.title = request.getTitle();
         }

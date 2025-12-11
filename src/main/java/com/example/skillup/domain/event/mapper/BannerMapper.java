@@ -4,14 +4,15 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.EventBannerResponse;
 import com.example.skillup.domain.event.entity.EventBanner;
+import com.example.skillup.domain.event.enums.BannerType;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BannerMapper {
     public EventResponse.EventBannersResponseList toEventBannersResponseList(
-            List<EventBannerResponse> mainBanner, List<EventResponse.EventBannerResponse> subBanner) {
-        return new EventResponse.EventBannersResponseList(mainBanner, subBanner);
+            List<EventBannerResponse> mainBanner) {
+        return new EventResponse.EventBannersResponseList(mainBanner);
     }
 
     public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
@@ -37,12 +38,13 @@ public class BannerMapper {
                 .build();
     }
 
-    public EventBanner toEventBanner(EventRequest.CreateEventBannerRequest request , int displayOrder , String BannerImageUrl) {
+    public EventBanner toEventBanner(EventRequest.CreateEventBannerRequest request, int displayOrder,
+                                     String BannerImageUrl) {
         return EventBanner.builder()
                 .title(request.getTitle())
                 .bannerLink(request.getBannerLink())
                 .displayOrder(displayOrder)
-                .type(request.getBannerType())
+                .type(BannerType.MAIN_BANNER)
                 .startAt(request.getBannerStart())
                 .endAt(request.getBannerEnd())
                 .bannerImageUrl(BannerImageUrl)

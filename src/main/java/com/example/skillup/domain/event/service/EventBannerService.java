@@ -32,8 +32,8 @@ public class EventBannerService {
     public EventResponse.EventBannerResponse createBanner(MultipartFile Banner,
                                                           EventRequest.CreateEventBannerRequest request) {
 
-        String bannerSavePath = "banner/" + (request.getBannerType() == BannerType.MAIN_BANNER ? "main" : "sub");
-        int displayOrder = eventBannerRepository.findTopByTypeOrderByDisplayOrderDesc(request.getBannerType())
+        String bannerSavePath = "banner/main";
+        int displayOrder = eventBannerRepository.findTopByTypeOrderByDisplayOrderDesc(BannerType.MAIN_BANNER)
                 .map(EventBanner::getDisplayOrder).map(o -> o + 1).orElse(1);
         String bannerUrl = s3Service.uploadFile(Banner, bannerSavePath);
         EventBanner eventBanner = bannerMapper.toEventBanner(request, displayOrder, bannerUrl);
@@ -46,24 +46,21 @@ public class EventBannerService {
 
         List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now,
                 PageRequest.of(0, 5));
-        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER, now,
-                PageRequest.of(0, 1));
 
         List<EventResponse.EventBannerResponse> mainEventBanners = bannerMapper.toEventBannerResponse(mainBanners);
-        List<EventResponse.EventBannerResponse> subEventBanners = bannerMapper.toEventBannerResponse(subBanner);
 
-        return bannerMapper.toEventBannersResponseList(mainEventBanners, subEventBanners);
+        return bannerMapper.toEventBannersResponseList(mainEventBanners);
 
     }
 
     @Transactional
-    public EventResponse.EventBannerResponse updateBanner(Long bannerId , EventRequest.UpdateEventBannerRequest request,
+    public EventResponse.EventBannerResponse updateBanner(Long bannerId, EventRequest.UpdateEventBannerRequest request,
                                                           MultipartFile bannerImage) {
         EventBanner banner = eventBannerRepository.findById(bannerId)
                 .orElseThrow(() -> new EventException(EventErrorCode.BANNER_ENTITY_NOT_FOUND));
 
         if (bannerImage != null && !bannerImage.isEmpty()) {
-            String bannerSavePath = "banner/" + (request.getBannerType() == BannerType.MAIN_BANNER ? "main" : "sub");
+            String bannerSavePath = "banner/main";
             String BannerUrl = s3Service.uploadFile(bannerImage, bannerSavePath);
             banner.updateBannerImage(BannerUrl);
         }

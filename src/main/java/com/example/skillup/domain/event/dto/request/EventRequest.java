@@ -1,6 +1,5 @@
 package com.example.skillup.domain.event.dto.request;
 
-import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventFormat;
 import com.example.skillup.domain.event.enums.EventSortType;
@@ -204,18 +203,12 @@ public class EventRequest {
         public boolean isValidPeriod() {
             return !bannerEnd.isBefore(bannerStart);
         }
-
-        @NotNull(message = "입력값은 MAIN_BANNER 또는 SUB_BANNER 로 입력해주세요")
-        BannerType bannerType;
     }
 
     @Getter
     @Builder
     @AllArgsConstructor
     public static class UpdateEventBannerRequest {
-
-        @NotNull(message = "입력값은 MAIN_BANNER 또는 SUB_BANNER 로 입력해주세요")
-        private BannerType bannerType;
 
         @NotBlank(message = "배너명을 입력해주세요")
         @Size(max = 100)

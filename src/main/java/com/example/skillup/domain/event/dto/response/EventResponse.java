@@ -154,15 +154,13 @@ public class EventResponse {
     @AllArgsConstructor
     public static class EventBannersResponseList {
         private List<EventBannerResponse> eventMainBannerReponseList;
-        private List<EventBannerResponse> eventSubBannerResponse;
     }
-
 
 
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class EventApplyResponse{
+    public static class EventApplyResponse {
         private Long eventId;
         private String comment;
 
