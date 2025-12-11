@@ -80,4 +80,33 @@ public class EventBannerService {
         return new EventResponse.CommonBannerResponse(banner.getId());
     }
 
+    @Transactional
+    public void updateBannerOrder(List<Long> bannerIds) {
+        List<EventBanner> banners = eventBannerRepository.findByIdIn((bannerIds));
+
+        if (banners.size() != bannerIds.size()) {
+            throw new EventException(EventErrorCode.BANNER_ENTITY_NOT_FOUND, "존재하지 않는 배너 ID가 포함됐습니다.");
+        }
+
+        List<Long> invalidIds = banners.stream()
+                .filter(banner -> banner.getEndAt() == null || banner.getEndAt().isBefore(now))
+                .map(EventBanner::getId)
+                .toList();
+
+        if (!invalidIds.isEmpty()) {
+            throw new EventException(EventErrorCode.INVALID_BANNER_ID,
+                    "이미 기간이 지난 배너가 포함되어 있습니다. InvalidsIds= " + invalidIds);
+        }
+
+        Map<Long, EventBanner> bannerMap = banners.stream()
+                .collect(Collectors.toMap(EventBanner::getId, Function.identity()));
+
+        int order = 1;
+        for (Long id : bannerIds) {
+            EventBanner banner = bannerMap.get(id);
+            banner.updateBannerOrder(order++);
+        }
+
+    }
+
 }

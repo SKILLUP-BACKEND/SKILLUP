@@ -171,7 +171,17 @@ public class EventController {
         return BaseResponse.success("배너 등록 성공", eventBannerService.createBanner(bannerImage, request));
     }
 
-    @PutMapping(value = "/home/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping("/home/admin/banners/order")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 순서 정렬 API", description = "정렬된 상태의 배너의 ID 값을 순서대로 보내주세요 앞에 오는게 우선순위가 높습니다.")
+    public BaseResponse<Void> updateDisplayOrderHomeBanners(
+            @RequestBody @Valid EventRequest.BannerOrderUpdateRequest request
+    ) {
+        eventBannerService.updateBannerOrder(request.getBannerIds());
+        return BaseResponse.success("배너 순서 수정 성공" ,null);
+    }
+
+    @PutMapping(value = "/home/admin/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
     @Operation(
             summary = "배너 수정 API",

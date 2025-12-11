@@ -16,7 +16,8 @@ public enum EventErrorCode implements ResultCode {
     EVENT_SEARCH_QUERY_TOO_SHORT("EVENT_SEARCH_QUERY_TOO_SHORT", "검색어는 2글자 이상 입력해 주세요.", HttpStatus.BAD_REQUEST),
     EVENT_INCORRECT_USER("EVENT_INCORRECT_USER", "해당 기능에 올바른 사용자가 아닙니다.", HttpStatus.BAD_REQUEST),
     EVENT_SEARCH_ERROR("EVENT_SEARCH_ERROR", "검색 기능 시 에러가 발생했습니다.", HttpStatus.BAD_REQUEST),
-    BANNER_ENTITY_NOT_FOUND("BANNER_ENTITY_NOT_FOUND", "배너가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+    BANNER_ENTITY_NOT_FOUND("BANNER_ENTITY_NOT_FOUND", "배너가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    INVALID_BANNER_ID("INVALID_BANNER_ID" , "잘못된 배너 아이디입니다." , HttpStatus.BAD_REQUEST),;
 
     private final String code;
     private final String message;

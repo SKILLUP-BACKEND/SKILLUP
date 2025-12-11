@@ -79,4 +79,8 @@ public class EventBanner extends BaseEntity {
     public void updateBannerImage(String newBannerImageUrl) {
         this.bannerImageUrl = newBannerImageUrl;
     }
+
+    public void updateBannerOrder(int displayOrder){
+        this.displayOrder = displayOrder;
+    }
 }

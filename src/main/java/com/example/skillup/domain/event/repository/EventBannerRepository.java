@@ -22,4 +22,6 @@ public interface EventBannerRepository extends JpaRepository<EventBanner, Long> 
     List<EventBanner> findActiveEventBannersByType(@Param("bannerType") BannerType bannerType, @Param("now")LocalDateTime now, Pageable pageable);
 
     Optional<EventBanner> findTopByTypeOrderByDisplayOrderDesc(BannerType bannerType);
+
+    List<EventBanner> findByIdIn(List<Long> bannerIds);
 }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -228,6 +229,13 @@ public class EventRequest {
         public boolean isValidPeriod() {
             return !bannerEnd.isBefore(bannerStart);
         }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class BannerOrderUpdateRequest{
+        @NotEmpty List<Long> bannerIds;
     }
 
 }
