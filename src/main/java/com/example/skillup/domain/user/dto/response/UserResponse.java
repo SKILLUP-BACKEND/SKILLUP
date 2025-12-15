@@ -69,6 +69,8 @@ public class UserResponse {
     }
 
     @Getter
+    @AllArgsConstructor
+    @Builder
     public static class AdminUserResponse
     {
         private Long userId;
@@ -79,23 +81,11 @@ public class UserResponse {
         private String role;
         private String status;
 
-        public AdminUserResponse(Long userId,String name,
-                                     String email,
-                                     LocalDateTime createdAt,
-                                     SocialLoginType socialLoginType,
-                                     TargetRole role,
-                                     boolean isDeleted) {
-            this.userId = userId;
-            this.name = name;
-            this.email = email;
-            this.createdAt = CommonMapper.toDatePattern(createdAt);
-            this.socialLoginType = socialLoginType.getToKorean();
-            this.role = CommonMapper.convertRole(role);
-            this.status = isDeleted ? "탈퇴" : "활성";
-        }
     }
 
     @Getter
+    @AllArgsConstructor
+    @Builder
     public static class AdminUserDetailPageResponse
     {
         private Long userId;
@@ -106,17 +96,15 @@ public class UserResponse {
         private String role;
         private String lastLoginAt;
 
-        public AdminUserDetailPageResponse(Long userId, String name, String email,
-                                           LocalDateTime createdAt, SocialLoginType socialLoginType,
-                                           TargetRole role, LocalDateTime lastLoginAt)
-        {
-            this.userId = userId;
-            this.name = name;
-            this.email = email;
-            this.createdAt = CommonMapper.toDatePattern(createdAt);
-            this.socialLoginType = socialLoginType.getToKorean()+" 로그인";
-            this.role = CommonMapper.convertRole(role);
-            this.lastLoginAt = CommonMapper.toDatePattern(lastLoginAt);
-        }
+    }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    public static class AdminUserEventActionResponse
+    {
+        private int viewCount;
+        private int saveCount;
+        private int applyCount;
     }
 }

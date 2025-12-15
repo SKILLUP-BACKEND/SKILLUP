@@ -12,6 +12,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<Users, Long>
 {
+
     Optional<Users> findByEmail(String email);
     Optional<Users> findBySocialId(String socialId);
 
@@ -25,4 +26,20 @@ public interface UserRepository extends JpaRepository<Users, Long>
                           
 """)
     List<Users> findUsersByKeyWardAndDeleted(@Param("keyWard") String keyWard, @Param("deleted") Boolean deleted);
+
+    @Query(value = """
+SELECT
+    SUM(ea.action_type = 'VIEW') AS viewCnt,
+    SUM(ea.action_type = 'APPLY') AS applyCnt,
+    SUM(ea.action_type = 'SAVE') AS saveCnt
+FROM event_action ea
+WHERE ea.user_id = :userId
+""", nativeQuery = true)
+    EventActionCountProjection getUserActionCounts(@Param("userId") Long userId);
+
+    public interface EventActionCountProjection {
+        int getViewCnt();
+        int getApplyCnt();
+        int getSaveCnt();
+    }
 }

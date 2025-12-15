@@ -167,4 +167,11 @@ public class AdminService {
         Users user = userRepository.findById(userId).orElseThrow();
         return userMapper.toAdminUserDetailPageResponse(user);
     }
+
+    public UserResponse.AdminUserEventActionResponse getUserActionCounts(Long userId)
+    {
+        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(userId);
+        return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
+                ,usersActionCounts.getSaveCnt(),usersActionCounts.getApplyCnt());
+    }
 }

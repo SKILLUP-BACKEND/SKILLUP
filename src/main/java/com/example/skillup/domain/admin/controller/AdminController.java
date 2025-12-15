@@ -1,5 +1,6 @@
 package com.example.skillup.domain.admin.controller;
 
+import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import com.example.skillup.domain.admin.dto.AdminLoginRequest;
 import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
@@ -86,6 +87,12 @@ public class AdminController {
     @Operation(summary = "유저 아이디로 유저를 상세 조회합니다.")
     public BaseResponse<UserResponse.AdminUserDetailPageResponse> getUsersDetail(@PathVariable Long userId) {
         return BaseResponse.success("유저 상세조회가 성공하였습니다.", adminService.getUsersDetail(userId));
+    }
+
+    @GetMapping("/users/eventAction/counts/{userId}")
+    @Operation(summary = "유저 아이디로 유저의 활동 내역 횟수를 조회합니다.")
+    public BaseResponse<UserResponse.AdminUserEventActionResponse> getUserActionCounts(@PathVariable Long userId) {
+        return BaseResponse.success("유저 아이디로 유저의 활동 내역 조회 성공", adminService.getUserActionCounts(userId));
     }
 
 }
