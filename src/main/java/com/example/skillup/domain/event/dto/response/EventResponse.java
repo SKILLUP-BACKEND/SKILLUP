@@ -2,12 +2,13 @@ package com.example.skillup.domain.event.dto.response;
 
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.global.common.CommonResponse;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import com.example.skillup.global.common.CommonResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,12 @@ public class EventResponse {
     @AllArgsConstructor
     public static class CommonEventResponse {
         private Long eventId;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class CommonBannerResponse {
+        private Long bannerId;
     }
 
     @Getter
@@ -129,14 +136,16 @@ public class EventResponse {
 
     @Getter
     @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class EventBannerResponse {
         private int displayOrder;
 
         private String title;
         private String bannerImageUrl;
         private String bannerLink;
-        private LocalDateTime StartAt;
-        private LocalDateTime EndAt;
+        private String bannerType;
+        private LocalDate StartAt;
+        private LocalDate EndAt;
 
     }
 
@@ -145,15 +154,21 @@ public class EventResponse {
     @AllArgsConstructor
     public static class EventBannersResponseList {
         private List<EventBannerResponse> eventMainBannerReponseList;
-        private List<EventBannerResponse> eventSubBannerResponse;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventBannerAdminResponse{
+        private List<EventBannerResponse> eventActiveBannerList;
+        private List<EventBannerResponse> eventPastBannerList;
+    }
 
 
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class EventApplyResponse{
+    public static class EventApplyResponse {
         private Long eventId;
         private String comment;
 
