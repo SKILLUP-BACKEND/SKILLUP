@@ -153,8 +153,6 @@ public class ArticleService {
         keyword = (keyword == null) ? "" : keyword.trim();
         Pageable pageable = PageRequest.of(page, 16);
 
-
-
         Page<Article> result;
 
         if (tab == null || tab.isEmpty()) {
@@ -162,19 +160,19 @@ public class ArticleService {
 
             List<HomeArticleResponse> homeArticleResponse = result.getContent().stream().map(
                     articleMapper::toHomeArticleResponse).toList();
-            return articleMapper.toHomeArticleResponseList(homeArticleResponse , result.getTotalElements(), (long)result.getTotalPages());
+            return articleMapper.toHomeArticleResponseList(homeArticleResponse, result.getTotalElements(),
+                    (long) result.getTotalPages());
         }
-
 
         List<Long> targetRoleIds = tab.stream().map(target -> getRole(target).getId()).toList();
 
-        result = articleRepository.searchByTitleAndAllRoles(keyword,targetRoleIds,targetRoleIds.size(),pageable);
-
+        result = articleRepository.searchByTitleAndAllRoles(keyword, targetRoleIds, targetRoleIds.size(), pageable);
 
         List<HomeArticleResponse> homeArticleResponse = result.getContent().stream().map(
                 articleMapper::toHomeArticleResponse).toList();
 
-        return articleMapper.toHomeArticleResponseList(homeArticleResponse , result.getTotalElements(), (long)result.getTotalPages());
+        return articleMapper.toHomeArticleResponseList(homeArticleResponse, result.getTotalElements(),
+                (long) result.getTotalPages());
     }
 
     @Transactional

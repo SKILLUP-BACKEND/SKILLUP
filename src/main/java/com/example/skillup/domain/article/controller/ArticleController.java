@@ -105,15 +105,15 @@ public class ArticleController {
     public BaseResponse<ArticleResponse.HomeArticleResponseList> GetArticlesDetail(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(required = false)List<String> tab
-            ) {
-        return BaseResponse.success("아티클 상세 조회에 성공.", articleService.getHomeArticle(tab , page , keyword));
+            @RequestParam(required = false) List<String> tab
+    ) {
+        return BaseResponse.success("아티클 상세 조회에 성공.", articleService.getHomeArticle(tab, page, keyword));
     }
 
     @PostMapping("/read/{articleId}")
-    @Operation(summary = "아티클 신청수 증가 API" , description = "아티클의 썸네일을 누를때 해당 아티클의 클릭횟수를 늘려주는 API 입니다.")
+    @Operation(summary = "아티클 신청수 증가 API", description = "아티클의 썸네일을 누를때 해당 아티클의 클릭횟수를 늘려주는 API 입니다.")
     public BaseResponse<String> readArticle(@PathVariable Long articleId) {
         Long clickCount = articleService.readArticle(articleId);
-        return BaseResponse.success("클릭횟수가 증가했습니다." , "클릭 횟수 : " + clickCount);
+        return BaseResponse.success("클릭횟수가 증가했습니다.", "클릭 횟수 : " + clickCount);
     }
 }
