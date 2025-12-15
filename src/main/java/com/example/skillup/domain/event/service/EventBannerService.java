@@ -50,12 +50,11 @@ public class EventBannerService {
     @Transactional(readOnly = true)
     public EventResponse.EventBannerAdminResponse getEventBanners(int page) {
 
-        int pageIndex = Math.max(0, page - 1);
 
         List<EventBanner> mainBanners = eventBannerRepository.findCurrentAndWaitingEventBannersByType(
                 BannerType.MAIN_BANNER, now);
         List<EventBanner> pastBanners = eventBannerRepository.findPastEventBannersByType(
-                BannerType.MAIN_BANNER, now, PageRequest.of(pageIndex, 5));
+                BannerType.MAIN_BANNER, now, PageRequest.of(page, 5));
 
         List<EventResponse.EventBannerResponse> mainEventBanners = bannerMapper.toEventBannerResponse(mainBanners);
         List<EventResponse.EventBannerResponse> pastEventBanners = bannerMapper.toEventBannerResponse(pastBanners);
