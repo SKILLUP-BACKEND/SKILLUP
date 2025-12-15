@@ -81,5 +81,7 @@ public class AdminController {
         return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted));
     }
 
+    @GetMapping("/users/")
+
 
 }

@@ -70,6 +70,7 @@ public class UserResponse {
     @Getter
     public static class AdminUserResponse
     {
+        private Long userId;
         private String name;
         private String email;
         private String createdAt;
@@ -77,12 +78,13 @@ public class UserResponse {
         private String role;
         private String status;
 
-        public AdminUserResponse(String name,
+        public AdminUserResponse(Long userId,String name,
                                      String email,
                                      LocalDateTime createdAt,
                                      SocialLoginType socialLoginType,
                                      TargetRole role,
                                      boolean isDeleted) {
+            this.userId = userId;
             this.name = name;
             this.email = email;
             this.createdAt = CommonMapper.toDatePattern(createdAt);

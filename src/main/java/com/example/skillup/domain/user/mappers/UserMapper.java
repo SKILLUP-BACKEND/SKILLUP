@@ -85,7 +85,7 @@ public class UserMapper {
 
     public UserResponse.AdminUserResponse toAdminUserResponse(Users user) {
         return new UserResponse.AdminUserResponse
-                (user.getName(), user.getEmail(), user.getCreatedAt(),
+                (user.getId(),user.getName(), user.getEmail(), user.getCreatedAt(),
                         user.getSocialLoginType(),user.getRole()
                         , user.getDeletedAt() != null);
     }
