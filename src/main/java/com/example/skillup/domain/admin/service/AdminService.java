@@ -9,10 +9,15 @@ import com.example.skillup.domain.admin.exception.AdminException;
 import com.example.skillup.domain.admin.mapper.AdminMapper;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
+import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.exception.UserErrorCode;
+import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.BaseEntity;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
@@ -150,5 +155,16 @@ public class AdminService {
 
         return adminMapper.toAdminUserPageResponse(adminUserResponse, devUsers, designerUsers, pmUsers);
 
+    }
+
+    @ConvertNotFound(
+            exception = UserException.class,
+            errorCodeEnum = UserErrorCode.class,
+            errorCodeName = "USER_ENTITY_NOT_FOUND"
+    )
+    public UserResponse.AdminUserDetailPageResponse getUsersDetail(Long userId)
+    {
+        Users user = userRepository.findById(userId).orElseThrow();
+        return userMapper.toAdminUserDetailPageResponse(user);
     }
 }

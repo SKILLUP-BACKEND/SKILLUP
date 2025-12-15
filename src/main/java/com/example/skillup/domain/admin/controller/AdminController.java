@@ -5,6 +5,7 @@ import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.service.AdminService;
+import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
@@ -81,7 +82,10 @@ public class AdminController {
         return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted));
     }
 
-    @GetMapping("/users/")
-
+    @GetMapping("/users/{userId}")
+    @Operation(summary = "유저 아이디로 유저를 상세 조회합니다.")
+    public BaseResponse<UserResponse.AdminUserDetailPageResponse> getUsersDetail(@PathVariable Long userId) {
+        return BaseResponse.success("유저 상세조회가 성공하였습니다.", adminService.getUsersDetail(userId));
+    }
 
 }

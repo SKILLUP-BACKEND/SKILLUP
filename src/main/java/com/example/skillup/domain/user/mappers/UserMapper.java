@@ -90,4 +90,10 @@ public class UserMapper {
                         , user.getDeletedAt() != null);
     }
 
+    public UserResponse.AdminUserDetailPageResponse toAdminUserDetailPageResponse(Users user) {
+        return new UserResponse.AdminUserDetailPageResponse(user.getId(),user.getName(), user.getEmail(), user.getCreatedAt(),
+                user.getSocialLoginType(),user.getRole()
+                , user.getLastLoginAt() );
+    }
+
 }

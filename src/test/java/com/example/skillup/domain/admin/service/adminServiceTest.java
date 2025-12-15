@@ -8,6 +8,7 @@ import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @SpringBootTest
@@ -160,6 +162,29 @@ public class adminServiceTest
         assertThat(1
         ).isEqualTo(response2.getUsers().size());
 
+    }
+
+    @Test
+    public void getUsersDetail_Success()
+    {
+        UserResponse.AdminUserDetailPageResponse response1 = adminService.getUsersDetail(1L);
+
+            System.out.println(response1.getRole());
+            System.out.println(response1.getEmail());
+            System.out.println(response1.getName());
+            System.out.println(response1.getCreatedAt());
+            System.out.println(response1.getLastLoginAt());
+            System.out.println(response1.getSocialLoginType());
+
+    }
+
+    @Test
+    public void getUsersDetail_Fail()
+    {
+        assertThrows(
+                UserException.class,
+                () -> adminService.getUsersDetail(6L)
+        );
     }
 
 }
