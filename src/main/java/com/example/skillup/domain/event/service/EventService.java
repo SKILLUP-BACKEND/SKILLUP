@@ -25,8 +25,10 @@ import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
+import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
@@ -55,6 +57,7 @@ public class EventService {
     private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
     private final EventBookmarkService eventBookmarkService;
+    private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
@@ -66,6 +69,9 @@ public class EventService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+
+    private record ActorInfo(String actorId, ActorType actorType) {
+    }
 
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
@@ -229,34 +235,36 @@ public class EventService {
                                                             String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        //admin 아이디의 경우 변형 없음
+        ActorInfo actor = resolveAndSaveActor(user, guestId);
 
-        boolean isAdmin = false;
-        if (user != null) {
-            isAdmin = user.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
-        }
+        boolean isAdmin = (user != null) && user.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
 
-        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
 
-        //일반 사용자라면 북마크 여부 추가해주기
-        if (!isAdmin && user != null) {
-            boolean isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
+        boolean isBookmarked = false;
+        if (user != null && !isAdmin) {
+            isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
         }
 
-        String actorId = user != null ? user.getUser().getId().toString() : guestId;
-        ActorType actorType = user != null ? ActorType.USER : ActorType.GUEST;
-        ReadEvent(actorId, event, actorType);
+        readEvent(actor.actorId, event, actor.actorType);
 
         event = eventRepository.getEvent(eventId);
 
-        return eventMapper.toEventDetailInfo(event, false);
+        return eventMapper.toEventDetailInfo(event, isBookmarked);
     }
 
-    private void ReadEvent(String actorId, Event event, ActorType actorType) {
+    private void saveOrUpdateGuest(String guestId) {
+        Guest guest = guestRepository.findById(guestId)
+                .orElseGet(() -> Guest.builder().guestId(guestId).expiredAt(LocalDateTime.now().plusDays(30)).build());
+
+        guest.extendExpiration(30);
+        guestRepository.save(guest);
+    }
+
+    private void readEvent(String actorId, Event event, ActorType actorType) {
 
         //전체 조회수 및 event_view_daily 업데이트
         eventViewService.recordView(event.getId());
@@ -486,23 +494,22 @@ public class EventService {
     public EventResponse.EventApplyResponse applyEvent(Long eventId, UsersDetails users, String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        String actorId = (users != null) ? users.getUser().getId().toString() : guestId;
+        ActorInfo actor = resolveAndSaveActor(users, guestId);
 
-        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId,
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event,
+                actor.actorId,
                 ActionType.APPLY);
+
         if (eventAction.isPresent()) {
             return EventResponse.EventApplyResponse.builder()
                     .eventId(eventId)
                     .comment("이미 신청한 이력이 있습니다. 정상적으로 처리 되었습니다.")
                     .build();
         }
-
-        ActorType actorType = users != null ? ActorType.USER : ActorType.GUEST;
-
         EventAction newEventAction = EventAction.builder()
                 .event(event)
-                .actorId(actorId)
-                .actorType(actorType)
+                .actorId(actor.actorId)
+                .actorType(actor.actorType)
                 .actionType(ActionType.APPLY)
                 .build();
 
@@ -514,5 +521,13 @@ public class EventService {
                 .eventId(eventId)
                 .comment("성공적으로 신청되었습니다.")
                 .build();
+    }
+
+    private ActorInfo resolveAndSaveActor(UsersDetails user, String guestId) {
+        if (user != null) {
+            return new ActorInfo(user.getUser().getId().toString(), ActorType.USER);
+        }
+        saveOrUpdateGuest(guestId);
+        return new ActorInfo(guestId, ActorType.GUEST);
     }
 }
