@@ -147,19 +147,7 @@ public class AdminService {
         for(Users user : users)
             adminUserResponse.add(userMapper.toAdminUserResponse(user));
 
-        List<UserResponse.AdminUserResponse> devUsers = new ArrayList<>();
-        List<UserResponse.AdminUserResponse> designerUsers = new ArrayList<>();
-        List<UserResponse.AdminUserResponse> pmUsers = new ArrayList<>();
-
-        for (UserResponse.AdminUserResponse u : adminUserResponse) {
-            switch (u.getRole()) {
-                case "개발" -> devUsers.add(u);
-                case "디자인" -> designerUsers.add(u);
-                default -> pmUsers.add(u);
-            }
-        }
-
-        return adminMapper.toAdminUserPageResponse(adminUserResponse, devUsers, designerUsers, pmUsers);
+        return adminMapper.toAdminUserPageResponse(adminUserResponse);
 
     }
 

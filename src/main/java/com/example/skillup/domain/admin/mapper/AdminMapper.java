@@ -4,6 +4,7 @@ import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
+import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.global.common.CommonMapper;
 import org.springframework.stereotype.Component;
 
@@ -17,17 +18,27 @@ import java.util.Map;
 public class AdminMapper {
 
     public AdminResponse.AdminUserPageResponse toAdminUserPageResponse
-            (List<UserResponse.AdminUserResponse> users,
-             List<UserResponse.AdminUserResponse> devUsers,
-             List<UserResponse.AdminUserResponse> designerUsers,
-             List<UserResponse.AdminUserResponse> pmUsers
-             ) {
+            (List<UserResponse.AdminUserResponse> adminUserResponse)
+    {
+
+
+        List<UserResponse.AdminUserResponse> devUsers = new ArrayList<>();
+        List<UserResponse.AdminUserResponse> designerUsers = new ArrayList<>();
+        List<UserResponse.AdminUserResponse> pmUsers = new ArrayList<>();
+
+        for (UserResponse.AdminUserResponse u : adminUserResponse) {
+            switch (u.getRole()) {
+                case "개발" -> devUsers.add(u);
+                case "디자인" -> designerUsers.add(u);
+                default -> pmUsers.add(u);
+            }
+        }
         return AdminResponse.AdminUserPageResponse.builder()
-                .users(users)
+                .users(adminUserResponse)
                 .devUsers(devUsers)
                 .designerUsers(designerUsers)
                 .pmUsers(pmUsers)
-                .usersCount(users.size())
+                .usersCount(adminUserResponse.size())
                 .devUsersCount(devUsers.size())
                 .designerUsersCount(designerUsers.size())
                 .pmUsersCount(pmUsers.size())
