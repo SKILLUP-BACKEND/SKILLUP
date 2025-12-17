@@ -8,6 +8,8 @@ import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.search.document.EventDocument;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -197,6 +201,78 @@ public class EventMapper {
                 .homeEventResponseList(events)
                 .build();
     }
+
+    public EventResponse.SearchEventResponseList toCategoryPageEventResponseListWithPageable(
+            List<EventRepositoryImpl.EventWithPopularity> events,
+            Pageable pageable,
+            int page,
+            int totalCount
+    ) {
+        return EventResponse.SearchEventResponseList.builder()
+                .homeEventResponseList(
+                        events.stream()
+                                .map(r -> {
+                                    Event event = r.getEvent();
+                                    double score = r.getPopularity();
+                                    return toFeaturedEvent(
+                                            event,
+                                            false,
+                                            event.isRecommendedManual(),
+                                            event.isAd(),
+                                            score
+                                    );
+                                })
+                                .toList()
+                )
+                .total(totalCount)
+                .pageInfoResponse(
+                        CommonMapper.toPageInfoResponse(pageable, page, totalCount)
+                )
+                .build();
+    }
+
+    public List<EventResponse.HomeEventResponse> toHomeEventResponsList(List<Event> events) {
+        return events.stream()
+                .map(event ->
+                        toFeaturedEvent(
+                                event,
+                                false,
+                                event.isRecommendedManual(),
+                                event.isAd(),
+                                null
+                        )
+                )
+                .toList();
+    }
+
+    public List<EventResponse.HomeEventResponse> toCategoryPageEventResponseList(
+            List<EventRepositoryImpl.EventWithPopularity> events
+    ) {
+        return events.stream()
+                .map(r -> {
+                    Event event = r.getEvent();
+                    return toFeaturedEvent(
+                            event,
+                            false,
+                            event.isRecommendedManual(),
+                            event.isAd(),
+                            r.getPopularity()
+                    );
+                })
+                .toList();
+    }
+
+    public EventResponse.EventApplyResponse toEventApplyResponse(Long eventId)
+    {
+        return EventResponse.EventApplyResponse.builder()
+                .eventId(eventId)
+                .comment("성공적으로 신청되었습니다.")
+                .build();
+    }
+
+
+
+
 
     private String formatRange(LocalDateTime start, LocalDateTime end, DateTimeFormatter fmt) {
         if (start == null && end == null) {
