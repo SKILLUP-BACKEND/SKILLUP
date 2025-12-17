@@ -103,7 +103,8 @@ public class UserMapper {
                 .email(user.getEmail())
                 .socialLoginType(user.getSocialLoginType().getToKorean()+" 로그인")
                 .role(CommonMapper.convertRole(user.getRole().getName()))
-                .lastLoginAt(CommonMapper.toDatePattern(user.getLastLoginAt())).build();
+                .lastLoginAt(CommonMapper.toDatePattern(user.getLastLoginAt()))
+                .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
     }
 
     public UserResponse.AdminUserEventActionCountsResponse toAdminUserEventActionResponse(int viewCount, int saveCount, int applyCount) {

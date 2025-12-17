@@ -165,9 +165,9 @@ public class AdminService {
         return userMapper.toAdminUserDetailPageResponse(user);
     }
 
-    public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(Long userId)
+    public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId)
     {
-        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(userId);
+        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId);
         return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
                 ,usersActionCounts.getSaveCnt(),usersActionCounts.getApplyCnt());
     }

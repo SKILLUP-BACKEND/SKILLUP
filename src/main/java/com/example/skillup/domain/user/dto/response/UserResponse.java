@@ -95,6 +95,7 @@ public class UserResponse {
         private String socialLoginType;
         private String role;
         private String lastLoginAt;
+        private String status;
 
     }
 

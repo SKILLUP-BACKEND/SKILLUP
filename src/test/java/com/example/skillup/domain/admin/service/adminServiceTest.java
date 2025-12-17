@@ -249,7 +249,6 @@ public class adminServiceTest
                 }
             }
         }
-
         AdminResponse.eventActionAnalyticsResponse response1=adminService.getUserEventActionAnalytics("1L","VIEW");
         for(AdminResponse.eventActionMonthlyCountResponse a :response1.getEventActionMonthlyCountResponses())
         {

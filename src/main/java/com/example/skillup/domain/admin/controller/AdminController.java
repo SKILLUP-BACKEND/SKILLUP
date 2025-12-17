@@ -92,7 +92,7 @@ public class AdminController {
 
     @GetMapping("/users/{userId}/eventAction/counts")
     @Operation(summary = "유저 아이디로 유저의 활동 내역 횟수를 조회합니다.")
-    public BaseResponse<UserResponse.AdminUserEventActionCountsResponse> getUserActionCounts(@PathVariable Long userId) {
+    public BaseResponse<UserResponse.AdminUserEventActionCountsResponse> getUserActionCounts(@PathVariable String userId) {
         return BaseResponse.success("유저 아이디로 유저의 활동 내역 횟수 조회 성공", adminService.getUserActionCounts(userId));
     }
 
