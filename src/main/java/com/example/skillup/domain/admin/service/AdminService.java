@@ -38,6 +38,8 @@ import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -138,16 +140,17 @@ public class AdminService {
         return deletedTerms;
     }
 
-    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted)
+    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted,int page)
     {
-
-        List<Users> users= userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted);
+        Pageable pageable = PageRequest.of(page, 20);
+        List<Users> users= userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted, pageable);
         List<UserResponse.AdminUserResponse> adminUserResponse = new ArrayList<>();
 
         for(Users user : users)
             adminUserResponse.add(userMapper.toAdminUserResponse(user));
 
-        return adminMapper.toAdminUserPageResponse(adminUserResponse);
+        return adminMapper.toAdminUserPageResponse(adminUserResponse, pageable, page,
+        users.size());
 
     }
 

@@ -2,6 +2,7 @@ package com.example.skillup.domain.user.repository;
 
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,7 +26,7 @@ public interface UserRepository extends JpaRepository<Users, Long>
         AND (:keyWard IS NULL OR u.email LIKE %:keyWard% OR u.name LIKE %:keyWard%)
                           
 """)
-    List<Users> findUsersByKeyWardAndDeleted(@Param("keyWard") String keyWard, @Param("deleted") Boolean deleted);
+    List<Users> findUsersByKeyWardAndDeleted(@Param("keyWard") String keyWard, @Param("deleted") Boolean deleted,Pageable pageable);
 
     @Query(value = """
 SELECT

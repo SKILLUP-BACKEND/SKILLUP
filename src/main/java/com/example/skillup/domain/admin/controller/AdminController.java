@@ -79,8 +79,9 @@ public class AdminController {
 
     @GetMapping("/users")
     @Operation(summary = "검색 조건으로 유저를 조회합니다.")
-    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyWard , @RequestParam boolean deleted) {
-        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted));
+    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyWard
+            , @RequestParam boolean deleted, @RequestParam int page) {
+        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted,page));
     }
 
     @GetMapping("/users/{userId}")

@@ -1,6 +1,7 @@
 package com.example.skillup.domain.admin.dto;
 
 import com.example.skillup.domain.user.dto.response.UserResponse;
+import com.example.skillup.global.common.CommonResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class AdminResponse {
         List<UserResponse.AdminUserResponse> designerUsers;
         List<UserResponse.AdminUserResponse> pmUsers;
 
+        CommonResponse.PageInfoResponse pageInfoResponse;
         int usersCount;
         int devUsersCount;
         int designerUsersCount;

@@ -149,7 +149,7 @@ public class adminServiceTest
     @Test
     public void getUserBySearch_Success()
     {
-        AdminResponse.AdminUserPageResponse response1 =adminService.getUsersBySearch(null,false);
+        AdminResponse.AdminUserPageResponse response1 =adminService.getUsersBySearch(null,false,0);
         for(UserResponse.AdminUserResponse u : response1.getUsers())
         {
             System.out.println(u.getRole());
@@ -166,7 +166,7 @@ public class adminServiceTest
 
 
 
-        AdminResponse.AdminUserPageResponse response2 = adminService.getUsersBySearch("철",false);
+        AdminResponse.AdminUserPageResponse response2 = adminService.getUsersBySearch("철",false,0);
 
         assertThat(1).isEqualTo(response2.getUsers().size());
         assertThat(1).isEqualTo(response2.getPmUsers().size());
@@ -174,7 +174,7 @@ public class adminServiceTest
         assertThat(0).isEqualTo(response2.getDesignerUsers().size());
 
 
-        AdminResponse.AdminUserPageResponse response3 = adminService.getUsersBySearch("철",true);
+        AdminResponse.AdminUserPageResponse response3 = adminService.getUsersBySearch("철",true,0);
         assertThat(1
         ).isEqualTo(response2.getUsers().size());
 

@@ -6,6 +6,8 @@ import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.global.common.CommonMapper;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -18,7 +20,11 @@ import java.util.Map;
 public class AdminMapper {
 
     public AdminResponse.AdminUserPageResponse toAdminUserPageResponse
-            (List<UserResponse.AdminUserResponse> adminUserResponse)
+            (List<UserResponse.AdminUserResponse> adminUserResponse,
+             Pageable pageable,
+             int page,
+             int totalCount
+            )
     {
 
 
@@ -42,6 +48,9 @@ public class AdminMapper {
                 .devUsersCount(devUsers.size())
                 .designerUsersCount(designerUsers.size())
                 .pmUsersCount(pmUsers.size())
+                .pageInfoResponse(
+                        CommonMapper.toPageInfoResponse(pageable, page, totalCount)
+                )
                 .build();
     }
 
