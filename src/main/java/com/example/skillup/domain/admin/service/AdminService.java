@@ -180,7 +180,6 @@ public class AdminService {
         List<EventActionRepository.EventActionAnalyticsProjection> eventActionAnalytics
                 =  eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
 
-        System.out.println(eventActionAnalytics.size());
         List<EventActionRepository.EventActionAnalyticsProjection> usersEventActionAnalytics =
                 eventActionAnalytics.stream()
                         .filter(a -> Objects.equals(a.getActorId(), userId))
@@ -190,8 +189,7 @@ public class AdminService {
                 eventActionAnalytics.stream()
                         .filter(a -> !Objects.equals(a.getActorId(), userId))
                         .toList();
-        System.out.println(usersEventActionAnalytics.size());
-        System.out.println(othersEventActionAnalytics.size());
+
 
 
 
