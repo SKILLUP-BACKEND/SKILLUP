@@ -89,10 +89,15 @@ public class AdminController {
         return BaseResponse.success("유저 상세조회가 성공하였습니다.", adminService.getUsersDetail(userId));
     }
 
-    @GetMapping("/users/eventAction/counts/{userId}")
+    @GetMapping("/users/{userId}/eventAction/counts")
     @Operation(summary = "유저 아이디로 유저의 활동 내역 횟수를 조회합니다.")
-    public BaseResponse<UserResponse.AdminUserEventActionResponse> getUserActionCounts(@PathVariable Long userId) {
-        return BaseResponse.success("유저 아이디로 유저의 활동 내역 조회 성공", adminService.getUserActionCounts(userId));
+    public BaseResponse<UserResponse.AdminUserEventActionCountsResponse> getUserActionCounts(@PathVariable Long userId) {
+        return BaseResponse.success("유저 아이디로 유저의 활동 내역 횟수 조회 성공", adminService.getUserActionCounts(userId));
     }
 
+    @GetMapping("/users/{userId}/eventAction/{actionType}/analytics")
+    @Operation(summary = "유저 아이디로 유저의 활동 내역 분석을 조회합니다.")
+    public BaseResponse<AdminResponse.eventActionAnalyticsResponse> getUserEventActionAnalytics(@PathVariable String userId, @PathVariable String actionType) {
+        return BaseResponse.success("유저 아이디로 유저의 활동 내역 분석 조회 성공", adminService.getUserEventActionAnalytics(userId,actionType));
+    }
 }

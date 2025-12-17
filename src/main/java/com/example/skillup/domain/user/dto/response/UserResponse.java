@@ -101,7 +101,7 @@ public class UserResponse {
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class AdminUserEventActionResponse
+    public static class AdminUserEventActionCountsResponse
     {
         private int viewCount;
         private int saveCount;

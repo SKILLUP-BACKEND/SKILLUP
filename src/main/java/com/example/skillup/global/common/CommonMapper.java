@@ -14,8 +14,8 @@ public class CommonMapper {
         return dateTime.format(formatter);
     }
 
-    public static String convertRole(TargetRole role) {
-        return switch (role.getName()) {
+    public static String convertRole(String role) {
+        return switch (role) {
             case "개발자" -> "개발";
             case "디자이너" -> "디자인";
             default ->  "기획";

@@ -2,7 +2,16 @@ package com.example.skillup.domain.admin.service;
 
 
 import com.example.skillup.domain.admin.dto.AdminResponse;
+import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventAction;
+import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.response.UserResponse;
@@ -20,7 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,13 +45,20 @@ public class adminServiceTest
     private UserRepository userRepository;
     @Autowired
     private TargetRoleRepository targetRoleRepository;
+    @Autowired
+    private EventRepository eventRepository;
+    @Autowired
+    private EventActionRepository eventActionRepository;
+    TargetRole role;
+    TargetRole role1;
+    TargetRole role2;
 
     @BeforeEach
     void setup() throws NoSuchFieldException, IllegalAccessException {
         userRepository.deleteAll();
-        TargetRole role =targetRoleRepository.save(TargetRole.builder().name("개발자").build());
-        TargetRole role1 =targetRoleRepository.save(TargetRole.builder().name("디자이너").build());
-        TargetRole role2 =targetRoleRepository.save(TargetRole.builder().name("기획자").build());
+        role =targetRoleRepository.save(TargetRole.builder().name("개발자").build());
+        role1 =targetRoleRepository.save(TargetRole.builder().name("디자이너").build());
+        role2 =targetRoleRepository.save(TargetRole.builder().name("기획자").build());
         userRepository.save(
                 Users.builder()
                         .email("seed1@ex.com")
@@ -163,6 +179,36 @@ public class adminServiceTest
         ).isEqualTo(response2.getUsers().size());
 
     }
+    Event setUp() {
+        return eventRepository.save(Event.builder()
+                .title("테스트 이벤트")
+                .category(EventCategory.BOOTCAMP_CLUB)
+                .status(EventStatus.PUBLISHED)
+                .isFree(true)
+                .isOnline(true)
+                .recruitStart(LocalDateTime.now().minusDays(20))
+                .recruitEnd(LocalDateTime.now().plusDays(500))
+                .eventStart(LocalDateTime.now().minusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(20))
+                        .targetRoles(Set.of(role, role1))
+                .hashTags(
+                        null
+                )
+                .build());
+    }
+
+    void setUpEa(String actorId, Event event, ActionType actionType){
+         eventActionRepository.save(
+                EventAction.builder()
+                        .actorId(actorId)
+                        .actorType(ActorType.USER)
+                        .event(event)
+                        .actionType(actionType)
+                        .build()
+        );
+    }
+
+
 
     @Test
     public void getUsersDetail_Success()
@@ -186,5 +232,40 @@ public class adminServiceTest
                 () -> adminService.getUsersDetail(6L)
         );
     }
+
+    @Test
+    public void getEventActionAnalytics_Success() throws NoSuchFieldException, IllegalAccessException {
+        List<Event> events = new ArrayList<>();
+        for(int i=0; i<10;i++)
+            events.add(setUp());
+        for(int i=0;i<3;i++)
+        {
+            for(int j=1;j<=5;j++)
+            {
+                String actorId = j +"L";
+                for(int k=0;k<10;k++)
+                {
+                    setUpEa(actorId,events.get(k),ActionType.values()[i % 3]);
+                }
+            }
+        }
+
+        AdminResponse.eventActionAnalyticsResponse response1=adminService.getUserEventActionAnalytics("1L","VIEW");
+        for(AdminResponse.eventActionMonthlyCountResponse a :response1.getEventActionMonthlyCountResponses())
+        {
+            System.out.println(a.getMonthLabels());
+            System.out.println(a.getOthersMonthlyCount());
+            System.out.println(a.getUserMonthlyCount());
+        }
+        for(AdminResponse.rolePercentageResponse a: response1.getRolePercentageResponses())
+        {
+            System.out.println(a.getRole());
+            System.out.println(a.getPercentage());
+        }
+
+
+
+    }
+
 
 }

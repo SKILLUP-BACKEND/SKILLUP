@@ -9,8 +9,9 @@ import com.example.skillup.domain.admin.exception.AdminException;
 import com.example.skillup.domain.admin.mapper.AdminMapper;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
-import com.example.skillup.domain.event.exception.EventException;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
+import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.exception.UserErrorCode;
@@ -19,6 +20,7 @@ import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.component.Calculator;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
 import com.example.skillup.global.search.component.ElasticsearchAdminClient;
@@ -29,8 +31,11 @@ import com.example.skillup.global.search.enums.SynonymStatus;
 import com.example.skillup.global.search.repository.SynonymGroupRepository;
 import com.example.skillup.global.search.repository.SynonymTermRepository;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -50,6 +55,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final AdminMapper adminMapper;
     private final UserMapper  userMapper;
+    private final EventActionRepository eventActionRepository;
 
 
     public Admin login(AdminLoginRequest request) {
@@ -168,10 +174,73 @@ public class AdminService {
         return userMapper.toAdminUserDetailPageResponse(user);
     }
 
-    public UserResponse.AdminUserEventActionResponse getUserActionCounts(Long userId)
+    public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(Long userId)
     {
         UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(userId);
         return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
                 ,usersActionCounts.getSaveCnt(),usersActionCounts.getApplyCnt());
+    }
+
+    @Transactional(readOnly = true)
+    public AdminResponse.eventActionAnalyticsResponse getUserEventActionAnalytics(String userId,String actionType)
+    {
+        LocalDateTime since = LocalDate.now()
+                .withDayOfMonth(1)
+                .minusMonths(5)
+                .atStartOfDay();
+
+        List<EventActionRepository.EventActionAnalyticsProjection> eventActionAnalytics
+                =  eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
+
+        System.out.println(eventActionAnalytics.size());
+        List<EventActionRepository.EventActionAnalyticsProjection> usersEventActionAnalytics =
+                eventActionAnalytics.stream()
+                        .filter(a -> Objects.equals(a.getActorId(), userId))
+                        .toList();
+
+        List<EventActionRepository.EventActionAnalyticsProjection> othersEventActionAnalytics =
+                eventActionAnalytics.stream()
+                        .filter(a -> !Objects.equals(a.getActorId(), userId))
+                        .toList();
+        System.out.println(usersEventActionAnalytics.size());
+        System.out.println(othersEventActionAnalytics.size());
+
+
+
+        Map<String, Integer> roleCountMap = new HashMap<>();
+        int totalRoleCount = 0;
+
+        for (EventActionRepository.EventActionAnalyticsProjection action : usersEventActionAnalytics) {
+            String roles = action.getTargetRoles();
+            if (roles == null || roles.isBlank()) continue;
+
+            for (String roleName : roles.split(",")) {
+                roleCountMap.merge(roleName, 1, Integer::sum);
+                totalRoleCount++;
+            }
+        }
+
+        Map<String, Integer> rolePercentageMap =
+                Calculator.calculateWithHamilton(
+                        roleCountMap,
+                        totalRoleCount
+                );
+
+        Map<YearMonth, Integer> userMonthlyCountMap =
+                Calculator.countByMonth(usersEventActionAnalytics);
+
+        Map<YearMonth, Integer> othersMonthlyCountMap  =
+                Calculator.countByMonth(othersEventActionAnalytics);
+
+        int totalUserCount = userRepository.getTotalCount();
+
+        othersMonthlyCountMap.replaceAll((month, count) -> {
+            if (totalUserCount == 0) return 0;
+            return count / totalUserCount;
+        });
+
+
+        return adminMapper.toEventActionAnalyticsResponse(rolePercentageMap,userMonthlyCountMap,othersMonthlyCountMap,since);
+
     }
 }

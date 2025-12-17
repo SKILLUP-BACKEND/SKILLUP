@@ -42,4 +42,10 @@ WHERE ea.user_id = :userId
         int getApplyCnt();
         int getSaveCnt();
     }
+    @Query(value = """
+    SELECT COUNT(*)
+    FROM Users u
+    WHERE u.deletedAt IS NULL
+    """)
+    int getTotalCount();
 }

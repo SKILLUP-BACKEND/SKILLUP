@@ -91,7 +91,7 @@ public class UserMapper {
                 .createdAt(CommonMapper.toDatePattern(user.getCreatedAt()))
                 .email(user.getEmail())
                 .socialLoginType(user.getSocialLoginType().getToKorean())
-                .role(CommonMapper.convertRole(user.getRole()))
+                .role(CommonMapper.convertRole(user.getRole().getName()))
                 .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
     }
 
@@ -102,12 +102,12 @@ public class UserMapper {
                 .createdAt(CommonMapper.toDatePattern(user.getCreatedAt()))
                 .email(user.getEmail())
                 .socialLoginType(user.getSocialLoginType().getToKorean()+" 로그인")
-                .role(CommonMapper.convertRole(user.getRole()))
+                .role(CommonMapper.convertRole(user.getRole().getName()))
                 .lastLoginAt(CommonMapper.toDatePattern(user.getLastLoginAt())).build();
     }
 
-    public UserResponse.AdminUserEventActionResponse toAdminUserEventActionResponse(int viewCount, int saveCount, int applyCount) {
-        return UserResponse.AdminUserEventActionResponse.builder()
+    public UserResponse.AdminUserEventActionCountsResponse toAdminUserEventActionResponse(int viewCount, int saveCount, int applyCount) {
+        return UserResponse.AdminUserEventActionCountsResponse.builder()
                 .viewCount(viewCount)
                 .saveCount(saveCount)
                 .applyCount(applyCount)

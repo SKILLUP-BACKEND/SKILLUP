@@ -24,4 +24,35 @@ public class AdminResponse {
         int pmUsersCount;
     }
 
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class eventActionMonthlyCountResponse
+    {
+        int userMonthlyCount;
+        int othersMonthlyCount;
+        String monthLabels;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class  rolePercentageResponse
+    {
+        String role;
+        int percentage;
+    }
+
+
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class eventActionAnalyticsResponse
+    {
+        List<eventActionMonthlyCountResponse> eventActionMonthlyCountResponses;
+        List<rolePercentageResponse> rolePercentageResponses;
+    }
+
+
 }
