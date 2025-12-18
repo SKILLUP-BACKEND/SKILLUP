@@ -12,15 +12,12 @@ import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -98,6 +95,12 @@ public class UserController {
         return BaseResponse.success("정형화된 탈퇴 사유 조회 성공",userService.getWithDrawReasonCategory());
     }
 
+    @DeleteMapping("my-page/with-draw")
+    @Operation(description = "탈퇴 사유를 받고 유저를 탈퇴 대기상태로 만듭니다. (14일 이후 완전 탈퇴)")
+    public BaseResponse<Boolean> deleteUser(@AuthenticationPrincipal UsersDetails userDetails) {
+        userService.deleteUser(userDetails.getUser());
+        return BaseResponse.success("회원 탈퇴 성공",true);
+    }
 
 
 }

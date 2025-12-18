@@ -4,10 +4,12 @@ import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.userdetails.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,4 +64,15 @@ WHERE ea.actorId = :actorId
             nativeQuery = true
     )
     Optional<Users> findByIdNative(@Param("userId") Long userId);
+
+
+
+    @Modifying
+    @Query("""
+    DELETE FROM Users u
+    WHERE u.role = :guestRole
+      AND u.deletedAt IS NOT NULL
+      AND u.deletedAt <= :threshold
+""")
+    void deleteExpiredUsers( @Param("threshold") LocalDateTime threshold);
 }

@@ -97,4 +97,9 @@ public class Users extends BaseEntity
         if (dto.getInterests() != null) this.interests = interests;
     }
 
+    public void withdraw() {
+        this.status=UserStatus.WITHDRAWN;
+        delete();
+    }
+
 }

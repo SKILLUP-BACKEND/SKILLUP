@@ -18,7 +18,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = PROTECTED)
-public class WithDrawReasonCategory
+public class WithdrawReasonCategory
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
