@@ -6,6 +6,7 @@ import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
