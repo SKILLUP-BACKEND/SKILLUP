@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 
+import com.example.skillup.global.service.NotFoundGuardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -58,7 +59,7 @@ public class AdminService {
     private final AdminMapper adminMapper;
     private final UserMapper  userMapper;
     private final EventActionRepository eventActionRepository;
-
+    private final NotFoundGuardService notFoundGuardService;
 
     public Admin login(AdminLoginRequest request) {
 
@@ -154,15 +155,10 @@ public class AdminService {
 
     }
 
-    @ConvertNotFound(
-            exception = UserException.class,
-            errorCodeEnum = UserErrorCode.class,
-            errorCodeName = "USER_ENTITY_NOT_FOUND"
-    )
+
     public UserResponse.AdminUserDetailPageResponse getUsersDetail(Long userId)
     {
-        Users user = userRepository.findByIdNative(userId).orElseThrow();
-        return userMapper.toAdminUserDetailPageResponse(user);
+        return userMapper.toAdminUserDetailPageResponse(notFoundGuardService.getUsersNative(userId));
     }
 
     public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId)

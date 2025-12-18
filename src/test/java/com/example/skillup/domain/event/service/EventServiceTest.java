@@ -36,6 +36,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.service.NotFoundGuardService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
@@ -71,6 +72,9 @@ public class EventServiceTest {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private NotFoundGuardService notFoundGuardService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -663,7 +667,7 @@ public class EventServiceTest {
     @DisplayName("getRole 실패 테스트")
     public void getTargetRoleByName_Fail() {
         EventException exception =
-                assertThrows(EventException.class, () -> eventService.getRole("잘못된 이름"));
+                assertThrows(EventException.class, () -> notFoundGuardService.getRole("잘못된 이름"));
         System.out.println(exception.getMessage());
         System.out.println(exception.getResultCode());
         assertEquals(TargetRoleErrorCode.TARGET_ROLE_NOT_FOUND, exception.getResultCode());
@@ -672,7 +676,7 @@ public class EventServiceTest {
     @Test
     @DisplayName("getRole 성공 테스트")
     public void getTargetRoleByName_Success() {
-        TargetRole targetRole = eventService.getRole("PLANNER");
+        TargetRole targetRole = notFoundGuardService.getRole("PLANNER");
         assertEquals(targetRole.getName(), "PLANNER");
     }
 
@@ -680,7 +684,7 @@ public class EventServiceTest {
     @DisplayName("getHashTag 실패 테스트")
     public void getHashTagByName_Fail() {
         EventException exception =
-                assertThrows(EventException.class, () -> eventService.getHashTag("잘못된 이름"));
+                assertThrows(EventException.class, () -> notFoundGuardService.getHashTag("잘못된 이름"));
         System.out.println(exception.getMessage());
         System.out.println(exception.getResultCode());
         assertEquals(HashTagErrorCode.HASH_TAG_NOT_FOUND, exception.getResultCode());
@@ -689,7 +693,7 @@ public class EventServiceTest {
     @Test
     @DisplayName("getHashTag 성공 테스트")
     public void getHashTagByName_Success() {
-        HashTag targetRole = eventService.getHashTag("#스포츠");
+        HashTag targetRole = notFoundGuardService.getHashTag("#스포츠");
         assertEquals(targetRole.getName(), "#스포츠");
     }
 
@@ -702,7 +706,6 @@ public class EventServiceTest {
                         .name("Seed1")
                         .gender("남")
                         .age("15")
-                        .jobGroup("개발자")
                         .notificationFlag("Y")
                         .socialId("test")
                         .regDatetime(LocalDateTime.now())
@@ -769,7 +772,6 @@ public class EventServiceTest {
                 .name("Seed1")
                 .gender("남")
                 .age("15")
-                .jobGroup("개발자")
                 .notificationFlag("Y")
                 .socialId("test")
                 .regDatetime(LocalDateTime.now())
@@ -810,7 +812,6 @@ public class EventServiceTest {
                 .name("Seed1")
                 .gender("남")
                 .age("15")
-                .jobGroup("개발자")
                 .notificationFlag("Y")
                 .socialId("test")
                 .regDatetime(LocalDateTime.now())

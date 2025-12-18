@@ -15,6 +15,7 @@ import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.util.List;
 import java.util.Set;
@@ -34,20 +35,11 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
     private final S3Service s3Service;
-    private final TargetRoleRepository targetRoleRepository;
-
+    private final NotFoundGuardService notFoundGuardService;
 
     private static final Set<String> ALLOWED_SORTS = Set.of("게시일순", "등록일순");
 
 
-    @ConvertNotFound(
-            exception = ArticleException.class,
-            errorCodeEnum = TargetRoleErrorCode.class,
-            errorCodeName = "TARGET_ROLE_NOT_FOUND"
-    )
-    public TargetRole getRole(String name) {
-        return targetRoleRepository.findByName(name).orElseThrow();
-    }
 
     @Transactional
     public Article createArticle(ArticleRequest.CreateArticleRequest request, MultipartFile thumbnailImage) {
@@ -59,7 +51,7 @@ public class ArticleService {
         request.getTargetRoles().stream()
                 .distinct()
                 .forEach(roleName -> {
-                    TargetRole role = getRole(roleName);
+                    TargetRole role = notFoundGuardService.getRole(roleName);
                     article.addTargetRole(role);
                 });
 
@@ -139,7 +131,7 @@ public class ArticleService {
             article.getTargetRoles().clear();
 
             request.getTargetRoles().stream().distinct().forEach(name -> {
-                TargetRole role = getRole(name);
+                TargetRole role = notFoundGuardService.getRole(name);
                 article.addTargetRole(role);
             });
         }
@@ -164,7 +156,7 @@ public class ArticleService {
                     (long) result.getTotalPages());
         }
 
-        List<Long> targetRoleIds = tab.stream().map(target -> getRole(target).getId()).toList();
+        List<Long> targetRoleIds = tab.stream().map(target -> notFoundGuardService.getRole(target).getId()).toList();
 
         result = articleRepository.searchByTitleAndAllRoles(keyword, targetRoleIds, targetRoleIds.size(), pageable);
 
