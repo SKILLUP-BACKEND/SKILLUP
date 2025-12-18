@@ -3,7 +3,6 @@ package com.example.skillup.domain.event.mapper;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
-import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
@@ -123,22 +122,6 @@ public class EventMapper {
                 .category(category)
                 .homeEventResponseList(events)
                 .build();
-    }
-
-    public EventResponse.EventBannersResponseList toEventBannersResponseList(
-            List<EventResponse.EventBannerResponse> mainBanner, List<EventResponse.EventBannerResponse> subBanner) {
-        return new EventResponse.EventBannersResponseList(mainBanner, subBanner);
-    }
-
-    public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
-        return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
-                .title(eventBanner.getTitle())
-                .bannerImageUrl(eventBanner.getBannerImageUrl())
-                .bannerLink(eventBanner.getBannerLink())
-                .displayOrder(eventBanner.getDisplayOrder())
-                .StartAt(eventBanner.getStartAt())
-                .EndAt(eventBanner.getEndAt())
-                .build()).toList();
     }
 
     public EventResponse.HomeEventResponse mapEsDocToHomeItem(

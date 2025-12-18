@@ -7,15 +7,18 @@ import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.service.EventBannerService;
 import com.example.skillup.domain.event.service.EventBookmarkService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
+import com.example.skillup.global.interceptor.GuestIdInterceptor;
 import com.example.skillup.global.search.service.EventSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -45,6 +48,7 @@ public class EventController {
     private final EventService eventService;
     private final EventSearchService eventSearchService;
     private final EventBookmarkService eventBookmarkService;
+    private final EventBannerService eventBannerService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('OWNER')")
@@ -110,9 +114,14 @@ public class EventController {
     public BaseResponse<EventResponse.EventSelectResponse> getEventDetail(
             @PathVariable Long eventId,
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId
+            @CookieValue(value = GuestIdInterceptor.GUEST_COOKIE_NAME, required = false) String guestId,
+            HttpServletRequest request
     ) {
-        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user, guestId);
+        String cookieGuestId = guestId;
+        if (cookieGuestId == null) {
+            cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
+        }
+        EventResponse.EventSelectResponse response = eventService.getEventDetail(eventId, user, cookieGuestId);
         return BaseResponse.success("행사 상세 조회 성공", response);
     }
 
@@ -154,10 +163,67 @@ public class EventController {
         return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
     }
 
+    @GetMapping("/home/admin/banners")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "관리자용 배너 리스트 API 입니다.", description = "관리자용 배너 조회 API 입니다. 현재 배너 + 이전 배너 를 반환합니다. page 값은 1부터 넣어주세요(이전 배너용 페이지)")
+    public BaseResponse<EventResponse.EventBannerAdminResponse> getBannersAll(
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getEventBanners(page));
+    }
+
     @GetMapping("/home/banners")
-    @Operation(summary = "메인 배너 및 서브 배너 리스트", description = "메인 배너 순서대로 정렬 , 서브배너는 설정해둔 하나만 반환합니다.")
-    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners() {
-        return BaseResponse.success("배너 리스트 조회 성공", eventService.getEventBanners());
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "메인 페이지에 나올 배너 조회 API 입니다.", description = "현재 날짜가 배너의 노출일과 마감일 사이에 있는 배너를 반환합니다.")
+    public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(
+    ) {
+        return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getActiveEventBanners());
+    }
+
+    @PostMapping(value = "/home/admin/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 등록 API", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
+    public BaseResponse<EventResponse.EventBannerResponse> createHomeBanners(
+            @RequestPart @Valid EventRequest.CreateEventBannerRequest request,
+            @RequestPart("bannerImage") MultipartFile bannerImage) {
+        return BaseResponse.success("배너 등록 성공", eventBannerService.createBanner(bannerImage, request));
+    }
+
+    @PatchMapping("/home/admin/banners/order")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 순서 정렬 API", description = "정렬된 상태의 배너의 ID 값을 순서대로 보내주세요 앞에 오는게 우선순위가 높습니다.")
+    public BaseResponse<Void> updateDisplayOrderHomeBanners(
+            @RequestBody @Valid EventRequest.BannerOrderUpdateRequest request
+    ) {
+        eventBannerService.updateBannerOrder(request.getBannerIds());
+        return BaseResponse.success("배너 순서 수정 성공", null);
+    }
+
+    @PutMapping(value = "/home/admin/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(
+            summary = "배너 수정 API",
+            description = """
+                    배너 수정 API 입니다.
+                    - 배너 타입: MAIN_BANNER 또는 SUB_BANNER
+                    - 이미지 파일(profileImage)은 선택적으로 전송 가능합니다.
+                    """
+    )
+    public BaseResponse<EventResponse.EventBannerResponse> updateHomeBanner(
+            @PathVariable Long bannerId,
+            @RequestPart @Valid EventRequest.UpdateEventBannerRequest request,
+            @RequestPart(name = "bannerImage", required = false) MultipartFile bannerImage
+    ) {
+        return BaseResponse.success("배너 수정 성공", eventBannerService.updateBanner(bannerId, request, bannerImage));
+    }
+
+    @DeleteMapping("/home/banners/{bannerId}")
+    //@PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 삭제 API", description = "지우실 배너 아이디를 입력해주세요")
+    public BaseResponse<EventResponse.CommonBannerResponse> deleteHomeBanner(
+            @PathVariable Long bannerId
+    ) {
+        return BaseResponse.success("배너 삭제 성공", eventBannerService.deleteBanner(bannerId));
     }
 
     @PostMapping("category-page/search")
@@ -193,9 +259,15 @@ public class EventController {
             description = "로그인 유저는 userId 기반, 비로그인 유저는 guestId(쿠키) 기반으로 조회합니다.")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecentEvents(
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(value = "guest_id", required = false) String guestId) {
+            @CookieValue(value = GuestIdInterceptor.GUEST_COOKIE_NAME, required = false) String guestId,
+            HttpServletRequest request
+    ) {
+        String cookieGuestId = guestId;
+        if (cookieGuestId == null) {
+            cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
+        }
         List<EventResponse.HomeEventResponse> events =
-                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : guestId);
+                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : cookieGuestId);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
     }
 
@@ -213,9 +285,14 @@ public class EventController {
     public BaseResponse<EventApplyResponse> applyEvent(
             @PathVariable Long eventId,
             @AuthenticationPrincipal UsersDetails user,
-            @CookieValue(required = false) String guestId
+            @CookieValue(value = GuestIdInterceptor.GUEST_COOKIE_NAME, required = false) String guestId,
+            HttpServletRequest request
     ) {
-        return BaseResponse.success("지원 성공", eventService.applyEvent(eventId, user, guestId));
+        String cookieGuestId = guestId;
+        if (cookieGuestId == null) {
+            cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
+        }
+        return BaseResponse.success("지원 성공", eventService.applyEvent(eventId, user, cookieGuestId));
     }
 
 }

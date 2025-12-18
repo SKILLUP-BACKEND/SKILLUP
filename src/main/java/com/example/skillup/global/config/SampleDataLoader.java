@@ -4,13 +4,16 @@ import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.domain.admin.repository.AdminRepository;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.EventViewDaily;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
+import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.repository.EventBannerRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
@@ -48,6 +51,7 @@ public class SampleDataLoader implements CommandLineRunner {
     private final SynonymGroupRepository synonymGroupRepository;
     private final SynonymTermRepository synonymTermRepository;
     private final HashTagRepository hashTagRepository;
+    private final EventBannerRepository eventBannerRepository;
 
     @Override
     @Transactional
@@ -234,6 +238,92 @@ public class SampleDataLoader implements CommandLineRunner {
         makeSynonyms("ko", "카카오 관련 동의어", List.of("카카오", "kakao"));
         makeSynonyms("ko", "우테코 관련 동의어", List.of("우테코", "우아한테크코스", "woowacourse"));
         makeSynonyms("ko", "IT 기업 관련 동의어", List.of("네카라쿠배", "네이버", "카카오", "라인", "쿠팡"));
+
+
+        // === 5) 배너 더미 데이터 ===
+        LocalDate today = now.toLocalDate();
+
+// ① 현재 노출 중인 메인 배너 1 (부트캠프용)
+        EventBanner mainActiveBootcamp = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/backend-main.jpg")
+                .title("🔥 백엔드 부트캠프 지금 모집 중!")
+                .selected(true)
+                // 예: 상세 페이지로 이동하는 링크 (이벤트 id 활용)
+                .bannerLink("/events/" + bootcampOpen.getId())
+                .displayOrder(1)                     // 가장 위
+                .startAt(today.minusDays(5))         // 5일 전 시작
+                .endAt(today.plusDays(5))            // 5일 뒤까지 노출
+                .build();
+
+// ② 현재 노출 중인 메인 배너 2 (해커톤용)
+        EventBanner mainActiveHackathon = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/hackathon-main.jpg")
+                .title("🚀 AI 해커톤 2025 참가자 모집")
+                .selected(true)
+                .bannerLink("/events/" + hackathon.getId())
+                .displayOrder(2)                     // 두 번째
+                .startAt(today.minusDays(1))         // 어제 시작
+                .endAt(today.plusDays(10))           // 10일 뒤까지
+                .build();
+
+// ③ 시작 대기 중인 메인 배너 1
+        EventBanner mainWaitingSeminar = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/seminar-main.jpg")
+                .title("☁️ 클라우드 세미나 곧 시작 예정")
+                .selected(true)
+                .bannerLink("/events/" + seminarLate.getId())
+                .displayOrder(3)
+                .startAt(today.plusDays(3))          // 3일 뒤부터 노출
+                .endAt(today.plusDays(20))           // 20일 뒤까지
+                .build();
+
+// ④ 시작 대기 중인 메인 배너 2
+        EventBanner mainWaitingBootcampClosed = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/fe-waiting.jpg")
+                .title("프론트엔드 부트캠프 다음 기수 오픈 예정")
+                .selected(true)
+                .bannerLink("/events/" + bootcampClosed.getId())
+                .displayOrder(4)
+                .startAt(today.plusDays(7))          // 7일 뒤부터 노출
+                .endAt(today.plusDays(30))           // 30일 뒤까지
+                .build();
+
+// ⑤ 이미 종료된 과거 메인 배너 1
+        EventBanner mainPastOldBootcamp = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/backend-past.jpg")
+                .title("지난 기수 백엔드 부트캠프")
+                .selected(true)
+                .bannerLink("/events/" + bootcampOpen.getId())
+                .displayOrder(5)
+                .startAt(today.minusDays(30))        // 30일 전 시작
+                .endAt(today.minusDays(10))          // 10일 전에 종료 → 과거 배너
+                .build();
+
+// ⑥ 이미 종료된 과거 메인 배너 2
+        EventBanner mainPastOldHackathon = EventBanner.builder()
+                .type(BannerType.MAIN_BANNER)
+                .bannerImageUrl("https://example.com/banner/hackathon-past.jpg")
+                .title("지난 해커톤 다시보기")
+                .selected(true)
+                .bannerLink("/events/" + hackathon.getId())
+                .displayOrder(6)
+                .startAt(today.minusDays(60))
+                .endAt(today.minusDays(20))          // 역시 과거
+                .build();
+
+        eventBannerRepository.saveAll(List.of(
+                mainActiveBootcamp,
+                mainActiveHackathon,
+                mainWaitingSeminar,
+                mainWaitingBootcampClosed,
+                mainPastOldBootcamp,
+                mainPastOldHackathon
+        ));
 
     }
 

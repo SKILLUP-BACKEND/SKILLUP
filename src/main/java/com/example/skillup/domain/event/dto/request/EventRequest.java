@@ -3,9 +3,14 @@ package com.example.skillup.domain.event.dto.request;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventFormat;
 import com.example.skillup.domain.event.enums.EventSortType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -69,7 +74,6 @@ public class EventRequest {
 
     @Getter
     @AllArgsConstructor
-
     public static class UpdateEvent {
         @NotNull(message = "제목을 입력해주세요.")
         private String title;
@@ -174,6 +178,64 @@ public class EventRequest {
         @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
         private Integer page = 0;
 
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class CreateEventBannerRequest {
+
+        @NotBlank(message = "배너명을 입력해주세요")
+        @Size(max = 100)
+        private String title;
+
+        @NotNull(message = "배너 클릭시 이동 할 링크를 입력해주세요")
+        private String bannerLink;
+
+        @NotNull(message = "배너 노출 시작일을 입력해주세요")
+        @FutureOrPresent(message = "배너 노출 시작일은 오늘 이전일 수 없습니다.")
+        LocalDate bannerStart;
+
+        @NotNull(message = "배너 노출 마감일을 입력해주세요")
+        LocalDate bannerEnd;
+
+        @AssertTrue(message = "배너 종료일은 시작일보다 빠를 수 없습니다.")
+        @JsonIgnore
+        public boolean isValidPeriod() {
+            return !bannerEnd.isBefore(bannerStart);
+        }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class UpdateEventBannerRequest {
+
+        @NotBlank(message = "배너명을 입력해주세요")
+        @Size(max = 100)
+        private String title;
+
+        @NotNull
+        private String bannerLink;
+
+        @NotNull(message = "배너 노출 시작일은 필수입니다.")
+        @FutureOrPresent
+        private LocalDate bannerStart;
+
+        private LocalDate bannerEnd;
+
+        @AssertTrue(message = "배너 종료일은 시작일보다 빠를 수 없습니다.")
+        @JsonIgnore
+        public boolean isValidPeriod() {
+            return !bannerEnd.isBefore(bannerStart);
+        }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class BannerOrderUpdateRequest{
+        @NotEmpty List<Long> bannerIds;
     }
 
 }

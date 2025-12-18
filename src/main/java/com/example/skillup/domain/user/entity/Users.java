@@ -1,23 +1,34 @@
 package com.example.skillup.domain.user.entity;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
-import jakarta.persistence.*;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
-import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter
@@ -79,9 +90,9 @@ public class Users extends BaseEntity
 
     private boolean marketingAgreement;
 
-    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests) {
+    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests, String userProfileImageUrl) {
         if (dto.getName() != null) this.name = dto.getName();
-        if (dto.getProfileImageUrl() != null) this.profileImageUrl = dto.getProfileImageUrl();
+        if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
         if (dto.getAge() != null) this.age = dto.getAge();
         if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
         if (dto.getGender() != null) this.gender = dto.getGender();
