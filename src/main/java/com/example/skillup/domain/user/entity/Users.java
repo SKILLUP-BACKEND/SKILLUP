@@ -7,6 +7,7 @@ import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.BaseEntity;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +20,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +28,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+
 
 @Entity
 @Getter
@@ -89,7 +90,7 @@ public class Users extends BaseEntity
 
     private boolean marketingAgreement;
 
-    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests , String userProfileImageUrl) {
+    public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests, String userProfileImageUrl) {
         if (dto.getName() != null) this.name = dto.getName();
         if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
         if (dto.getAge() != null) this.age = dto.getAge();
