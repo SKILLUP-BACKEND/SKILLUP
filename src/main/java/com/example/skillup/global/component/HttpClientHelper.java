@@ -1,4 +1,4 @@
-package com.example.skillup.domain.oauth.component;
+package com.example.skillup.global.component;
 
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;

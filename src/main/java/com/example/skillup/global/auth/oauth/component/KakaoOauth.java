@@ -1,6 +1,6 @@
 package com.example.skillup.global.auth.oauth.component;
 
-import com.example.skillup.domain.oauth.component.HttpClientHelper;
+import com.example.skillup.global.component.HttpClientHelper;
 import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;

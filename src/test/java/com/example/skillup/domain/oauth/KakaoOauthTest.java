@@ -3,7 +3,7 @@ package com.example.skillup.domain.oauth;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-import com.example.skillup.domain.oauth.component.HttpClientHelper;
+import com.example.skillup.global.component.HttpClientHelper;
 import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.global.auth.oauth.component.KakaoOauth;
 import org.junit.jupiter.api.BeforeEach;

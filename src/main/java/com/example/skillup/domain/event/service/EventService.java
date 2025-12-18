@@ -32,6 +32,7 @@ import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
+import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
@@ -412,20 +413,8 @@ public class EventService {
                 now,
                 targetRoleCount,
                 targetRolesIsEmpty);
-        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
-                .builder()
-                .currentPage(condition.getPage() + 1)
-                .pageSize(pageable.getPageSize())
-                .totalPages((int) Math.ceil((double) count / (pageable.getPageSize())))
-                .build();
-
-        return EventResponse.SearchEventResponseList.builder().homeEventResponseList(events.stream()
-                .map(r -> {
-                    Event event = r.getEvent();
-                    double score = r.getPopularity();
-                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
-                })
-                .toList()).total(count).pageInfoResponse(pageInfoResponse).build();
+      
+        return eventMapper.toCategoryPageEventResponseListWithPageable(events,pageable,condition.getPage(),count);
     }
 
     @Transactional(readOnly = true)
@@ -455,13 +444,7 @@ public class EventService {
             }
         }
 
-        return result.stream()
-                .map(r -> {
-                    Event event = r.getEvent();
-                    double score = r.getPopularity();
-                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), score);
-                })
-                .toList();
+        return eventMapper.toCategoryPageEventResponseList(result);
     }
 
     @Transactional(readOnly = true)
@@ -469,11 +452,7 @@ public class EventService {
     public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId) {
         List<Event> events = eventRepository.findRecommendedEventForHome(actorId, since);
 
-        return events.stream()
-                .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
-                })
-                .toList();
+        return eventMapper.toHomeEventResponsList(events);
     }
 
     @Transactional(readOnly = true)
@@ -482,11 +461,7 @@ public class EventService {
         Pageable pageable = PageRequest.of(0, 10);
         List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable);
 
-        return events.stream()
-                .map(event -> {
-                    return eventMapper.toFeaturedEvent(event, false, event.isRecommendedManual(), event.isAd(), null);
-                })
-                .toList();
+        return eventMapper.toHomeEventResponsList(events);
 
     }
 
@@ -517,10 +492,7 @@ public class EventService {
 
         eventActionRepository.save(newEventAction);
 
-        return EventApplyResponse.builder()
-                .eventId(eventId)
-                .comment("성공적으로 신청되었습니다.")
-                .build();
+        return eventMapper.toEventApplyResponse(eventId);
     }
 
     private ActorInfo resolveAndSaveActor(UsersDetails user, String guestId) {

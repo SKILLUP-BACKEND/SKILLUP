@@ -1,6 +1,7 @@
 package com.example.skillup.domain.oauth.component;
 
 import com.example.skillup.domain.oauth.exception.OauthException;
+import com.example.skillup.global.component.HttpClientHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;

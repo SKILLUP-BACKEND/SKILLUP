@@ -1,9 +1,12 @@
 package com.example.skillup.domain.admin.controller;
 
+import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import com.example.skillup.domain.admin.dto.AdminLoginRequest;
+import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.service.AdminService;
+import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
@@ -11,13 +14,9 @@ import com.example.skillup.global.search.service.EventIndexerService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -75,5 +74,31 @@ public class AdminController {
     @Operation(summary = "해당 동의어 그룹을 삭제합니다.")
     public BaseResponse<String> deleteGroup(@PathVariable Long groupId) {
         return BaseResponse.success("성공적으로 해당 그룹이 삭제되었습니다.", "지워진 동의어들 : " + adminService.deleteGroup(groupId));
+    }
+
+
+    @GetMapping("/users")
+    @Operation(summary = "검색 조건으로 유저를 조회합니다.")
+    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyWard
+            , @RequestParam boolean deleted, @RequestParam int page) {
+        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted,page));
+    }
+
+    @GetMapping("/users/{userId}")
+    @Operation(summary = "유저 아이디로 유저를 상세 조회합니다.")
+    public BaseResponse<UserResponse.AdminUserDetailPageResponse> getUsersDetail(@PathVariable Long userId) {
+        return BaseResponse.success("유저 상세조회가 성공하였습니다.", adminService.getUsersDetail(userId));
+    }
+
+    @GetMapping("/users/{userId}/eventAction/counts")
+    @Operation(summary = "유저 아이디로 유저의 활동 내역 횟수를 조회합니다.")
+    public BaseResponse<UserResponse.AdminUserEventActionCountsResponse> getUserActionCounts(@PathVariable String userId) {
+        return BaseResponse.success("유저 아이디로 유저의 활동 내역 횟수 조회 성공", adminService.getUserActionCounts(userId));
+    }
+
+    @GetMapping("/users/{userId}/eventAction/{actionType}/analytics")
+    @Operation(summary = "유저 아이디로 유저의 활동 내역 분석을 조회합니다.")
+    public BaseResponse<AdminResponse.eventActionAnalyticsResponse> getUserEventActionAnalytics(@PathVariable String userId, @PathVariable String actionType) {
+        return BaseResponse.success("유저 아이디로 유저의 활동 내역 분석 조회 성공", adminService.getUserEventActionAnalytics(userId,actionType));
     }
 }

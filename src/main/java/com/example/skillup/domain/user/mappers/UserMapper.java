@@ -8,6 +8,7 @@ import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
@@ -80,6 +81,37 @@ public class UserMapper {
                 .question(inquiry.getQuestion())
                 .answerContent(inquiry.getAnswerContent())
                 .answerTitle(inquiry.getAnswerTitle())
+                .build();
+    }
+
+    public UserResponse.AdminUserResponse toAdminUserResponse(Users user) {
+        return UserResponse.AdminUserResponse.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .createdAt(CommonMapper.toDatePattern(user.getCreatedAt()))
+                .email(user.getEmail())
+                .socialLoginType(user.getSocialLoginType().getToKorean())
+                .role(CommonMapper.convertRole(user.getRole().getName()))
+                .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
+    }
+
+    public UserResponse.AdminUserDetailPageResponse toAdminUserDetailPageResponse(Users user) {
+        return UserResponse.AdminUserDetailPageResponse.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .createdAt(CommonMapper.toDatePattern(user.getCreatedAt()))
+                .email(user.getEmail())
+                .socialLoginType(user.getSocialLoginType().getToKorean()+" 로그인")
+                .role(CommonMapper.convertRole(user.getRole().getName()))
+                .lastLoginAt(CommonMapper.toDatePattern(user.getLastLoginAt()))
+                .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
+    }
+
+    public UserResponse.AdminUserEventActionCountsResponse toAdminUserEventActionResponse(int viewCount, int saveCount, int applyCount) {
+        return UserResponse.AdminUserEventActionCountsResponse.builder()
+                .viewCount(viewCount)
+                .saveCount(saveCount)
+                .applyCount(applyCount)
                 .build();
     }
 
