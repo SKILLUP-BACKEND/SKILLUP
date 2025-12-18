@@ -24,7 +24,7 @@ jobs:
           cache-disabled: true
 
       - name: Build Project (skip tests)
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test --info --stacktrace
 
       - name: Build Docker Image
         run: |
