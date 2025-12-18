@@ -92,4 +92,12 @@ public class UserController {
         return BaseResponse.success("모든 문의 내용 조회 성공", userService.getAllInquiry());
     }
 
+    @GetMapping("my-page/with-draw/category")
+    @Operation(description="사이트에서 제공하는 정형화된 탈퇴 사유 목록을 조회합니다.")
+    public BaseResponse<List<UserResponse.WithDrawReasonCategoryResponse>> getWithDrawReasonCategory() {
+        return BaseResponse.success("정형화된 탈퇴 사유 조회 성공",userService.getWithDrawReasonCategory());
+    }
+
+
+
 }

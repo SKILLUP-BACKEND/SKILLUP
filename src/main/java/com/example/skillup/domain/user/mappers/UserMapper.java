@@ -7,6 +7,7 @@ import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.WithDrawReasonCategory;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
@@ -27,7 +28,6 @@ public class UserMapper {
                 .regDatetime(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
                 .role(role)
-                .jobGroup("UNKNOWN")
                 .notificationFlag("Y")
                 .lastLoginAt(LocalDateTime.now())
                 .socialId(socialId)
@@ -81,6 +81,14 @@ public class UserMapper {
                 .question(inquiry.getQuestion())
                 .answerContent(inquiry.getAnswerContent())
                 .answerTitle(inquiry.getAnswerTitle())
+                .build();
+    }
+
+    public UserResponse.WithDrawReasonCategoryResponse toWithDrawReasonCategoryResponse
+            (WithDrawReasonCategory withDrawReasonCategory)
+    {
+        return UserResponse.WithDrawReasonCategoryResponse.builder()
+                .description(withDrawReasonCategory.getDescription())
                 .build();
     }
 

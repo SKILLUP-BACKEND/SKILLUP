@@ -17,6 +17,7 @@ import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.domain.user.repository.WithDrawReasonCategoryRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.service.S3Service;
@@ -42,6 +43,7 @@ public class UserService {
     final private TargetRoleRepository targetRoleRepository;
     final private InquiryRepository inquiryRepository;
     private final UserRepository userRepository;
+    private final WithDrawReasonCategoryRepository withDrawReasonCategoryRepository;
     private final S3Service s3Service;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user) {
@@ -89,6 +91,12 @@ public class UserService {
         Optional<TargetRole> targetRole = targetRoleRepository.findByName(roleName);
         return interestRepository.findByRole(targetRole.orElseThrow()).stream().map(userMapper::toInterestResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse.WithDrawReasonCategoryResponse> getWithDrawReasonCategory()
+    {
+        return withDrawReasonCategoryRepository.findAll().stream().map(userMapper::toWithDrawReasonCategoryResponse).toList();
     }
 
     @ConvertNotFound(

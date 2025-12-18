@@ -64,9 +64,6 @@ public class Users extends BaseEntity
     @Column(length = 10, nullable = false)
     private UserStatus status;
 
-    @Column(length = 20, nullable = false)
-    private String jobGroup;
-
     @Column(length = 1, nullable = false)
     private String notificationFlag;
 
