@@ -161,7 +161,7 @@ public class AdminService {
     )
     public UserResponse.AdminUserDetailPageResponse getUsersDetail(Long userId)
     {
-        Users user = userRepository.findById(userId).orElseThrow();
+        Users user = userRepository.findByIdNative(userId).orElseThrow();
         return userMapper.toAdminUserDetailPageResponse(user);
     }
 

@@ -54,4 +54,12 @@ WHERE ea.actorId = :actorId
     WHERE u.deletedAt IS NULL
     """)
     int getTotalCount();
+
+
+
+    @Query(
+            value = "SELECT * FROM users WHERE id = :userId",
+            nativeQuery = true
+    )
+    Optional<Users> findByIdNative(@Param("userId") Long userId);
 }
