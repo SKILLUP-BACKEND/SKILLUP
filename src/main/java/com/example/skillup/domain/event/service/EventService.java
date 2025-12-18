@@ -5,13 +5,11 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
-import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.ActionType;
 import com.example.skillup.domain.event.enums.ActorType;
-import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
@@ -27,8 +25,10 @@ import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
+import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
@@ -58,6 +58,7 @@ public class EventService {
     private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
     private final EventBookmarkService eventBookmarkService;
+    private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
@@ -69,6 +70,9 @@ public class EventService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+
+    private record ActorInfo(String actorId, ActorType actorType) {
+    }
 
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
@@ -117,15 +121,15 @@ public class EventService {
 
 
     @Transactional
-    public Event createEvent(EventRequest.CreateEvent request , MultipartFile thumbnailImage) {
+    public Event createEvent(EventRequest.CreateEvent request, MultipartFile thumbnailImage) {
 
         String thumbnailUrl = null;
 
-        if( thumbnailImage != null ) {
-            thumbnailUrl =  s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+        if (thumbnailImage != null) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        Event event = eventMapper.toEntity(request , thumbnailUrl);
+        Event event = eventMapper.toEntity(request, thumbnailUrl);
 
         request.getTargetRoles().stream()
                 .distinct()
@@ -168,21 +172,22 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request , MultipartFile thumbnailImage) {
+    public EventResponse.CommonEventResponse updateEvent(Long eventId, EventRequest.UpdateEvent request,
+                                                         MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
         String imageUrl = event.getThumbnailUrl();
 
-        if(thumbnailImage != null && !thumbnailImage.isEmpty()) {
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 
-            if(imageUrl != null && !imageUrl.isEmpty()) {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
                 s3Service.deleteFileFromUrl(imageUrl);
             }
 
-            imageUrl = s3Service.uploadFile(thumbnailImage , "event/thumbnail");
+            imageUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        event.update(request , imageUrl);
+        event.update(request, imageUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
@@ -231,34 +236,36 @@ public class EventService {
                                                             String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        //admin 아이디의 경우 변형 없음
+        ActorInfo actor = resolveAndSaveActor(user, guestId);
 
-        boolean isAdmin = false;
-        if (user != null) {
-            isAdmin = user.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
-        }
+        boolean isAdmin = (user != null) && user.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
 
-        // 일반 사용자는 공개된 게시글 아니면 볼 수 없음
         if (!isAdmin && event.getStatus() != EventStatus.PUBLISHED) {
             throw new EventException(CommonErrorCode.ACCESS_DENIED);
         }
 
-        //일반 사용자라면 북마크 여부 추가해주기
-        if (!isAdmin && user != null) {
-            boolean isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
+        boolean isBookmarked = false;
+        if (user != null && !isAdmin) {
+            isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
         }
 
-        String actorId = user != null ? user.getUser().getId().toString() : guestId;
-        ActorType actorType = user != null ? ActorType.USER : ActorType.GUEST;
-        ReadEvent(actorId, event, actorType);
+        readEvent(actor.actorId, event, actor.actorType);
 
         event = eventRepository.getEvent(eventId);
 
-        return eventMapper.toEventDetailInfo(event, false);
+        return eventMapper.toEventDetailInfo(event, isBookmarked);
     }
 
-    private void ReadEvent(String actorId, Event event, ActorType actorType) {
+    private void saveOrUpdateGuest(String guestId) {
+        Guest guest = guestRepository.findById(guestId)
+                .orElseGet(() -> Guest.builder().guestId(guestId).expiredAt(LocalDateTime.now().plusDays(30)).build());
+
+        guest.extendExpiration(30);
+        guestRepository.save(guest);
+    }
+
+    private void readEvent(String actorId, Event event, ActorType actorType) {
 
         //전체 조회수 및 event_view_daily 업데이트
         eventViewService.recordView(event.getId());
@@ -357,21 +364,6 @@ public class EventService {
         return eventMapper.toCategoryEventResponseList(items, category);
     }
 
-    @Transactional(readOnly = true)
-    public EventResponse.EventBannersResponseList getEventBanners() {
-
-        List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now,
-                PageRequest.of(0, 5));
-        List<EventBanner> subBanner = eventBannerRepository.findActiveEventBannersByType(BannerType.SUB_BANNER, now,
-                PageRequest.of(0, 1));
-
-        List<EventResponse.EventBannerResponse> mainEventBanners = eventMapper.toEventBannerResponse(mainBanners);
-        List<EventResponse.EventBannerResponse> subEventBanners = eventMapper.toEventBannerResponse(subBanner);
-
-        return eventMapper.toEventBannersResponseList(mainEventBanners, subEventBanners);
-
-    }
-
     private double calcPopularity(Event event) {
         //현재는 쿼리에서 직접 가져오는걸로 수정
         double views = event.getViewsCount();
@@ -413,16 +405,15 @@ public class EventService {
         List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
                 pageable, since, now);
 
-        boolean targetRolesIsEmpty = condition.getTargetRoles() == null|| condition.getTargetRoles().isEmpty();
-        int targetRoleCount = targetRolesIsEmpty ? 0:condition.getTargetRoles().size() ;
-
+        boolean targetRolesIsEmpty = condition.getTargetRoles() == null || condition.getTargetRoles().isEmpty();
+        int targetRoleCount = targetRolesIsEmpty ? 0 : condition.getTargetRoles().size();
 
         int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
                 , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
                 now,
                 targetRoleCount,
                 targetRolesIsEmpty);
-
+      
         return eventMapper.toCategoryPageEventResponseListWithPageable(events,pageable,condition.getPage(),count);
     }
 
@@ -478,29 +469,37 @@ public class EventService {
     public EventResponse.EventApplyResponse applyEvent(Long eventId, UsersDetails users, String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        String actorId = (users != null) ? users.getUser().getId().toString() : guestId;
+        ActorInfo actor = resolveAndSaveActor(users, guestId);
 
-        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event, actorId, ActionType.APPLY);
-        if(eventAction.isPresent()) {
+        Optional<EventAction> eventAction = eventActionRepository.findByEventAndActorIdAndActionType(event,
+                actor.actorId,
+                ActionType.APPLY);
+
+        if (eventAction.isPresent()) {
             return EventResponse.EventApplyResponse.builder()
                     .eventId(eventId)
                     .comment("이미 신청한 이력이 있습니다. 정상적으로 처리 되었습니다.")
                     .build();
         }
-
-        ActorType actorType = users != null ? ActorType.USER : ActorType.GUEST;
-
         EventAction newEventAction = EventAction.builder()
                 .event(event)
-                .actorId(actorId)
-                .actorType(actorType)
+                .actorId(actor.actorId)
+                .actorType(actor.actorType)
                 .actionType(ActionType.APPLY)
                 .build();
 
-       eventRepository.incrementApplys(eventId);
+        eventRepository.incrementApplys(eventId);
 
         eventActionRepository.save(newEventAction);
 
         return eventMapper.toEventApplyResponse(eventId);
+    }
+
+    private ActorInfo resolveAndSaveActor(UsersDetails user, String guestId) {
+        if (user != null) {
+            return new ActorInfo(user.getUser().getId().toString(), ActorType.USER);
+        }
+        saveOrUpdateGuest(guestId);
+        return new ActorInfo(guestId, ActorType.GUEST);
     }
 }
