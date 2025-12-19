@@ -9,9 +9,11 @@ import com.example.skillup.domain.article.dto.response.ArticleResponse.AdminArti
 import com.example.skillup.domain.article.dto.response.ArticleResponse.HomeArticleResponse;
 import com.example.skillup.domain.article.dto.response.ArticleResponse.HomeArticleResponseList;
 import com.example.skillup.domain.article.entity.Article;
+import com.example.skillup.domain.article.enums.ArticleStatus;
 import com.example.skillup.domain.event.entity.TargetRole;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,13 +43,28 @@ public class ArticleMapper {
                 .build();
     }
 
-    public AdminArticleResponseList toAdminArticleResponseList(List<AdminArticleResponse> articles, Long publishedTotal,
-                                                               Long draftTotal, Long totalPages, String sortType) {
+    public AdminArticleResponseList toAdminArticleResponseList(Page<Article> publishedResultPage,
+                                                               Page<Article> draftResultPage,
+                                                               ArticleStatus articleStatus, String sortType) {
+
+        List<Article> articles = (articleStatus == ArticleStatus.PUBLISHED) ? publishedResultPage.getContent()
+                : draftResultPage.getContent();
+
+        Long publishedTotal = publishedResultPage.getTotalElements();
+        Long draftTotal = draftResultPage.getTotalElements();
+
+        Long totalPages = (articleStatus == ArticleStatus.PUBLISHED) ? (long) publishedResultPage.getTotalPages()
+                : (long) draftResultPage.getTotalPages();
+
+        List<AdminArticleResponse> articleResponses = articles.stream()
+                .map(this::toAdminArticleResponse)
+                .toList();
+
         return AdminArticleResponseList.builder()
                 .publishedTotal(publishedTotal)
                 .draftTotal(draftTotal)
                 .totalPages(totalPages)
-                .articles(articles)
+                .articles(articleResponses)
                 .sortType(sortType)
                 .build();
     }
@@ -78,10 +95,14 @@ public class ArticleMapper {
                 .build();
     }
 
-    public HomeArticleResponseList toHomeArticleResponseList(List<HomeArticleResponse> articles, Long totalArticles,
+    public HomeArticleResponseList toHomeArticleResponseList(Page<Article> articlesPages, Long totalArticles,
                                                              Long totalPages) {
+
+        List<HomeArticleResponse> homeArticleResponse = articlesPages.getContent().stream().map(
+                this::toHomeArticleResponse).toList();
+
         return HomeArticleResponseList.builder()
-                .articles(articles)
+                .articles(homeArticleResponse)
                 .totalArticles(totalArticles)
                 .totalPages(totalPages)
                 .build();
