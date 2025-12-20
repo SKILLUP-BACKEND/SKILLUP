@@ -75,7 +75,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> searchByTitleAndAllRoles(
             @Param("keyword") String keyword,
             @Param("roleIds") List<Long> roleIds,
-            @Param("roleCount") long roleCount,
+            @Param("roleCount") int roleCount,
             Pageable pageable
     );
 }
