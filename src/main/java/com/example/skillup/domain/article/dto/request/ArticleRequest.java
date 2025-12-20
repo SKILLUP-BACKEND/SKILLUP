@@ -6,12 +6,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class ArticleRequest {
 
     @Getter
+    @AllArgsConstructor
     @NoArgsConstructor
     public static class CreateArticleRequest {
 
