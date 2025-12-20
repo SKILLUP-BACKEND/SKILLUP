@@ -42,6 +42,7 @@ public class ArticleRequest {
 
 
     @Getter
+    @AllArgsConstructor
     @NoArgsConstructor
     public static class AdminUpdateArticleRequest {
         @NotBlank(message = "제목을 입력해주세요")
