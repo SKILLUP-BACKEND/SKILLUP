@@ -91,7 +91,7 @@ public class ArticleService {
             throw new ArticleException(ArticleErrorCode.INVALID_ARTICLE_SORT_TYPE, "sort 는 게시일순 , 등록일순만 가능합니다.");
         }
 
-        key = key.equals("게시일순") ? "originalPublishedDate" : "createAt";
+        key = key.equals("게시일순") ? "originalPublishedDate" : "createdAt";
 
         return Sort.by(Direction.DESC, key);
     }
