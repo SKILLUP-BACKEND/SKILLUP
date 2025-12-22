@@ -144,7 +144,7 @@ public class EventController {
             @AuthenticationPrincipal UsersDetails user
     ) {
         String jobGroup = (user != null && user.getUser() != null)
-                ? user.getUser().getJobGroup()
+                ? user.getUser().getRole().getName()
                 : null;
 
         return BaseResponse.success(
