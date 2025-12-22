@@ -36,6 +36,7 @@ import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -55,18 +56,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
-    private final TargetRoleRepository targetRoleRepository;
     private final EventLikeRepository eventLikeRepository;
     private final EventBookmarkService eventBookmarkService;
     private final GuestRepository guestRepository;
-    private final UserRepository userRepository;
-    private final EventBannerRepository eventBannerRepository;
     private final EventActionRepository eventActionRepository;
-    private final HashTagRepository hashTagRepository;
     private final EventIndexerService eventIndexerService;
-    private final EventViewDailyRepository eventViewDailyRepository;
     private final EventViewService eventViewService;
     private final S3Service s3Service;
+    private final NotFoundGuardService notFoundGuardService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -101,23 +98,7 @@ public class EventService {
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
 
-    @ConvertNotFound(
-            exception = EventException.class,
-            errorCodeEnum = TargetRoleErrorCode.class,
-            errorCodeName = "TARGET_ROLE_NOT_FOUND"
-    )
-    public TargetRole getRole(String name) {
-        return targetRoleRepository.findByName(name).orElseThrow();
-    }
 
-    @ConvertNotFound(
-            exception = EventException.class,
-            errorCodeEnum = HashTagErrorCode.class,
-            errorCodeName = "HASH_TAG_NOT_FOUND"
-    )
-    public HashTag getHashTag(String name) {
-        return hashTagRepository.findByName(name).orElseThrow();
-    }
 
 
     @Transactional
@@ -134,13 +115,13 @@ public class EventService {
         request.getTargetRoles().stream()
                 .distinct()
                 .forEach(roleName -> {
-                    TargetRole role = getRole(roleName);
+                    TargetRole role = notFoundGuardService.getRole(roleName);
                     event.addTargetRole(role);
                 });
         request.getHashTags().stream()
                 .distinct()
                 .forEach(hashtagName -> {
-                    HashTag hashTag = getHashTag(hashtagName);
+                    HashTag hashTag = notFoundGuardService.getHashTag(hashtagName);
                     event.addHashTag(hashTag);
                 });
         // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
@@ -193,7 +174,7 @@ public class EventService {
             event.getTargetRoles().clear();
 
             request.getTargetRoles().stream().distinct().forEach(name -> {
-                TargetRole role = getRole(name);
+                TargetRole role = notFoundGuardService.getRole(name);
                 event.addTargetRole(role);
             });
         }
@@ -201,7 +182,7 @@ public class EventService {
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             event.getHashTags().clear();
             request.getHashTags().stream().distinct().forEach(name -> {
-                HashTag hashTag = getHashTag(name);
+                HashTag hashTag = notFoundGuardService.getHashTag(name);
                 event.addHashTag(hashTag);
             });
         }
@@ -294,7 +275,7 @@ public class EventService {
         String roleFilter = null;
 
         if (roleName != null) {
-            roleFilter = getRole(roleName).getName();
+            roleFilter = notFoundGuardService.getRole(roleName).getName();
         }
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findPopularForHomeWithPopularity(

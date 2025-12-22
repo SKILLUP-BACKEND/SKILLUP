@@ -7,10 +7,10 @@ import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.entity.WithdrawReasonCategory;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -27,7 +27,6 @@ public class UserMapper {
                 .regDatetime(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
                 .role(role)
-                .jobGroup("UNKNOWN")
                 .notificationFlag("Y")
                 .lastLoginAt(LocalDateTime.now())
                 .socialId(socialId)
@@ -81,6 +80,14 @@ public class UserMapper {
                 .question(inquiry.getQuestion())
                 .answerContent(inquiry.getAnswerContent())
                 .answerTitle(inquiry.getAnswerTitle())
+                .build();
+    }
+
+    public UserResponse.WithDrawReasonCategoryResponse toWithDrawReasonCategoryResponse
+            (WithdrawReasonCategory withDrawReasonCategory)
+    {
+        return UserResponse.WithDrawReasonCategoryResponse.builder()
+                .description(withDrawReasonCategory.getDescription())
                 .build();
     }
 

@@ -108,4 +108,12 @@ public class UserResponse {
         private int saveCount;
         private int applyCount;
     }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    public static class WithDrawReasonCategoryResponse
+    {
+        private String description;
+    }
 }

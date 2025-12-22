@@ -64,9 +64,6 @@ public class Users extends BaseEntity
     @Column(length = 10, nullable = false)
     private UserStatus status;
 
-    @Column(length = 20, nullable = false)
-    private String jobGroup;
-
     @Column(length = 1, nullable = false)
     private String notificationFlag;
 
@@ -98,6 +95,11 @@ public class Users extends BaseEntity
         if (dto.getGender() != null) this.gender = dto.getGender();
         if (dto.getRole() != null) this.role = role;
         if (dto.getInterests() != null) this.interests = interests;
+    }
+
+    public void withdraw() {
+        this.status=UserStatus.WITHDRAWN;
+        delete();
     }
 
 }
