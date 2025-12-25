@@ -107,7 +107,7 @@ public class ArticleController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false) List<String> tab
     ) {
-        return BaseResponse.success("아티클 상세 조회에 성공.", articleService.getHomeArticle(tab, page, keyword));
+        return BaseResponse.success("아티클 목록 조회 성공.", articleService.getHomeArticle(tab, page, keyword));
     }
 
     @PostMapping("/read/{articleId}")

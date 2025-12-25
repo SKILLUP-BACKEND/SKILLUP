@@ -6,12 +6,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class ArticleRequest {
 
     @Getter
+    @AllArgsConstructor
     @NoArgsConstructor
     public static class CreateArticleRequest {
 
@@ -40,6 +42,7 @@ public class ArticleRequest {
 
 
     @Getter
+    @AllArgsConstructor
     @NoArgsConstructor
     public static class AdminUpdateArticleRequest {
         @NotBlank(message = "제목을 입력해주세요")

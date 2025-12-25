@@ -2,9 +2,7 @@ package com.example.skillup.domain.article.service;
 
 import com.example.skillup.domain.article.dto.request.ArticleRequest;
 import com.example.skillup.domain.article.dto.response.ArticleResponse;
-import com.example.skillup.domain.article.dto.response.ArticleResponse.AdminArticleResponse;
 import com.example.skillup.domain.article.dto.response.ArticleResponse.CommonArticleResponse;
-import com.example.skillup.domain.article.dto.response.ArticleResponse.HomeArticleResponse;
 import com.example.skillup.domain.article.entity.Article;
 import com.example.skillup.domain.article.enums.ArticleStatus;
 import com.example.skillup.domain.article.exception.ArticleErrorCode;
@@ -74,16 +72,7 @@ public class ArticleService {
         Page<Article> draftResultPage = articleRepository.findByStatusAndKeyword(ArticleStatus.DRAFT, keyword,
                 pageable);
 
-        Long publishedTotal = publishedResultPage.getTotalElements();
-        Long draftTotal = draftResultPage.getTotalElements();
-
-        List<AdminArticleResponse> articleResponses = (articleStatus == ArticleStatus.PUBLISHED ? publishedResultPage
-                : draftResultPage).getContent().stream()
-                .map(articleMapper::toAdminArticleResponse)
-                .toList();
-
-        return articleMapper.toAdminArticleResponseList(articleResponses, publishedTotal, draftTotal,
-                (long) publishedResultPage.getTotalPages(), sort);
+        return articleMapper.toAdminArticleResponseList(publishedResultPage, draftResultPage, articleStatus, sort);
 
     }
 
@@ -94,7 +83,7 @@ public class ArticleService {
             throw new ArticleException(ArticleErrorCode.INVALID_ARTICLE_SORT_TYPE, "sort 는 게시일순 , 등록일순만 가능합니다.");
         }
 
-        key = key.equals("게시일순") ? "originalPublishedDate" : "createAt";
+        key = key.equals("게시일순") ? "originalPublishedDate" : "createdAt";
 
         return Sort.by(Direction.DESC, key);
     }
@@ -150,9 +139,7 @@ public class ArticleService {
         if (tab == null || tab.isEmpty()) {
             result = articleRepository.searchByTitle(keyword, pageable);
 
-            List<HomeArticleResponse> homeArticleResponse = result.getContent().stream().map(
-                    articleMapper::toHomeArticleResponse).toList();
-            return articleMapper.toHomeArticleResponseList(homeArticleResponse, result.getTotalElements(),
+            return articleMapper.toHomeArticleResponseList(result, result.getTotalElements(),
                     (long) result.getTotalPages());
         }
 
@@ -160,10 +147,7 @@ public class ArticleService {
 
         result = articleRepository.searchByTitleAndAllRoles(keyword, targetRoleIds, targetRoleIds.size(), pageable);
 
-        List<HomeArticleResponse> homeArticleResponse = result.getContent().stream().map(
-                articleMapper::toHomeArticleResponse).toList();
-
-        return articleMapper.toHomeArticleResponseList(homeArticleResponse, result.getTotalElements(),
+        return articleMapper.toHomeArticleResponseList(result, result.getTotalElements(),
                 (long) result.getTotalPages());
     }
 
