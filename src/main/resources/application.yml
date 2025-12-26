@@ -3,7 +3,7 @@ skillup:
     export-dir: src/main/resources/es-synonyms   # ES 컨테이너 마운트 경로
     file-name: synonyms_ko.txt
   search:
-    index-name: events_v2
+    index-name: events_v3
 
 spring:
   profiles:

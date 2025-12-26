@@ -9,41 +9,41 @@ import com.example.skillup.domain.admin.exception.AdminException;
 import com.example.skillup.domain.admin.mapper.AdminMapper;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.ActionType;
 import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
-import com.example.skillup.domain.user.exception.UserErrorCode;
-import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
-import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.BaseEntity;
 import com.example.skillup.global.component.Calculator;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.exception.GlobalException;
 import com.example.skillup.global.search.component.ElasticsearchAdminClient;
 import com.example.skillup.global.search.component.SynonymExporter;
+import com.example.skillup.global.search.dto.SynonymsSetRequest;
 import com.example.skillup.global.search.entity.SynonymGroup;
 import com.example.skillup.global.search.entity.SynonymTerm;
 import com.example.skillup.global.search.enums.SynonymStatus;
 import com.example.skillup.global.search.repository.SynonymGroupRepository;
 import com.example.skillup.global.search.repository.SynonymTermRepository;
-import java.nio.file.Path;
+import com.example.skillup.global.service.NotFoundGuardService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.*;
-
-import com.example.skillup.global.service.NotFoundGuardService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -57,7 +57,7 @@ public class AdminService {
     private final SynonymTermRepository synonymTermRepository;
     private final UserRepository userRepository;
     private final AdminMapper adminMapper;
-    private final UserMapper  userMapper;
+    private final UserMapper userMapper;
     private final EventActionRepository eventActionRepository;
     private final NotFoundGuardService notFoundGuardService;
 
@@ -76,10 +76,12 @@ public class AdminService {
 
     @Transactional
     public String publish(String locale) {
-        Path file = synonymExporter.exportActiveToFile(locale);
-        String reload = elasticsearchAdminClient.reloadSearchAnalyzers();
-        return file.toString() + reload;
-        //new PublishResult(true, file.toString(), reload);
+        List<SynonymsSetRequest.SynonymsRule> rules = synonymExporter.exportActiveRules(locale);
+
+        String setId = "skillup-" + locale;
+
+        SynonymsSetRequest body = new SynonymsSetRequest(rules);
+        return elasticsearchAdminClient.upsertSynonymsSet(setId, body);
     }
 
     @Transactional
@@ -141,43 +143,40 @@ public class AdminService {
         return deletedTerms;
     }
 
-    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted,int page)
-    {
+    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted, int page) {
         Pageable pageable = PageRequest.of(page, 20);
-        List<Users> users= userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted, pageable);
+        List<Users> users = userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted, pageable);
         List<UserResponse.AdminUserResponse> adminUserResponse = new ArrayList<>();
 
-        for(Users user : users)
+        for (Users user : users) {
             adminUserResponse.add(userMapper.toAdminUserResponse(user));
+        }
 
         return adminMapper.toAdminUserPageResponse(adminUserResponse, pageable, page,
-        users.size());
+                users.size());
 
     }
 
 
-    public UserResponse.AdminUserDetailPageResponse getUsersDetail(Long userId)
-    {
+    public UserResponse.AdminUserDetailPageResponse getUsersDetail(Long userId) {
         return userMapper.toAdminUserDetailPageResponse(notFoundGuardService.getUsersNative(userId));
     }
 
-    public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId)
-    {
+    public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId) {
         UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId);
         return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
-                ,usersActionCounts.getSaveCnt(),usersActionCounts.getApplyCnt());
+                , usersActionCounts.getSaveCnt(), usersActionCounts.getApplyCnt());
     }
 
     @Transactional(readOnly = true)
-    public AdminResponse.eventActionAnalyticsResponse getUserEventActionAnalytics(String userId,String actionType)
-    {
+    public AdminResponse.eventActionAnalyticsResponse getUserEventActionAnalytics(String userId, String actionType) {
         LocalDateTime since = LocalDate.now()
                 .withDayOfMonth(1)
                 .minusMonths(5)
                 .atStartOfDay();
 
         List<EventActionRepository.EventActionAnalyticsProjection> eventActionAnalytics
-                =  eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
+                = eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
 
         List<EventActionRepository.EventActionAnalyticsProjection> usersEventActionAnalytics =
                 eventActionAnalytics.stream()
@@ -189,15 +188,14 @@ public class AdminService {
                         .filter(a -> !Objects.equals(a.getActorId(), userId))
                         .toList();
 
-
-
-
         Map<String, Integer> roleCountMap = new HashMap<>();
         int totalRoleCount = 0;
 
         for (EventActionRepository.EventActionAnalyticsProjection action : usersEventActionAnalytics) {
             String roles = action.getTargetRoles();
-            if (roles == null || roles.isBlank()) continue;
+            if (roles == null || roles.isBlank()) {
+                continue;
+            }
 
             for (String roleName : roles.split(",")) {
                 roleCountMap.merge(roleName, 1, Integer::sum);
@@ -214,18 +212,20 @@ public class AdminService {
         Map<YearMonth, Integer> userMonthlyCountMap =
                 Calculator.countByMonth(usersEventActionAnalytics);
 
-        Map<YearMonth, Integer> othersMonthlyCountMap  =
+        Map<YearMonth, Integer> othersMonthlyCountMap =
                 Calculator.countByMonth(othersEventActionAnalytics);
 
         int totalUserCount = userRepository.getTotalCount();
 
         othersMonthlyCountMap.replaceAll((month, count) -> {
-            if (totalUserCount == 0) return 0;
+            if (totalUserCount == 0) {
+                return 0;
+            }
             return count / totalUserCount;
         });
 
-
-        return adminMapper.toEventActionAnalyticsResponse(rolePercentageMap,userMonthlyCountMap,othersMonthlyCountMap,since);
+        return adminMapper.toEventActionAnalyticsResponse(rolePercentageMap, userMonthlyCountMap, othersMonthlyCountMap,
+                since);
 
     }
 }
