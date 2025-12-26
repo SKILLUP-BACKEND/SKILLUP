@@ -26,12 +26,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EventSearchService {
 
     @Value("${skillup.search.index-name}")
@@ -142,6 +144,7 @@ public class EventSearchService {
                 documentSearchResponse.hits().total() == null ? 0 : (int) documentSearchResponse.hits().total().value();
 
         if (total == 0) {
+            log.info("검색 결과가 0개입니다.");
             var rows = eventRepository.findPopularForHomeWithPopularity(
                     null,
                     since,
