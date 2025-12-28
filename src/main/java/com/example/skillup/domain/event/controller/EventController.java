@@ -28,7 +28,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -271,12 +270,11 @@ public class EventController {
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
     }
 
-    @GetMapping("/search/home")
+    @PostMapping("/search/home")
     @Operation(summary = "행사 검색 api", description = "검색 내용의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-            @Valid @ModelAttribute EventRequest.EventSearchRequest request) {
+            @Valid @RequestBody EventRequest.EventSearchRequest request) {
         return BaseResponse.success("검색 성공", eventSearchService.search(request));
-
     }
 
     @PatchMapping("/{eventId}/apply")
