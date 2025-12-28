@@ -3,6 +3,7 @@ package com.example.skillup.domain.article.service;
 import com.example.skillup.domain.article.dto.request.ArticleRequest;
 import com.example.skillup.domain.article.dto.response.ArticleResponse;
 import com.example.skillup.domain.article.dto.response.ArticleResponse.CommonArticleResponse;
+import com.example.skillup.domain.article.dto.response.ArticleResponse.HomeArticleResponse;
 import com.example.skillup.domain.article.entity.Article;
 import com.example.skillup.domain.article.enums.ArticleStatus;
 import com.example.skillup.domain.article.exception.ArticleErrorCode;
@@ -10,9 +11,7 @@ import com.example.skillup.domain.article.exception.ArticleException;
 import com.example.skillup.domain.article.mapper.ArticleMapper;
 import com.example.skillup.domain.article.repository.ArticleRepository;
 import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
-import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.util.List;
@@ -36,7 +35,6 @@ public class ArticleService {
     private final NotFoundGuardService notFoundGuardService;
 
     private static final Set<String> ALLOWED_SORTS = Set.of("게시일순", "등록일순");
-
 
 
     @Transactional
@@ -158,5 +156,20 @@ public class ArticleService {
         article.increaseClickCount();
 
         return article.getClickCount();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HomeArticleResponse> getFeaturedArticles(String tab) {
+        String roleName = CommonMapper.resolveRoleName(tab);
+        List<Article> articles;
+        if (roleName == null) {
+            articles = articleRepository.findTop5ByStatusOrderByOriginalPublishedDateDesc(ArticleStatus.PUBLISHED);
+            return articleMapper.toFeaturedArticleResponse(articles);
+        }
+
+        Pageable pageable = PageRequest.of(0, 5);
+        articles = articleRepository.findLatestByRole(ArticleStatus.PUBLISHED, roleName, pageable);
+
+        return articleMapper.toFeaturedArticleResponse(articles);
     }
 }

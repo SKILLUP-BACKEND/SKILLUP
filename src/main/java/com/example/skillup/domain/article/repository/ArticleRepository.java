@@ -78,4 +78,17 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             @Param("roleCount") int roleCount,
             Pageable pageable
     );
+
+
+    @Query("""
+            select distinct a
+            from Article a
+            join a.targetRoles tr
+            where a.status = :status
+              and tr.name = :roleName
+            order by a.originalPublishedDate desc
+            """)
+    List<Article> findLatestByRole(ArticleStatus status, String roleName, Pageable pageable);
+
+    List<Article> findTop5ByStatusOrderByOriginalPublishedDateDesc(ArticleStatus articleStatus);
 }

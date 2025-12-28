@@ -100,14 +100,22 @@ public class ArticleController {
         return BaseResponse.success("배너 수정 성공", articleService.updateAdminArticle(articleId, request, thumbnailImage));
     }
 
-    @GetMapping()
+    @GetMapping("/search")
     @Operation(summary = "아티클 목록 조회 및 검색 API", description = "일반 회원의 아티클 목록 조회 및 검색 API 입니다. 직군을 입력해주세요 (기획자/디자이너/개발자/AI 개발자)")
-    public BaseResponse<ArticleResponse.HomeArticleResponseList> GetArticlesDetail(
+    public BaseResponse<ArticleResponse.HomeArticleResponseList> getArticlesDetail(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false) List<String> tab
     ) {
         return BaseResponse.success("아티클 목록 조회 성공.", articleService.getHomeArticle(tab, page, keyword));
+    }
+
+    @GetMapping()
+    @Operation(summary = "홈화면에서의 아티클 조회 API" , description = "홈화면 아티클 목록 조회 API 입니다. , 직군을 입력해주세요 (기획/디자인/개발/AI)")
+    public BaseResponse<List<ArticleResponse.HomeArticleResponse>> getFeaturedArticles(
+            @RequestParam(defaultValue = "전체") String tab
+    ){
+        return BaseResponse.success("홈화면 아티클 목록 조회 성공" , articleService.getFeaturedArticles(tab));
     }
 
     @PostMapping("/read/{articleId}")

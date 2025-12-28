@@ -3,6 +3,9 @@ package com.example.skillup.global.config;
 import com.example.skillup.domain.admin.entity.Admin;
 import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.domain.admin.repository.AdminRepository;
+import com.example.skillup.domain.article.entity.Article;
+import com.example.skillup.domain.article.enums.ArticleStatus;
+import com.example.skillup.domain.article.repository.ArticleRepository;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.entity.EventLike;
@@ -52,6 +55,7 @@ public class SampleDataLoader implements CommandLineRunner {
     private final SynonymTermRepository synonymTermRepository;
     private final HashTagRepository hashTagRepository;
     private final EventBannerRepository eventBannerRepository;
+    private final ArticleRepository articleRepository;
 
     @Override
     @Transactional
@@ -62,7 +66,7 @@ public class SampleDataLoader implements CommandLineRunner {
         TargetRole planner = getOrCreateRole("기획자");
         TargetRole targetRoleTest = getOrCreateRole("string");
 
-        targetRoleRepository.saveAll(List.of(dev, design, planner , targetRoleTest));
+        targetRoleRepository.saveAll(List.of(dev, design, planner, targetRoleTest));
 
         HashTag hashTagTest = getOrCreateHashTag("string");
 
@@ -237,7 +241,6 @@ public class SampleDataLoader implements CommandLineRunner {
         makeSynonyms("ko", "우테코 관련 동의어", List.of("우테코", "우아한테크코스", "woowacourse"));
         makeSynonyms("ko", "IT 기업 관련 동의어", List.of("네카라쿠배", "네이버", "카카오", "라인", "쿠팡"));
 
-
         // === 5) 배너 더미 데이터 ===
         LocalDate today = now.toLocalDate();
 
@@ -323,6 +326,82 @@ public class SampleDataLoader implements CommandLineRunner {
                 mainPastOldHackathon
         ));
 
+        // === Article 더미 데이터 ===
+        Article a1 = Article.builder()
+                .title("Spring Boot 3 성능 최적화 체크리스트")
+                .summary("JPA 페이징, 인덱스, 캐시까지 실무에서 바로 쓰는 최적화 포인트를 정리합니다.")
+                .thumbnailUrl("https://example.com/thumb/article1.jpg")
+                .originalUrl("https://example.com/articles/spring-boot-performance")
+                .status(ArticleStatus.PUBLISHED)
+                .clickCount(15L)
+                .source("SkillUp Blog")
+                .originalPublishedDate(LocalDate.now().minusDays(2))
+                .build();
+        a1.addTargetRole(dev);
+
+        Article a2 = Article.builder()
+                .title("디자이너를 위한 UX 리서치 빠른 시작")
+                .summary("문제 정의부터 가설, 인터뷰 설계까지 UX 리서치의 핵심 흐름을 소개합니다.")
+                .thumbnailUrl("https://example.com/thumb/article2.jpg")
+                .originalUrl("https://example.com/articles/ux-research")
+                .status(ArticleStatus.PUBLISHED)
+                .clickCount(7L)
+                .source("Design Weekly")
+                .originalPublishedDate(LocalDate.now().minusDays(5))
+                .build();
+        a2.addTargetRole(design);
+
+        Article a3 = Article.builder()
+                .title("서비스 기획자가 알아야 할 A/B 테스트 기본")
+                .summary("지표 설계와 실험 설계에서 자주 하는 실수를 중심으로 A/B 테스트를 설명합니다.")
+                .thumbnailUrl("https://example.com/thumb/article3.jpg")
+                .originalUrl("https://example.com/articles/ab-testing")
+                .status(ArticleStatus.PUBLISHED)
+                .clickCount(22L)
+                .source("Product Note")
+                .originalPublishedDate(LocalDate.now().minusDays(1))
+                .build();
+        a3.addTargetRole(planner);
+
+        Article a4 = Article.builder()
+                .title("ElasticSearch n-gram으로 자동완성 구현하기")
+                .summary("n-gram 토크나이저와 analyzer 조합으로 검색 자동완성을 구성하는 방법을 정리했습니다.")
+                .thumbnailUrl("https://example.com/thumb/article4.jpg")
+                .originalUrl("https://example.com/articles/es-ngram-autocomplete")
+                .status(ArticleStatus.PUBLISHED)
+                .clickCount(40L)
+                .source("Search Lab")
+                .originalPublishedDate(LocalDate.now().minusDays(3))
+                .build();
+        a4.addTargetRole(dev);
+        a4.addTargetRole(planner);
+
+        Article a5 = Article.builder()
+                .title("디자인 시스템 구축 전 체크해야 할 7가지")
+                .summary("컴포넌트 기준, 토큰, 문서화 방식 등 디자인 시스템 도입 시 핵심 포인트를 다룹니다.")
+                .thumbnailUrl("https://example.com/thumb/article5.jpg")
+                .originalUrl("https://example.com/articles/design-system")
+                .status(ArticleStatus.PUBLISHED)
+                .clickCount(5L)
+                .source("UI Archive")
+                .originalPublishedDate(LocalDate.now().minusDays(7))
+                .build();
+        a5.addTargetRole(design);
+
+        Article a6 = Article.builder()
+                .title("[DRAFT] 운영 자동화를 위한 모니터링 설계 메모")
+                .summary("CloudWatch + Lambda + SNS 기반 이상탐지 흐름을 정리 중입니다.")
+                .thumbnailUrl("https://example.com/thumb/article6.jpg")
+                .originalUrl("https://example.com/articles/monitoring-draft")
+                .status(ArticleStatus.DRAFT)
+                .clickCount(0L)
+                .source("Internal")
+                .originalPublishedDate(LocalDate.now())
+                .build();
+        a6.addTargetRole(dev);
+
+        articleRepository.saveAll(List.of(a1, a2, a3, a4, a5, a6));
+
     }
 
     private void makeSynonyms(String local, String comment, List<String> terms) {
@@ -348,7 +427,8 @@ public class SampleDataLoader implements CommandLineRunner {
 
     private HashTag getOrCreateHashTag(String name) {
         return hashTagRepository.findByName(name)
-                .orElseGet(() -> hashTagRepository.save(HashTag.builder().name(name).category(HashTagCategory.CAREER_GOAL).build()));
+                .orElseGet(() -> hashTagRepository.save(
+                        HashTag.builder().name(name).category(HashTagCategory.CAREER_GOAL).build()));
     }
 
     private void seedViews14(Event event, int minTotal, int maxTotal) {

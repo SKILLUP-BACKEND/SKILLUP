@@ -163,6 +163,7 @@ public class EventRequest {
         @NotNull(message = "검색어를 입력해주세요")
         private String searchString;
 
+        @Builder.Default
         private EventSortType sort = EventSortType.POPULARITY;
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -176,7 +177,7 @@ public class EventRequest {
         private Boolean isFree;
 
         @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
-        private Integer page = 0;
+        private Integer page;
 
     }
 
