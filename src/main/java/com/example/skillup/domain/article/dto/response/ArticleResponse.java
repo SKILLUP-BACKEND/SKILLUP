@@ -1,6 +1,7 @@
 package com.example.skillup.domain.article.dto.response;
 
 import com.example.skillup.domain.article.enums.ArticleStatus;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,6 +69,7 @@ public class ArticleResponse {
     @AllArgsConstructor
     @Getter
     @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class HomeArticleResponse {
         private String title;
         private String summary;

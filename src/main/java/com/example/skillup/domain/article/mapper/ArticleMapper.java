@@ -107,4 +107,15 @@ public class ArticleMapper {
                 .totalPages(totalPages)
                 .build();
     }
+
+    public List<HomeArticleResponse> toFeaturedArticleResponse(List<Article> articles) {
+        return articles.stream().map(article -> HomeArticleResponse.builder()
+                .title(article.getTitle())
+                .summary(article.getSummary())
+                .source(article.getSource())
+                .originalPublishedDate(article.getOriginalPublishedDate())
+                .thumbnailUrl(article.getThumbnailUrl())
+                .originalUrl(article.getOriginalUrl())
+                .build()).toList();
+    }
 }

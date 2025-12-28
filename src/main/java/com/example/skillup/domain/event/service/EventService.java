@@ -2,7 +2,6 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventLike;
@@ -14,26 +13,17 @@ import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
-import com.example.skillup.domain.event.exception.HashTagErrorCode;
-import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventActionRepository;
-import com.example.skillup.domain.event.repository.EventBannerRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
-import com.example.skillup.domain.event.repository.EventViewDailyRepository;
-import com.example.skillup.domain.event.repository.HashTagRepository;
-import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.GuestRepository;
-import com.example.skillup.domain.user.repository.UserRepository;
-import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.common.CommonMapper;
-import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.NotFoundGuardService;
@@ -97,8 +87,6 @@ public class EventService {
 
     @Value("${event.popularity.recommend-threshold:70}")
     private double recommendThreshold;
-
-
 
 
     @Transactional
@@ -271,7 +259,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getFeaturedEvents(String tab, int size) {
-        String roleName = resolveRoleName(tab);
+        String roleName = CommonMapper.resolveRoleName(tab);
         String roleFilter = null;
 
         if (roleName != null) {
@@ -355,19 +343,6 @@ public class EventService {
         return views * 0.6 + likes * 0.3 + ctr * 0.1;
     }
 
-    private String resolveRoleName(String tab) {
-        if (tab == null || tab.isBlank() || "IT 전체".equals(tab)) {
-            return null;
-        }
-        return switch (tab) {
-            case "기획" -> "기획자";
-            case "디자인" -> "디자이너";
-            case "개발" -> "개발자";
-            case "AI" -> "AI 개발자";
-            default -> null;
-        };
-    }
-
     @Transactional
     public void toggleLike(Event event, Users users) {
         if (eventLikeRepository.existsByEventIdAndUserId(event.getId(), users.getId())) {
@@ -394,8 +369,8 @@ public class EventService {
                 now,
                 targetRoleCount,
                 targetRolesIsEmpty);
-      
-        return eventMapper.toCategoryPageEventResponseListWithPageable(events,pageable,condition.getPage(),count);
+
+        return eventMapper.toCategoryPageEventResponseListWithPageable(events, pageable, condition.getPage(), count);
     }
 
     @Transactional(readOnly = true)
