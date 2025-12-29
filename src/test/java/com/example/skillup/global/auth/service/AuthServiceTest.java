@@ -41,7 +41,7 @@ class AuthServiceTest {
         TargetRole role=targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
 
         userRepository.save(Users.builder().email("aa@a").name("sd").regDatetime(LocalDateTime.now())
-                .role(role).status(UserStatus.ACTIVE).jobGroup("sd").notificationFlag("n").build());
+                .role(role).status(UserStatus.ACTIVE).notificationFlag("n").build());
     }
 
     @Test

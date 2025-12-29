@@ -57,7 +57,6 @@ public class RefreshTokenCheckTest {
                         .regDatetime(LocalDateTime.now())
                         .role(role)
                         .status(UserStatus.ACTIVE)
-                        .jobGroup("sd")
                         .notificationFlag("n")
                         .build()
         );

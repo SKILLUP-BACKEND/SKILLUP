@@ -153,6 +153,27 @@ public class EventRequest {
         public boolean isValidSort() {
             return (sort.equals("latest") || sort.equals("popularity") || sort.equals("deadline"));
         }
+        public static EventSearchCondition of(
+                EventCategory category,
+                Boolean isOnline,
+                Boolean isFree,
+                LocalDateTime startDate,
+                LocalDateTime endDate,
+                String sort,
+                List<String> targetRoles,
+                Integer page
+        ) {
+            return EventSearchCondition.builder()
+                    .category(category)
+                    .isOnline(isOnline)
+                    .isFree(isFree)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .sort(sort)
+                    .targetRoles(targetRoles)
+                    .page(page)
+                    .build();
+        }
     }
 
     @Getter

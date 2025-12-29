@@ -26,6 +26,7 @@ import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.global.service.AssociationBinder;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDate;
@@ -53,6 +54,7 @@ public class EventService {
     private final EventIndexerService eventIndexerService;
     private final EventViewService eventViewService;
     private final S3Service s3Service;
+    private final AssociationBinder associationBinder;
     private final NotFoundGuardService notFoundGuardService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
@@ -100,20 +102,8 @@ public class EventService {
 
         Event event = eventMapper.toEntity(request, thumbnailUrl);
 
-        request.getTargetRoles().stream()
-                .distinct()
-                .forEach(roleName -> {
-                    TargetRole role = notFoundGuardService.getRole(roleName);
-                    event.addTargetRole(role);
-                });
-        request.getHashTags().stream()
-                .distinct()
-                .forEach(hashtagName -> {
-                    HashTag hashTag = notFoundGuardService.getHashTag(hashtagName);
-                    event.addHashTag(hashTag);
-                });
-        // 중복되는 구조라서 디자인패턴 적용시켜려고 하는데 hashTag, targetRole 겹치는 부분이 여기랑 매퍼 뿐이라서 따로 컴포넌트 만들고 하는게 오히려
-        // 더 낭비 같기도 하고 해서 그대로 두기는 했습니다... 좋은 방법 있으시면 추천 부탁드려요
+        associationBinder.bindHashTags(request.getHashTags(),event::addHashTag);
+        associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
 
         Event savedEvent = eventRepository.save(event);
 
@@ -158,21 +148,15 @@ public class EventService {
 
         event.update(request, imageUrl);
 
+
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
-
-            request.getTargetRoles().stream().distinct().forEach(name -> {
-                TargetRole role = notFoundGuardService.getRole(name);
-                event.addTargetRole(role);
-            });
+            associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
         }
 
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             event.getHashTags().clear();
-            request.getHashTags().stream().distinct().forEach(name -> {
-                HashTag hashTag = notFoundGuardService.getHashTag(name);
-                event.addHashTag(hashTag);
-            });
+            associationBinder.bindHashTags(request.getHashTags(),event::addHashTag);
         }
 
         eventIndexerService.index(event);
@@ -333,16 +317,6 @@ public class EventService {
         return eventMapper.toCategoryEventResponseList(items, category);
     }
 
-    private double calcPopularity(Event event) {
-        //현재는 쿼리에서 직접 가져오는걸로 수정
-        double views = event.getViewsCount();
-        double likes = event.getLikesCount();
-        double ctr = (views > 0)
-                ? (double) event.getApplyClicks() / views
-                : 0.0;
-        return views * 0.6 + likes * 0.3 + ctr * 0.1;
-    }
-
     @Transactional
     public void toggleLike(Event event, Users users) {
         if (eventLikeRepository.existsByEventIdAndUserId(event.getId(), users.getId())) {
@@ -358,8 +332,7 @@ public class EventService {
     @HandleDataAccessException
     public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition) {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
-        List<EventRepositoryImpl.EventWithPopularity> events = eventRepository.findByCategoryWithSearch(condition,
-                pageable, since, now);
+        List<EventRepositoryImpl.EventWithPopularity> events = findByCategoryWithSearch(condition, pageable);
 
         boolean targetRolesIsEmpty = condition.getTargetRoles() == null || condition.getTargetRoles().isEmpty();
         int targetRoleCount = targetRolesIsEmpty ? 0 : condition.getTargetRoles().size();
@@ -379,19 +352,17 @@ public class EventService {
 
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0, 4);
-        List<EventRepositoryImpl.EventWithPopularity> result = eventRepository.findByCategoryWithSearch
-                (EventRequest.EventSearchCondition.builder().category(category).sort("popularity").page(0).build()
-                        , pageable, since, now);
+        List<EventRepositoryImpl.EventWithPopularity> result = findByCategoryWithSearch
+                (EventRequest.EventSearchCondition.of(category,null,null,null,null,"popularity",null,0)
+                        , pageable);
 
         int missing = MIN_COUNT - result.size();
 
         if (missing > 0) {
             for (EventCategory supplement : CATEGORY_PRIORITY.get(category)) {
-                System.out.println(missing);
-                List<EventRepositoryImpl.EventWithPopularity> supplementEvents = eventRepository.findByCategoryWithSearch
-                        (EventRequest.EventSearchCondition.builder().category(supplement).sort("popularity").page(0)
-                                        .build()
-                                , pageable, since, now);
+                List<EventRepositoryImpl.EventWithPopularity> supplementEvents = findByCategoryWithSearch
+                        (EventRequest.EventSearchCondition.of(supplement,null,null,null,null,"popularity",null,0)
+                                , pageable);
                 result.addAll(supplementEvents);
                 missing -= supplementEvents.size();
                 if (missing <= 0) {
@@ -402,6 +373,7 @@ public class EventService {
 
         return eventMapper.toCategoryPageEventResponseList(result);
     }
+
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
@@ -458,4 +430,11 @@ public class EventService {
         saveOrUpdateGuest(guestId);
         return new ActorInfo(guestId, ActorType.GUEST);
     }
+
+    private List<EventRepositoryImpl.EventWithPopularity> findByCategoryWithSearch
+            (EventRequest.EventSearchCondition condition, Pageable pageable) {
+        return eventRepository.findByCategoryWithSearch
+                (condition, pageable, since, now);
+    }
+
 }
