@@ -102,8 +102,15 @@ public class EventService {
 
         Event event = eventMapper.toEntity(request, thumbnailUrl);
 
-        associationBinder.bindHashTags(request.getHashTags(),event::addHashTag);
-        associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
+        }
+
+        if(request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
+        }
+
+
 
         Event savedEvent = eventRepository.save(event);
 
