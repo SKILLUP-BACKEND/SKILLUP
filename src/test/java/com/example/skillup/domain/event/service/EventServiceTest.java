@@ -17,11 +17,7 @@ import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventViewDaily;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.ActionType;
-import com.example.skillup.domain.event.enums.ActorType;
-import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventStatus;
-import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.enums.*;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
@@ -418,16 +414,16 @@ public class EventServiceTest {
         EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER")).sort("latest").page(0).build());
+                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER")).sort(EventSortType.LATEST).page(0).build());
         EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort("latest")
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort(EventSortType.LATEST)
                         .page(1).build());
 
         EventResponse.SearchEventResponseList resultByCategory3
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER", "PLANNER")).sort("latest").page(0).build());
+                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER", "PLANNER")).sort(EventSortType.LATEST).page(0).build());
 
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
@@ -545,19 +541,19 @@ public class EventServiceTest {
         // 조건 DTO
         EventRequest.EventSearchCondition condPopularity = EventRequest.EventSearchCondition.builder()
                 .category(EventCategory.CONFERENCE_SEMINAR)
-                .sort("popularity")
+                .sort(EventSortType.POPULARITY)
                 .page(0)
                 .build();
 
         EventRequest.EventSearchCondition condLatest = EventRequest.EventSearchCondition.builder()
                 .category(EventCategory.CONFERENCE_SEMINAR)
-                .sort("latest")
+                .sort(EventSortType.LATEST)
                 .page(0)
                 .build();
 
         EventRequest.EventSearchCondition condDeadline = EventRequest.EventSearchCondition.builder()
                 .category(EventCategory.CONFERENCE_SEMINAR)
-                .sort("deadline")
+                .sort(EventSortType.DEADLINE)
                 .page(0)
                 .build();
 

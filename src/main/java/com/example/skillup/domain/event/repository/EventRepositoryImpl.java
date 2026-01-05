@@ -97,9 +97,9 @@ public class EventRepositoryImpl implements EventRepositoryNative {
             baseQuery += " HAVING COUNT(DISTINCT tr.name) = :targetRoleCount ";
         }
 
-        String orderBy = switch (cond.getSort()) {
-            case "latest" -> " ORDER BY e.created_at DESC";
-            case "deadline" -> " ORDER BY e.recruit_end ASC";
+        String orderBy = switch (cond.getSort().name()) {
+            case "LATEST" -> " ORDER BY e.created_at DESC";
+            case "POPULARITY" -> " ORDER BY e.recruit_end ASC";
             default -> " ORDER BY popularity DESC";
         };
 

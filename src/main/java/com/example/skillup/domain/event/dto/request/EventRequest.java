@@ -135,8 +135,8 @@ public class EventRequest {
 
         private LocalDateTime endDate;
 
-        @NotNull(message = "정렬 기준을 선택해주세요. (기본 값은 인기순)")
-        private String sort;
+        @Builder.Default
+        private EventSortType sort = EventSortType.POPULARITY;
 
         private List<String> targetRoles;
 
@@ -149,9 +149,26 @@ public class EventRequest {
                     || (startDate != null && endDate != null);
         }
 
-        @AssertTrue(message = "sort값은 popularity, latest, deadline 만 가능합니다. ")
-        public boolean isValidSort() {
-            return (sort.equals("latest") || sort.equals("popularity") || sort.equals("deadline"));
+        public static EventSearchCondition of(
+                EventCategory category,
+                Boolean isOnline,
+                Boolean isFree,
+                LocalDateTime startDate,
+                LocalDateTime endDate,
+                EventSortType sort,
+                List<String> targetRoles,
+                Integer page
+        ) {
+            return EventSearchCondition.builder()
+                    .category(category)
+                    .isOnline(isOnline)
+                    .isFree(isFree)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .sort(sort)
+                    .targetRoles(targetRoles)
+                    .page(page)
+                    .build();
         }
     }
 

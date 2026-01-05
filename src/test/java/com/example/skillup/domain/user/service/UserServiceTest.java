@@ -79,7 +79,6 @@ public class UserServiceTest {
                         .name("Seed1")
                         .gender("남")
                         .age("15")
-                        .jobGroup("개발자")
                         .notificationFlag("Y")
                         .socialId("test")
                         .regDatetime(LocalDateTime.now())
