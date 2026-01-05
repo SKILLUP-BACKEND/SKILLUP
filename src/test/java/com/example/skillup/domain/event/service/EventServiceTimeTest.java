@@ -107,7 +107,7 @@ public class EventServiceTimeTest
         }
         EventRequest.EventSearchCondition condPopularity = EventRequest.EventSearchCondition.builder()
                 .category(EventCategory.CONFERENCE_SEMINAR)
-                .sort("popularity")
+                .sort(EventSortType.POPULARITY)
                 .page(0)
                 .build();
 

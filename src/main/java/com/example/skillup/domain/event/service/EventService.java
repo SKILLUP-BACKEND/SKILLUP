@@ -7,10 +7,7 @@ import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.ActionType;
-import com.example.skillup.domain.event.enums.ActorType;
-import com.example.skillup.domain.event.enums.EventCategory;
-import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.*;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -360,7 +357,7 @@ public class EventService {
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0, 4);
         List<EventRepositoryImpl.EventWithPopularity> result = findByCategoryWithSearch
-                (EventRequest.EventSearchCondition.of(category,null,null,null,null,"popularity",null,0)
+                (EventRequest.EventSearchCondition.of(category,null,null,null,null, EventSortType.POPULARITY,null,0)
                         , pageable);
 
         int missing = MIN_COUNT - result.size();
@@ -368,7 +365,7 @@ public class EventService {
         if (missing > 0) {
             for (EventCategory supplement : CATEGORY_PRIORITY.get(category)) {
                 List<EventRepositoryImpl.EventWithPopularity> supplementEvents = findByCategoryWithSearch
-                        (EventRequest.EventSearchCondition.of(supplement,null,null,null,null,"popularity",null,0)
+                        (EventRequest.EventSearchCondition.of(supplement,null,null,null,null,EventSortType.POPULARITY,null,0)
                                 , pageable);
                 result.addAll(supplementEvents);
                 missing -= supplementEvents.size();
