@@ -18,19 +18,6 @@ public class CommonMapper {
         };
     }
 
-    public static String resolveRoleName(String tab) {
-        if (tab == null || tab.isBlank() || "IT 전체".equals(tab) || tab.equals("전체")) {
-            return null;
-        }
-        return switch (tab) {
-            case "기획" -> "기획자";
-            case "디자인" -> "디자이너";
-            case "개발" -> "개발자";
-            case "AI" -> "AI 개발자";
-            default -> null;
-        };
-    }
-
     public static CommonResponse.PageInfoResponse toPageInfoResponse
             (Pageable pageable, int page, int count) {
         return CommonResponse.PageInfoResponse
