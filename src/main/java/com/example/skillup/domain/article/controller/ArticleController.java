@@ -102,7 +102,6 @@ public class ArticleController {
     }
 
     @GetMapping("/search")
-    //TODO list 형식 수정
     @Operation(summary = "아티클 목록 조회 및 검색 API", description = "일반 회원의 아티클 목록 조회 및 검색 API 입니다. 직군을 입력해주세요")
     public BaseResponse<ArticleResponse.HomeArticleResponseList> getArticlesDetail(
             @RequestParam(defaultValue = "") String keyword,
