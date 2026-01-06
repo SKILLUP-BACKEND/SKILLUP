@@ -17,7 +17,12 @@ import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventViewDaily;
 import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventSortType;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.exception.HashTagErrorCode;
 import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
@@ -414,16 +419,17 @@ public class EventServiceTest {
         EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER")).sort(EventSortType.LATEST).page(0).build());
+                        .targetRole("DESIGNER").sort(EventSortType.LATEST).page(0).build());
         EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
-                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR).sort(EventSortType.LATEST)
+                (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
+                        .sort(EventSortType.LATEST)
                         .page(1).build());
 
         EventResponse.SearchEventResponseList resultByCategory3
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRoles(List.of("DESIGNER", "AI_DEVELOPER", "PLANNER")).sort(EventSortType.LATEST).page(0).build());
+                        .targetRole("PLANNER").sort(EventSortType.LATEST).page(0).build());
 
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
@@ -673,7 +679,7 @@ public class EventServiceTest {
     @DisplayName("getRole 성공 테스트")
     public void getTargetRoleByName_Success() {
         TargetRole targetRole = notFoundGuardService.getRole("PLANNER");
-        assertEquals(targetRole.getName(), "PLANNER");
+        assertEquals("PLANNER", targetRole.getName());
     }
 
     @Test
@@ -690,7 +696,7 @@ public class EventServiceTest {
     @DisplayName("getHashTag 성공 테스트")
     public void getHashTagByName_Success() {
         HashTag targetRole = notFoundGuardService.getHashTag("#스포츠");
-        assertEquals(targetRole.getName(), "#스포츠");
+        assertEquals("#스포츠", targetRole.getName());
     }
 
     @Test
