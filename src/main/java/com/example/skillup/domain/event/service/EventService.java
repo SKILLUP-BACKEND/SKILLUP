@@ -22,7 +22,7 @@ import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
-import com.example.skillup.global.common.CommonMapper;
+import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.AssociationBinder;
@@ -245,8 +245,8 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public EventResponse.featuredEventResponseList getFeaturedEvents(String tab, int size) {
-        String roleName = CommonMapper.resolveRoleName(tab);
+    public EventResponse.featuredEventResponseList getFeaturedEvents(JobGroup tab, int size) {
+        String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
         String roleFilter = null;
 
         if (roleName != null) {
@@ -270,7 +270,7 @@ public class EventService {
                     boolean recommended = event.isRecommendedManual() || score >= recommendThreshold;
                     return eventMapper.toFeaturedEvent(event, bookmarked, recommended, event.isAd(), score);
                 })
-                .toList(), tab);
+                .toList(), tab.getToKorean());
     }
 
 
@@ -296,14 +296,14 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
                                                                               int page,
-                                                                              int size, String tab) {
+                                                                              int size, JobGroup tab) {
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
         if (category == EventCategory.BOOTCAMP_CLUB) {
-            String roleName = CommonMapper.resolveRoleName(tab);
+            String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
             // 부트캠프/동아리: 모집중만 노출
-            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now , roleName, pageable);
+            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now, roleName, pageable);
         } else {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
@@ -338,13 +338,11 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = findByCategoryWithSearch(condition, pageable);
 
-        boolean targetRolesIsEmpty = condition.getTargetRoles() == null || condition.getTargetRoles().isEmpty();
-        int targetRoleCount = targetRolesIsEmpty ? 0 : condition.getTargetRoles().size();
+        boolean targetRolesIsEmpty = condition.getTargetRole() == null || condition.getTargetRole().isEmpty();
 
         int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
-                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRoles(),
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRole(),
                 now,
-                targetRoleCount,
                 targetRolesIsEmpty);
 
         return eventMapper.toCategoryPageEventResponseListWithPageable(events, pageable, condition.getPage(), count);
