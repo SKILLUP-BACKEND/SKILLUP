@@ -5,9 +5,11 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventLike;
-import com.example.skillup.domain.event.entity.HashTag;
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventSortType;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -277,7 +279,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
-        LocalDateTime due = now.plusDays(5);
+        LocalDateTime due = now.plusDays(14);
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
                 roleName, since, now, due, PageRequest.of(0, size)

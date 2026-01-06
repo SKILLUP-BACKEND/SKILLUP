@@ -136,10 +136,10 @@ public class EventController {
     @GetMapping("/home/closing-soon")
     @Operation(
             summary = "곧 종료되는 행사 리스트",
-            description = "신청 종료일까지 D-5 이하인 진행예정/진행중 + 공개 행사 중, 직군 탭과 연관된 이벤트를 인기순으로 반환합니다."
+            description = "신청 종료일까지 D-14 이하인 진행예정/진행중 + 공개 행사 중, 직군 탭과 연관된 이벤트를 인기순으로 반환합니다."
     )
     public BaseResponse<EventResponse.featuredEventResponseList> getClosingSoonEvents(
-            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(defaultValue = "4") int size,
             @AuthenticationPrincipal UsersDetails user
     ) {
         String jobGroup = (user != null && user.getUser() != null)
@@ -156,6 +156,7 @@ public class EventController {
     @Operation(summary = "카테고리별 홈 리스트", description = "부트캠프는 모집중만·인기순(동점 시 마감임박), 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
     public BaseResponse<EventResponse.CategoryEventResponseList> getHomeByCategory(
             @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
+            @RequestParam(defaultValue = "ALL") String tab,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
