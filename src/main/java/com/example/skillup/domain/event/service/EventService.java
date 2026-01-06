@@ -5,9 +5,11 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventLike;
-import com.example.skillup.domain.event.entity.HashTag;
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventSortType;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -100,14 +102,12 @@ public class EventService {
         Event event = eventMapper.toEntity(request, thumbnailUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
-            associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
         }
 
-        if(request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
-
-
 
         Event savedEvent = eventRepository.save(event);
 
@@ -152,15 +152,14 @@ public class EventService {
 
         event.update(request, imageUrl);
 
-
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
-            associationBinder.bindRoles(request.getTargetRoles(),event::addTargetRole);
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
         }
 
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             event.getHashTags().clear();
-            associationBinder.bindHashTags(request.getHashTags(),event::addHashTag);
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
         eventIndexerService.index(event);
@@ -277,7 +276,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
-        LocalDateTime due = now.plusDays(5);
+        LocalDateTime due = now.plusDays(14);
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
                 roleName, since, now, due, PageRequest.of(0, size)
@@ -297,13 +296,14 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
                                                                               int page,
-                                                                              int size) {
+                                                                              int size, String tab) {
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
         if (category == EventCategory.BOOTCAMP_CLUB) {
+            String roleName = CommonMapper.resolveRoleName(tab);
             // 부트캠프/동아리: 모집중만 노출
-            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now, pageable);
+            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now , roleName, pageable);
         } else {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
@@ -357,7 +357,8 @@ public class EventService {
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0, 4);
         List<EventRepositoryImpl.EventWithPopularity> result = findByCategoryWithSearch
-                (EventRequest.EventSearchCondition.of(category,null,null,null,null, EventSortType.POPULARITY,null,0)
+                (EventRequest.EventSearchCondition.of(category, null, null, null, null, EventSortType.POPULARITY, null,
+                                0)
                         , pageable);
 
         int missing = MIN_COUNT - result.size();
@@ -365,7 +366,8 @@ public class EventService {
         if (missing > 0) {
             for (EventCategory supplement : CATEGORY_PRIORITY.get(category)) {
                 List<EventRepositoryImpl.EventWithPopularity> supplementEvents = findByCategoryWithSearch
-                        (EventRequest.EventSearchCondition.of(supplement,null,null,null,null,EventSortType.POPULARITY,null,0)
+                        (EventRequest.EventSearchCondition.of(supplement, null, null, null, null,
+                                        EventSortType.POPULARITY, null, 0)
                                 , pageable);
                 result.addAll(supplementEvents);
                 missing -= supplementEvents.size();
