@@ -172,6 +172,14 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
       and (e.eventEnd is null or e.eventEnd >= :now)
       and e.recruitEnd is not null
       and e.recruitEnd >= :now
+      and (
+            :roleName is null
+            or exists (
+                select 1
+                from Event e2 join e2.targetRoles tr2
+                where e2 = e and tr2.name = :roleName
+            )
+      )
     group by e
     order by
           (
@@ -187,6 +195,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     """)
     List<PopularEventProjection> findBootcampsOpenOrderByPopularityWithPopularity(@Param("since") LocalDateTime since,
                                                                                   @Param("now") LocalDateTime now,
+                                                                                  @Param("roleName") String roleName,
                                                                                   Pageable pageable);
 
 

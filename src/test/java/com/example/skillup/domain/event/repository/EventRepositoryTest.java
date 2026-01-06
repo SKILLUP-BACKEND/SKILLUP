@@ -1,16 +1,28 @@
 package com.example.skillup.domain.event.repository;
 
+import static com.example.skillup.domain.event.enums.ActionType.APPLY;
+
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.HashTag;
-import com.example.skillup.domain.event.enums.*;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
 import com.example.skillup.global.common.BaseEntity;
 import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -20,14 +32,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.example.skillup.domain.event.enums.ActionType.APPLY;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -88,7 +92,7 @@ public class EventRepositoryTest
         setUp(null,2);
         Pageable pageable = PageRequest.of(0, 12);
         List<EventRepository.PopularEventProjection> e =
-                eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since,now,pageable);
+                eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since,now,null,pageable);
         System.out.println(e);
     }
 
@@ -115,7 +119,7 @@ public class EventRepositoryTest
         Pageable pageable = PageRequest.of(0, 12);
         for(int i=0;i<1000;i++) {
            //eventActionRepository.findByCreatedAt(sequentialDate(i/300).atStartOfDay());
-                 eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now, pageable);
+                 eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now , null, pageable);
         }
         long end2 = System.nanoTime();
 
@@ -146,7 +150,7 @@ public class EventRepositoryTest
         Pageable pageable = PageRequest.of(0, 12);
         for(int i=0;i<1000;i++) {
             //eventActionRepository.findByCreatedAt(sequentialDate(i/300).atStartOfDay());
-                 eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now, pageable);
+                 eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now ,null, pageable);
         }
         long end2 = System.nanoTime();
 

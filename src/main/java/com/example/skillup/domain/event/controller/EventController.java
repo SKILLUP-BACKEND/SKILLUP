@@ -153,14 +153,15 @@ public class EventController {
     }
 
     @GetMapping("/home/category")
-    @Operation(summary = "카테고리별 홈 리스트", description = "부트캠프는 모집중만·인기순(동점 시 마감임박), 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
+    @Operation(summary = "카테고리별 홈 리스트", description = "부트캠프는 모집중만·인기순(동점 시 마감임박) + 부트캠프 검색시(전체/기획/디자인/개발/AI) 선택"
+            + " 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
     public BaseResponse<EventResponse.CategoryEventResponseList> getHomeByCategory(
             @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
-            @RequestParam(defaultValue = "ALL") String tab,
+            @RequestParam(defaultValue = "전체") String tab,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size));
+        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size , tab));
     }
 
     @GetMapping("/home/admin/banners")
