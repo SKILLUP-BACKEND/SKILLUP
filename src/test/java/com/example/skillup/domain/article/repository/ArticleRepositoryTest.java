@@ -213,8 +213,8 @@ class ArticleRepositoryTest {
     }
 
     @Test
-    @DisplayName("searchByTitleAndAllRoles: 모든 Role을 포함하는 게시글만 조회 (교집합)")
-    void searchByTitleAndAllRoles_Filtering() {
+    @DisplayName("searchByTitleAndRoles: 모든 Role을 포함하는 게시글만 조회 (교집합)")
+    void searchByTitleAndRoles_Filtering() {
         // given
         TargetRole backend = targetRoleRepository.save(createRole("Backend"));
         TargetRole frontend = targetRoleRepository.save(createRole("Frontend"));
@@ -239,17 +239,15 @@ class ArticleRepositoryTest {
         superArticle.addTargetRole(devOps);
         articleRepository.save(superArticle);
 
-        List<Long> searchRoleIds = List.of(backend.getId(), frontend.getId());
-        int roleCount = searchRoleIds.size();
+        Long searchRoleId = backend.getId();
         String keyword = "";
 
         Pageable pageable = PageRequest.of(0, 10);
 
         // when
-        Page<Article> result = articleRepository.searchByTitleAndAllRoles(
+        Page<Article> result = articleRepository.searchByTitleAndRoles(
                 keyword,
-                searchRoleIds,
-                roleCount,
+                searchRoleId,
                 pageable
         );
 
@@ -262,7 +260,7 @@ class ArticleRepositoryTest {
     }
 
     @Test
-    @DisplayName("searchByTitleAndAllRoles: Role 조건은 맞지만 제목이 안 맞으면 제외")
+    @DisplayName("searchByTitleAndRoles: Role 조건은 맞지만 제목이 안 맞으면 제외")
     void searchByTitleAndAllRoles_TitleFiltering() {
         // given
         TargetRole java = targetRoleRepository.save(createRole("Java"));
@@ -275,13 +273,12 @@ class ArticleRepositoryTest {
         springArticle.addTargetRole(java);
         articleRepository.save(springArticle);
 
-        List<Long> roleIds = List.of(java.getId());
+        Long roleId = java.getId();
 
         // when
-        Page<Article> result = articleRepository.searchByTitleAndAllRoles(
+        Page<Article> result = articleRepository.searchByTitleAndRoles(
                 "Spring", // 키워드 조건
-                roleIds,
-                roleIds.size(),
+                roleId,
                 PageRequest.of(0, 10)
         );
 
