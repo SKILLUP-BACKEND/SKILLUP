@@ -84,18 +84,14 @@ public class EventRepositoryImpl implements EventRepositoryNative {
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
         """;
 
-        boolean hasTargetRoles = cond.getTargetRoles() != null && !cond.getTargetRoles().isEmpty();
+        boolean hasTargetRole = cond.getTargetRole() != null && !cond.getTargetRole().isBlank();
 
-        if (hasTargetRoles) {
-            baseQuery += " AND tr.name IN (:targetRoles) ";
+        if (hasTargetRole) {
+            baseQuery += " AND tr.name = :targetRole ";
         }
 
         baseQuery += " GROUP BY e.id ";
 
-        if (hasTargetRoles) {
-            //교집합 조건
-            baseQuery += " HAVING COUNT(DISTINCT tr.name) = :targetRoleCount ";
-        }
 
         String orderBy = switch (cond.getSort().name()) {
             case "LATEST" -> " ORDER BY e.created_at DESC";
@@ -113,9 +109,8 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                 .setParameter("now", now);
 
 
-        if (hasTargetRoles) {
-            query.setParameter("targetRoles", cond.getTargetRoles());
-            query.setParameter("targetRoleCount", cond.getTargetRoles().size());
+        if (hasTargetRole) {
+            query.setParameter("targetRole", cond.getTargetRole());
         }
 
 
