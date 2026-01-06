@@ -12,6 +12,7 @@ import com.example.skillup.domain.event.service.EventBookmarkService;
 import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.common.BaseResponse;
+import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.interceptor.GuestIdInterceptor;
 import com.example.skillup.global.search.service.EventSearchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -127,7 +128,7 @@ public class EventController {
     @GetMapping("/home/featured")
     @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
     public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
-            @RequestParam(defaultValue = "IT 전체") String tab,
+            @RequestParam(defaultValue = "ALL") JobGroup tab,
             @RequestParam(defaultValue = "8") int size
     ) {
         return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size));
@@ -157,7 +158,7 @@ public class EventController {
             + " 그 외 카테고리는 30일 이내·인기순(동점 시 마감임박) 정렬")
     public BaseResponse<EventResponse.CategoryEventResponseList> getHomeByCategory(
             @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
-            @RequestParam(defaultValue = "전체") String tab,
+            @RequestParam(defaultValue = "ALL") JobGroup tab,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
