@@ -71,6 +71,7 @@ public class ArticleResponse {
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class HomeArticleResponse {
+        private Long id;
         private String title;
         private String summary;
         private String source;

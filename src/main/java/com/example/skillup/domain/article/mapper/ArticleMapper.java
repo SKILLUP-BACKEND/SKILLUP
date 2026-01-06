@@ -85,6 +85,7 @@ public class ArticleMapper {
 
     public HomeArticleResponse toHomeArticleResponse(Article article) {
         return HomeArticleResponse.builder()
+                .id(article.getId())
                 .title(article.getTitle())
                 .summary(article.getSummary())
                 .source(article.getSource())
