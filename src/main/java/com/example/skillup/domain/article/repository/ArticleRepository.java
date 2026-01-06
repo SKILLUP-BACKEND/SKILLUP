@@ -50,12 +50,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             value = """
                         SELECT a
                         FROM Article a
+                        JOIN a.targetRoles r
                         WHERE a.title LIKE CONCAT('%', :keyword, '%')
-                          AND (
-                            SELECT COUNT(DISTINCT r.id)
-                            FROM a.targetRoles r
-                            WHERE r.id IN :roleIds
-                          ) = :roleCount
+                          AND r.id = :roleId
                         ORDER BY
                           CASE WHEN a.title = :keyword THEN 0 ELSE 1 END ASC,
                           a.originalPublishedDate DESC,
@@ -64,18 +61,14 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             countQuery = """
                         SELECT COUNT(a)
                         FROM Article a
+                        JOIN a.targetRoles r
                         WHERE a.title LIKE CONCAT('%', :keyword, '%')
-                          AND (
-                            SELECT COUNT(DISTINCT r.id)
-                            FROM a.targetRoles r
-                            WHERE r.id IN :roleIds
-                          ) = :roleCount
+                          AND r.id = :roleId
                     """
     )
-    Page<Article> searchByTitleAndAllRoles(
+    Page<Article> searchByTitleAndRoles(
             @Param("keyword") String keyword,
-            @Param("roleIds") List<Long> roleIds,
-            @Param("roleCount") int roleCount,
+            @Param("roleId") Long roleId,
             Pageable pageable
     );
 
