@@ -1,18 +1,18 @@
 package com.example.skillup.domain.oauth.service;
 
 
-import com.example.skillup.domain.oauth.Entity.OauthInfo;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.oauth.component.AccessTokenExtractor;
 import com.example.skillup.domain.oauth.component.OauthClientFactory;
 import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
-import com.example.skillup.domain.oauth.mapper.OauthInfoMapper;
-import com.example.skillup.domain.oauth.repository.OauthInfoRepository;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.oauth.component.SocialOauth;
+import com.example.skillup.global.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,9 @@ public class OauthService {
     private final OauthClientFactory oauthClientFactory;
     private final UserRepository userRepository;
     private final AccessTokenExtractor accessTokenExtractor;
-    private final OauthInfoRepository oauthInfoRepository;
+    private final TargetRoleRepository targetRoleRepository;
+    private final UserMapper userMapper;
+    private final AuthService authService;
 
     public String request(SocialLoginType socialLoginType) {
         return oauthClientFactory.getClient(socialLoginType).getOauthRedirectURL();
@@ -55,10 +57,8 @@ public class OauthService {
 
         if(existingUser.isEmpty())
         {
-            OauthInfo oauthInfo = OauthInfoMapper.of(oauthInfoRequest.email(), oauthInfoRequest.name()
-                    , oauthInfoRequest.socialId(), oauthInfoRequest.socialLoginType(), oauthInfoRequest.gender(), oauthInfoRequest.age());
+            Users user=userMapper.fromOauthInfo(oauthInfoRequest,targetRoleRepository.findByName("기본").orElseThrow());
 
-            return oauthInfoRepository.save(oauthInfo).getEmail();
         }
         return existingUser.get().getEmail();
     }
