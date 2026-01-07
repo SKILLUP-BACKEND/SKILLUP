@@ -138,7 +138,7 @@ public class EventRequest {
         @Builder.Default
         private EventSortType sort = EventSortType.POPULARITY;
 
-        private List<String> targetRoles;
+        private String targetRole;
 
         @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
         private int page;
@@ -156,7 +156,7 @@ public class EventRequest {
                 LocalDateTime startDate,
                 LocalDateTime endDate,
                 EventSortType sort,
-                List<String> targetRoles,
+                String targetRole,
                 Integer page
         ) {
             return EventSearchCondition.builder()
@@ -166,7 +166,7 @@ public class EventRequest {
                     .startDate(startDate)
                     .endDate(endDate)
                     .sort(sort)
-                    .targetRoles(targetRoles)
+                    .targetRole(targetRole)
                     .page(page)
                     .build();
         }

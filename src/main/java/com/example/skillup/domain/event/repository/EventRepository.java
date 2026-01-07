@@ -301,13 +301,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
           AND (
                 :targetRolesIsEmpty = TRUE
-                OR tr.name IN (:targetRoles)
+                OR tr.name = :targetRole
           )
         GROUP BY e.id
-        HAVING (
-                :targetRolesIsEmpty = TRUE
-                OR COUNT(DISTINCT tr.name) = :targetRoleCount
-        )
     ) AS counted
 """, nativeQuery = true)
     int countByCategoryWithSearch(
@@ -316,9 +312,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("isFree") Boolean isFree,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
-            @Param("targetRoles") List<String> targetRoles,
+            @Param("targetRole") String targetRole,
             @Param("now") LocalDateTime now,
-            @Param("targetRoleCount") Integer targetRoleCount,
             @Param("targetRolesIsEmpty") Boolean targetRolesIsEmpty
     );
 

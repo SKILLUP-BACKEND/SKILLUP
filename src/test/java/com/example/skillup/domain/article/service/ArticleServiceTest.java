@@ -4,11 +4,9 @@ package com.example.skillup.domain.article.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.skillup.domain.article.dto.request.ArticleRequest;
@@ -23,12 +21,11 @@ import com.example.skillup.domain.article.mapper.ArticleMapper;
 import com.example.skillup.domain.article.repository.ArticleRepository;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.global.enums.JobGroup;
+import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +53,9 @@ public class ArticleServiceTest {
     @Mock
     private TargetRoleRepository targetRoleRepository;
 
+    @Mock
+    private NotFoundGuardService notFoundGuardService;
+
     @InjectMocks
     private ArticleService articleService;
 
@@ -71,7 +71,7 @@ public class ArticleServiceTest {
     public void Success_Create_Article() {
         //given
 
-        List<String> roleNames = List.of("디자이너", "개발자");
+        List<String> roleNames = List.of("디자이너");
 
         ArticleRequest.CreateArticleRequest request = new ArticleRequest.CreateArticleRequest("test", "summary",
                 "test.com", ArticleStatus.PUBLISHED, "source", LocalDate.now(), roleNames);
@@ -88,8 +88,7 @@ public class ArticleServiceTest {
         given(s3Service.uploadFile(multipartFile, "article/thumbnail")).willReturn(expectedUrl);
 
         given(articleMapper.toArticleEntity(request, expectedUrl)).willReturn(mockarticle);
-        given(targetRoleRepository.findByName("디자이너")).willReturn(Optional.of(designRole));
-        given(targetRoleRepository.findByName("개발자")).willReturn(Optional.of(devRole));
+        given(notFoundGuardService.getRole(anyString())).willReturn(designRole);
         given(articleRepository.save(mockarticle)).willReturn(mockarticle);
 
         //when
@@ -104,10 +103,9 @@ public class ArticleServiceTest {
         assertThat(result.getTargetRoles()).extracting("name").contains(designRole.getName());
         assertThat(result.getSource()).isEqualTo("source");
         assertThat(result.getThumbnailUrl()).isEqualTo(expectedUrl);
-        assertThat(result.getTargetRoles()).hasSize(2);
+        assertThat(result.getTargetRoles()).hasSize(1);
 
         verify(articleRepository).save(mockarticle);
-        verify(targetRoleRepository, times(2)).findByName(any());
         verify(s3Service).uploadFile(multipartFile, "article/thumbnail");
         verify(articleMapper).toArticleEntity(request, expectedUrl);
 
@@ -261,11 +259,10 @@ public class ArticleServiceTest {
     public void get_User_Article_WithTabs_Success() {
         //given
         Integer page = 0;
-        List<String> tab = new ArrayList<>(List.of("디자이너"));
+        JobGroup tab = JobGroup.DESIGN;
         String keyword = "";
 
         TargetRole designRole = TargetRole.builder().id(1L).name("디자이너").build();
-        given(targetRoleRepository.findByName("디자이너")).willReturn(Optional.of(designRole));
 
         ArticleResponse.HomeArticleResponseList expectedResponse = ArticleResponse.HomeArticleResponseList.builder()
                 .build();
@@ -273,14 +270,15 @@ public class ArticleServiceTest {
                 List.of(Article.builder().id(1L).status(ArticleStatus.PUBLISHED).build()));
 
         given(articleMapper.toHomeArticleResponseList(eq(articlePage), any(), any())).willReturn(expectedResponse);
-        given(articleRepository.searchByTitleAndAllRoles(eq(keyword), any(), anyInt(), any())).willReturn(articlePage);
+        given(articleRepository.searchByTitleAndRoles(eq(keyword), any(), any())).willReturn(articlePage);
+        given(notFoundGuardService.getRole(tab.getToKorean())).willReturn(designRole);
 
         //when
         ArticleResponse.HomeArticleResponseList result = articleService.getHomeArticle(tab, page, keyword);
 
         //then
         assertThat(result).isEqualTo(expectedResponse);
-        verify(articleRepository).searchByTitleAndAllRoles(anyString(), eq(List.of(1L)), eq(1), any(Pageable.class));
+        verify(articleRepository).searchByTitleAndRoles(anyString(), eq(1L), any(Pageable.class));
     }
 
     @Test
@@ -300,24 +298,11 @@ public class ArticleServiceTest {
         given(articleMapper.toHomeArticleResponseList(eq(articlePage), any(), any())).willReturn(expectedResponse);
 
         //when
-        ArticleResponse.HomeArticleResponseList result2 = articleService.getHomeArticle(List.of(), page, keyword);
+        ArticleResponse.HomeArticleResponseList result2 = articleService.getHomeArticle(JobGroup.ALL, page, keyword);
 
         //then
         assertThat(result2).isEqualTo(expectedResponse);
         verify(articleRepository).searchByTitle(any(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("아티클 목록 조회 실패(일반회원)")
-    public void get_User_Article_Fail() {
-        List<String> invalidTab = List.of("존재하지 않는 직업명");
-
-        given(targetRoleRepository.findByName("존재하지 않는 직업명")).willReturn(Optional.empty());
-
-        //when & then
-        assertThatThrownBy(() -> articleService.getHomeArticle(invalidTab, 0, ""))
-                .isInstanceOf(NoSuchElementException.class);
-        //추후 AOP 수정 후 변경 예정
     }
 
     @Test
@@ -332,7 +317,6 @@ public class ArticleServiceTest {
         ArticleRequest.AdminUpdateArticleRequest request = new ArticleRequest.AdminUpdateArticleRequest("수정된 제목",
                 "수정된 요약", "https://new.url", ArticleStatus.PUBLISHED, "새로운 출처", LocalDate.now(), List.of("기획자"));
 
-
         Article article = Article.builder()
                 .id(articleId)
                 .title("옛날 제목")
@@ -343,7 +327,7 @@ public class ArticleServiceTest {
         TargetRole pmRole = TargetRole.builder().id(1L).name("기획자").build();
         given(articleRepository.getArticle(articleId)).willReturn(article);
         given(s3Service.uploadFile(eq(mockFile), anyString())).willReturn(newThumbnailUrl);
-        given(targetRoleRepository.findByName("기획자")).willReturn(Optional.of(pmRole));
+        given(notFoundGuardService.getRole(JobGroup.PM.getToKorean())).willReturn(pmRole);
 
         // when
         articleService.updateAdminArticle(articleId, request, mockFile);

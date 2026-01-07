@@ -11,7 +11,7 @@ import com.example.skillup.domain.article.exception.ArticleException;
 import com.example.skillup.domain.article.mapper.ArticleMapper;
 import com.example.skillup.domain.article.repository.ArticleRepository;
 import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.global.common.CommonMapper;
+import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.util.List;
@@ -127,23 +127,23 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public ArticleResponse.HomeArticleResponseList getHomeArticle(List<String> tab, Integer page, String keyword) {
+    public ArticleResponse.HomeArticleResponseList getHomeArticle(JobGroup tab, Integer page, String keyword) {
 
         keyword = (keyword == null) ? "" : keyword.trim();
         Pageable pageable = PageRequest.of(page, 16);
 
         Page<Article> result;
 
-        if (tab == null || tab.isEmpty()) {
+        if (tab == JobGroup.ALL) {
             result = articleRepository.searchByTitle(keyword, pageable);
 
             return articleMapper.toHomeArticleResponseList(result, result.getTotalElements(),
                     (long) result.getTotalPages());
         }
 
-        List<Long> targetRoleIds = tab.stream().map(target -> notFoundGuardService.getRole(target).getId()).toList();
+        Long targetRoleId = notFoundGuardService.getRole(tab.getToKorean()).getId();
 
-        result = articleRepository.searchByTitleAndAllRoles(keyword, targetRoleIds, targetRoleIds.size(), pageable);
+        result = articleRepository.searchByTitleAndRoles(keyword, targetRoleId, pageable);
 
         return articleMapper.toHomeArticleResponseList(result, result.getTotalElements(),
                 (long) result.getTotalPages());
@@ -159,8 +159,8 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeArticleResponse> getFeaturedArticles(String tab) {
-        String roleName = CommonMapper.resolveRoleName(tab);
+    public List<HomeArticleResponse> getFeaturedArticles(JobGroup tab) {
+        String roleName = tab == JobGroup.ALL ? null : tab.getToKorean();
         List<Article> articles;
         if (roleName == null) {
             articles = articleRepository.findTop5ByStatusOrderByOriginalPublishedDateDesc(ArticleStatus.PUBLISHED);

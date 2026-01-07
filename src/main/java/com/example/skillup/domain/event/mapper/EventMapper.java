@@ -17,7 +17,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
@@ -112,7 +111,7 @@ public class EventMapper {
             List<EventResponse.HomeEventResponse> events, String tab) {
         return EventResponse.featuredEventResponseList.builder()
                 .homeEventResponseList(events)
-                .tab(tab == null ? "IT 전체" : tab)
+                .tab(tab)
                 .build();
     }
 
