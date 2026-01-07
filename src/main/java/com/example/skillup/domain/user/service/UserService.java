@@ -21,10 +21,9 @@ import com.example.skillup.domain.user.repository.WithdrawReasonCategoryReposito
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.service.S3Service;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -128,5 +127,14 @@ public class UserService {
     public void deleteUser(Users user) {
         user = userRepository.findById(user.getId()).orElse(null);
         user.withdraw();
+    }
+
+    @Transactional
+    public void completeSignup(Users user, UserRequest.UserOAuthSignupRequest request)
+    {
+        user = userRepository.findById(user.getId()).orElse(null);
+        TargetRole role = targetRoleRepository.findByName(request.getRole()).orElseThrow();
+        Set<Interest> interests = interestRepository.findByNameIn(request.getInterests());
+        user.update(null,role,interests,null);
     }
 }

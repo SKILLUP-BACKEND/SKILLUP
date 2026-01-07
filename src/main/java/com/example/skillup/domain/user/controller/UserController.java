@@ -1,8 +1,7 @@
 package com.example.skillup.domain.user.controller;
 
 
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.event.enums.EventCategory;
+
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -12,7 +11,6 @@ import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -100,6 +98,17 @@ public class UserController {
     public BaseResponse<Boolean> deleteUser(@AuthenticationPrincipal UsersDetails userDetails) {
         userService.deleteUser(userDetails.getUser());
         return BaseResponse.success("회원 탈퇴 성공",true);
+    }
+
+    @PutMapping("/oauth/signup")
+    @Operation(summary = "OAuth 첫 로그인 유저 추가정보 입력",
+            description = "OAuth 최초 로그인 시 필수 추가 정보를 입력받아 정식 회원으로 전환합니다.")
+    public BaseResponse<Void> completeOauthSignup(
+            @RequestBody UserRequest.UserOAuthSignupRequest request,
+            @AuthenticationPrincipal UsersDetails user
+    ) {
+        userService.completeSignup(user.getUser(), request);
+        return BaseResponse.success("추가 정보 입력 성공",null);
     }
 
 

@@ -45,7 +45,8 @@ public class OauthController {
 
     @Operation(
             summary = "소셜 로그인 콜백 처리",
-            description = "소셜 로그인 후 콜백으로 받은 코드로 액세스 토큰을 요청하고, 소셜 서버의 사용자 정보를 기반으로 자체 토큰을 발급해 로그인 처리합니다.",
+            description = "소셜 로그인 후 콜백으로 받은 코드로 액세스 토큰을 요청하고, 소셜 서버의 사용자 정보를 기반으로 자체 토큰을 발급해 로그인 처리합니다. 사이트 첫 로그인이면 유저가 생성되며" +
+                    "isNewUser 값으로 처음 로그인한 유저인지 체크를 할 수 있습니다.",
             operationId = "handleSocialLoginCallback",
             parameters = {
                     @Parameter(name = "socialLoginType", description = "소셜 로그인 유형", required = true),

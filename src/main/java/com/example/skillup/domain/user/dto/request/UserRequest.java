@@ -18,4 +18,12 @@ public class UserRequest
         private List<String> interests;
         private Boolean marketingAgreement;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class UserOAuthSignupRequest {
+        private List<String> interests;
+        String role;
+    }
 }
