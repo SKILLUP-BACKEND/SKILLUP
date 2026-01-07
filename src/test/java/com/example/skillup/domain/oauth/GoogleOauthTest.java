@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 import com.example.skillup.global.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
+import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.global.auth.oauth.component.GoogleOauth;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class GoogleOauthTest {
                 }
                 """;
 
-        OauthInfoRequest oauthInfo = googleOauth.parse(userInfoJson, "dummyAccessToken");
+        OauthRequest oauthInfo = googleOauth.parse(userInfoJson, "dummyAccessToken");
 
         assertEquals("1234567890", oauthInfo.socialId());
         assertEquals("John Doe", oauthInfo.name());

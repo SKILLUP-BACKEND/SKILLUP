@@ -1,6 +1,7 @@
 package com.example.skillup.domain.oauth.controller;
 
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.oauth.dto.OauthResponse;
 import com.example.skillup.domain.oauth.service.OauthService;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
@@ -51,17 +52,12 @@ public class OauthController {
                     @Parameter(name = "code", description = "소셜 로그인 API 서버로부터 받은 인증 코드.", required = true)
             })
     @GetMapping(value = "/{socialLoginType}/callback")
-    public BaseResponse<TokenResponse> callback(
+    public BaseResponse<OauthResponse.OAuthLoginResponse> callback(
             @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
             @RequestParam(name = "code") String code,
             @RequestParam(value = "state", required = false) String state) {
 
-
-        String email = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);
-
-        TokenResponse tokenResponse = authService.login(email, "users");
-
-        return BaseResponse.success("사용자 로그인에 성공했습니다.",tokenResponse);
+        return BaseResponse.success("사용자 로그인에 성공했습니다.",oauthService.requestAccessTokenAndSaveUser(socialLoginType, code));
 
     }
 }

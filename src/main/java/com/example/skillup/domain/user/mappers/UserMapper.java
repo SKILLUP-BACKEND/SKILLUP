@@ -3,7 +3,7 @@ package com.example.skillup.domain.user.mappers;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
-import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
+import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
@@ -38,7 +38,7 @@ public class UserMapper {
     }
 
     public Users fromOauthInfo(
-            OauthInfoRequest oauthInfo,
+            OauthRequest oauthInfo,
             TargetRole defaultRole
     ) {
         return Users.builder()
