@@ -1,7 +1,7 @@
 package com.example.skillup.global.auth.oauth.component;
 
 import com.example.skillup.global.component.HttpClientHelper;
-import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
+import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.google.gson.JsonObject;
@@ -89,7 +89,7 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
-    public OauthInfoRequest parse(String userInfo, String accessToken) {
+    public OauthRequest parse(String userInfo, String accessToken) {
         JsonObject jsonObject = JsonParser.parseString(userInfo).getAsJsonObject();
 
         String socialId = jsonObject.get("sub").getAsString();
@@ -104,7 +104,7 @@ public class GoogleOauth implements SocialOauth {
                 ? jsonObject.get("birthdate").getAsString()
                 : null;
 
-        return OauthInfoRequest.of(email, name, socialId, getSocialType(), gender, age);
+        return OauthRequest.of(email, name, socialId, getSocialType(), gender, age);
     }
 
 }

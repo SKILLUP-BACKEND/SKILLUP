@@ -3,6 +3,7 @@ package com.example.skillup.domain.user.mappers;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
@@ -33,6 +34,30 @@ public class UserMapper {
                 .socialLoginType(socialLoginType)
                 .gender(gender)
                 .age(age)
+                .build();
+    }
+
+    public Users fromOauthInfo(
+            OauthRequest oauthInfo,
+            TargetRole defaultRole
+    ) {
+        return Users.builder()
+                .email(oauthInfo.email())
+                .name(
+                        oauthInfo.name() != null
+                                ? oauthInfo.name()
+                                : "OAuthUser"
+                )
+                .age(oauthInfo.age()!=null ? oauthInfo.age() : "0")
+                .gender(oauthInfo.gender()!=null ? oauthInfo.gender() : "0")
+                .socialId(oauthInfo.socialId())
+                .socialLoginType(oauthInfo.socialLoginType())
+                .status(UserStatus.ACTIVE)
+                .role(defaultRole)
+                .notificationFlag("N")
+                .regDatetime(LocalDateTime.now())
+                .lastLoginAt(LocalDateTime.now())
+                .marketingAgreement(false)
                 .build();
     }
 

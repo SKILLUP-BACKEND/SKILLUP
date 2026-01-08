@@ -42,7 +42,7 @@ public class Users extends BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 50)
     private String email;
 
     @Column(nullable = false, length = 50)
@@ -88,18 +88,23 @@ public class Users extends BaseEntity
     private boolean marketingAgreement;
 
     public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests, String userProfileImageUrl) {
-        if (dto.getName() != null) this.name = dto.getName();
+        if(dto != null) {
+            if (dto.getName() != null) this.name = dto.getName();
+            if (dto.getAge() != null) this.age = dto.getAge();
+            if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
+            if (dto.getGender() != null) this.gender = dto.getGender();
+
+        }
+
+        if (role != null) this.role = role;
+        if (interests != null) this.interests = interests;
         if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
-        if (dto.getAge() != null) this.age = dto.getAge();
-        if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
-        if (dto.getGender() != null) this.gender = dto.getGender();
-        if (dto.getRole() != null) this.role = role;
-        if (dto.getInterests() != null) this.interests = interests;
     }
 
     public void withdraw() {
         this.status=UserStatus.WITHDRAWN;
         delete();
     }
+
 
 }

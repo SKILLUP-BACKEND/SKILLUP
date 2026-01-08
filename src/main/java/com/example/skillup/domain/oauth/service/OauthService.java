@@ -1,18 +1,21 @@
 package com.example.skillup.domain.oauth.service;
 
 
-import com.example.skillup.domain.oauth.Entity.OauthInfo;
+import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.oauth.component.AccessTokenExtractor;
 import com.example.skillup.domain.oauth.component.OauthClientFactory;
-import com.example.skillup.domain.oauth.dto.OauthInfoRequest;
+import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.oauth.dto.OauthResponse;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
-import com.example.skillup.domain.oauth.mapper.OauthInfoMapper;
-import com.example.skillup.domain.oauth.repository.OauthInfoRepository;
+import com.example.skillup.domain.oauth.mapper.OauthMapper;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
+import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.oauth.component.SocialOauth;
+import com.example.skillup.global.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +31,10 @@ public class OauthService {
     private final OauthClientFactory oauthClientFactory;
     private final UserRepository userRepository;
     private final AccessTokenExtractor accessTokenExtractor;
-    private final OauthInfoRepository oauthInfoRepository;
+    private final TargetRoleRepository targetRoleRepository;
+    private final UserMapper userMapper;
+    private final AuthService authService;
+    private final OauthMapper oauthMapper;
 
     public String request(SocialLoginType socialLoginType) {
         return oauthClientFactory.getClient(socialLoginType).getOauthRedirectURL();
@@ -36,7 +42,7 @@ public class OauthService {
 
 
     @Transactional
-    public String requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
+    public OauthResponse.OAuthLoginResponse requestAccessTokenAndSaveUser(SocialLoginType socialLoginType, String code) {
 
         SocialOauth client = oauthClientFactory.getClient(socialLoginType);
 
@@ -48,19 +54,28 @@ public class OauthService {
 
         String userInfo = client.getUserInfo(accessToken);
 
-        OauthInfoRequest oauthInfoRequest= client.parse(userInfo,accessToken);
+        OauthRequest oauthInfoRequest= client.parse(userInfo,accessToken);
 
         Optional<Users> existingUser = userRepository.findBySocialId(oauthInfoRequest.socialId());
 
+        Users user;
+        boolean isNewUser;
 
-        if(existingUser.isEmpty())
-        {
-            OauthInfo oauthInfo = OauthInfoMapper.of(oauthInfoRequest.email(), oauthInfoRequest.name()
-                    , oauthInfoRequest.socialId(), oauthInfoRequest.socialLoginType(), oauthInfoRequest.gender(), oauthInfoRequest.age());
-
-            return oauthInfoRepository.save(oauthInfo).getEmail();
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
+            isNewUser = false;
+        } else {
+            user = userMapper.fromOauthInfo(
+                    oauthInfoRequest,
+                    targetRoleRepository.findByName("기본").orElseThrow()
+            );
+            userRepository.save(user);
+            isNewUser = true;
         }
-        return existingUser.get().getEmail();
+        TokenResponse tokenResponse =authService.login(user.getEmail(),"users");
+
+
+        return oauthMapper.toOauthLoginResponse(tokenResponse,isNewUser);
     }
 
 }

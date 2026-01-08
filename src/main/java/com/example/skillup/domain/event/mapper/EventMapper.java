@@ -272,7 +272,7 @@ public class EventMapper {
         }
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(recruitEnd)) {
-            return "마감";
+            return "신청 마감";
         }
         long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(),
                 recruitEnd.toLocalDate().atStartOfDay()).toDays();

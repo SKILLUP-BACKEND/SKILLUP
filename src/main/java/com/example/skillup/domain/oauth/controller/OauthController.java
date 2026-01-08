@@ -1,6 +1,7 @@
 package com.example.skillup.domain.oauth.controller;
 
 import com.example.skillup.domain.oauth.Entity.SocialLoginType;
+import com.example.skillup.domain.oauth.dto.OauthResponse;
 import com.example.skillup.domain.oauth.service.OauthService;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
@@ -44,24 +45,20 @@ public class OauthController {
 
     @Operation(
             summary = "소셜 로그인 콜백 처리",
-            description = "소셜 로그인 후 콜백으로 받은 코드로 액세스 토큰을 요청하고, 소셜 서버의 사용자 정보를 기반으로 자체 토큰을 발급해 로그인 처리합니다.",
+            description = "소셜 로그인 후 콜백으로 받은 코드로 액세스 토큰을 요청하고, 소셜 서버의 사용자 정보를 기반으로 자체 토큰을 발급해 로그인 처리합니다. 사이트 첫 로그인이면 유저가 생성되며" +
+                    "isNewUser 값으로 처음 로그인한 유저인지 체크를 할 수 있습니다.",
             operationId = "handleSocialLoginCallback",
             parameters = {
                     @Parameter(name = "socialLoginType", description = "소셜 로그인 유형", required = true),
                     @Parameter(name = "code", description = "소셜 로그인 API 서버로부터 받은 인증 코드.", required = true)
             })
     @GetMapping(value = "/{socialLoginType}/callback")
-    public BaseResponse<TokenResponse> callback(
+    public BaseResponse<OauthResponse.OAuthLoginResponse> callback(
             @PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
             @RequestParam(name = "code") String code,
             @RequestParam(value = "state", required = false) String state) {
 
-
-        String email = oauthService.requestAccessTokenAndSaveUser(socialLoginType, code);
-
-        TokenResponse tokenResponse = authService.login(email, "users");
-
-        return BaseResponse.success("사용자 로그인에 성공했습니다.",tokenResponse);
+        return BaseResponse.success("사용자 로그인에 성공했습니다.",oauthService.requestAccessTokenAndSaveUser(socialLoginType, code));
 
     }
 }
