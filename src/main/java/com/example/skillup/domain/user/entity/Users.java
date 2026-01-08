@@ -88,13 +88,17 @@ public class Users extends BaseEntity
     private boolean marketingAgreement;
 
     public void update(UserRequest.UserUpdateRequest dto,TargetRole role,Set<Interest> interests, String userProfileImageUrl) {
-        if (dto.getName() != null) this.name = dto.getName();
+        if(dto != null) {
+            if (dto.getName() != null) this.name = dto.getName();
+            if (dto.getAge() != null) this.age = dto.getAge();
+            if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
+            if (dto.getGender() != null) this.gender = dto.getGender();
+
+        }
+
+        if (role != null) this.role = role;
+        if (interests != null) this.interests = interests;
         if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
-        if (dto.getAge() != null) this.age = dto.getAge();
-        if (dto.getMarketingAgreement() != null) this.marketingAgreement = dto.getMarketingAgreement();
-        if (dto.getGender() != null) this.gender = dto.getGender();
-        if (dto.getRole() != null) this.role = role;
-        if (dto.getInterests() != null) this.interests = interests;
     }
 
     public void withdraw() {

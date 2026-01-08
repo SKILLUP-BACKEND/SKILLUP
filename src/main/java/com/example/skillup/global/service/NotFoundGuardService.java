@@ -34,6 +34,8 @@ public class NotFoundGuardService
             errorCodeName = "TARGET_ROLE_NOT_FOUND"
     )
     public TargetRole getRole(String name) {
+        if (name == null)
+            return null;
         return targetRoleRepository.findByName(name).orElseThrow();
     }
 
@@ -43,6 +45,9 @@ public class NotFoundGuardService
             errorCodeName = "HASH_TAG_NOT_FOUND"
     )
     public HashTag getHashTag(String name) {
+        if(name == null)
+            return null;
+
         return hashTagRepository.findByName(name).orElseThrow();
     }
 
@@ -53,6 +58,8 @@ public class NotFoundGuardService
     )
     public Users getUsersNative(Long userId)
     {
+        if(userId == null)
+            return null;
         return userRepository.findByIdNative(userId).orElseThrow();
 
     }
@@ -64,6 +71,8 @@ public class NotFoundGuardService
     )
     public Set<Interest> getInterestFindByNameIn(List<String> interests)
     {
+        if(interests == null)
+            return null;
         return interestRepository.findByNameIn(interests);
     }
 }
