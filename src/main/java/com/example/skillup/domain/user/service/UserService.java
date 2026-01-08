@@ -20,6 +20,7 @@ import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.domain.user.repository.WithdrawReasonCategoryRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
+import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 
 import java.util.*;
@@ -44,6 +45,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final WithdrawReasonCategoryRepository withDrawReasonCategoryRepository;
     private final S3Service s3Service;
+    private final NotFoundGuardService notFoundGuardService;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user) {
         return userMapper.toMyPageHomeResponse(user);
@@ -55,7 +57,7 @@ public class UserService {
         Pageable pageable = PageRequest.of(page, 9);
 
         //user를 영속성 컨텍스트로 만들기 위해서
-        user = userRepository.findById(user.getId()).orElse(null);
+        user = notFoundGuardService.getUsersNative(user.getId());
 
         switch (sort) {
             case "latest" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
@@ -87,8 +89,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponse.InterestResponse> getInterestByRole(String roleName) {
-        Optional<TargetRole> targetRole = targetRoleRepository.findByName(roleName);
-        return interestRepository.findByRole(targetRole.orElseThrow()).stream().map(userMapper::toInterestResponse)
+        TargetRole role = notFoundGuardService.getRole(roleName);
+        return interestRepository.findByRole(role).stream().map(userMapper::toInterestResponse)
                 .toList();
     }
 
@@ -106,8 +108,9 @@ public class UserService {
     @Transactional
     public UserResponse.UserProfileResponse updateUser(Users user, UserRequest.UserUpdateRequest request,
                                                        MultipartFile profileImage) {
-        TargetRole role = targetRoleRepository.findByName(request.getRole()).orElseThrow();
-        Set<Interest> interests = interestRepository.findByNameIn(request.getInterests());
+        user = notFoundGuardService.getUsersNative(user.getId());
+        TargetRole role = notFoundGuardService.getRole(request.getRole());
+        Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
         String userProfileImageUrl = s3Service.uploadFile(profileImage, "user/profile");
         user.update(request, role, interests, userProfileImageUrl);
         return userMapper.toUserProfileResponse(user);
@@ -119,22 +122,22 @@ public class UserService {
     }
 
     public UserResponse.UserProfileResponse getUsers(Users user) {
-        user = userRepository.findById(user.getId()).orElse(null);
+        user = notFoundGuardService.getUsersNative(user.getId());
         return userMapper.toUserProfileResponse(user);
     }
 
     @Transactional
     public void deleteUser(Users user) {
-        user = userRepository.findById(user.getId()).orElse(null);
+        user = notFoundGuardService.getUsersNative(user.getId());
         user.withdraw();
     }
 
     @Transactional
     public void completeSignup(Users user, UserRequest.UserOAuthSignupRequest request)
     {
-        user = userRepository.findById(user.getId()).orElse(null);
-        TargetRole role = targetRoleRepository.findByName(request.getRole()).orElseThrow();
-        Set<Interest> interests = interestRepository.findByNameIn(request.getInterests());
+        user = notFoundGuardService.getUsersNative(user.getId());
+        TargetRole role = notFoundGuardService.getRole(request.getRole());
+        Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
         user.update(null,role,interests,null);
     }
 }
