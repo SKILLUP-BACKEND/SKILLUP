@@ -277,7 +277,7 @@ public class EventMapper {
         long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(),
                 recruitEnd.toLocalDate().atStartOfDay()).toDays();
         if (days <= 0) {
-            return "마감 D-0";
+            return "오늘 마감";
         }
         return "마감 D-" + days;
     }
