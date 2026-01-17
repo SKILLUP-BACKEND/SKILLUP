@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.dto.request;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventFormat;
 import com.example.skillup.domain.event.enums.EventSortType;
+import com.example.skillup.global.enums.JobGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -138,7 +139,7 @@ public class EventRequest {
         @Builder.Default
         private EventSortType sort = EventSortType.POPULARITY;
 
-        private String targetRole;
+        private JobGroup targetRole;
 
         @NotNull(message = "페이지 번호를 입력해주세요. (페이지당 게시글은 12개)")
         private int page;
@@ -156,7 +157,7 @@ public class EventRequest {
                 LocalDateTime startDate,
                 LocalDateTime endDate,
                 EventSortType sort,
-                String targetRole,
+                JobGroup targetRole,
                 Integer page
         ) {
             return EventSearchCondition.builder()
