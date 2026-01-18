@@ -338,10 +338,13 @@ public class EventService {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = findByCategoryWithSearch(condition, pageable);
 
-        boolean targetRolesIsEmpty = condition.getTargetRole() == null || condition.getTargetRole().isEmpty();
+
+        JobGroup targetRole = condition.getTargetRole();
+        String targetRoleKr = (targetRole == null) ? null : targetRole.getToKorean();
+        boolean targetRolesIsEmpty = (targetRoleKr == null || targetRoleKr.isEmpty());
 
         int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
-                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), condition.getTargetRole(),
+                , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), targetRoleKr,
                 now,
                 targetRolesIsEmpty);
 

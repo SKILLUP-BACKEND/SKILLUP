@@ -25,6 +25,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -51,7 +52,7 @@ public class EventController {
     private final EventBannerService eventBannerService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
     @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
@@ -65,7 +66,7 @@ public class EventController {
     }
 
     @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 수정 API", description = "관리자가 특정 행사를 수정합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> updateEvent(
             @PathVariable Long eventId,
@@ -76,7 +77,7 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/visibility")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 숨김/공개 API", description = "행사의 id 와 행사의 상태의 값을 입력해주세요 입력해주신 값으로 변경됩니다. true 공개 false 숨김")
     public BaseResponse<EventResponse.CommonEventResponse> visibilityEvent(
             @PathVariable Long eventId,
@@ -99,7 +100,7 @@ public class EventController {
 
 
     @DeleteMapping("/{eventId}")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 삭제 API", description = "관리자가 특정 행사를 삭제합니다.")
     @ApiResponse(responseCode = "200", description = "행사 삭제 성공",
             content = @Content(mediaType = "application/json"))
@@ -175,7 +176,6 @@ public class EventController {
     }
 
     @GetMapping("/home/banners")
-    //@PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "메인 페이지에 나올 배너 조회 API 입니다.", description = "현재 날짜가 배너의 노출일과 마감일 사이에 있는 배너를 반환합니다.")
     public BaseResponse<EventResponse.EventBannersResponseList> getHomeBanners(
     ) {
@@ -183,7 +183,7 @@ public class EventController {
     }
 
     @PostMapping(value = "/home/admin/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "배너 등록 API", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
     public BaseResponse<EventResponse.EventBannerResponse> createHomeBanners(
             @RequestPart @Valid EventRequest.CreateEventBannerRequest request,
@@ -192,7 +192,7 @@ public class EventController {
     }
 
     @PatchMapping("/home/admin/banners/order")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "배너 순서 정렬 API", description = "정렬된 상태의 배너의 ID 값을 순서대로 보내주세요 앞에 오는게 우선순위가 높습니다.")
     public BaseResponse<Void> updateDisplayOrderHomeBanners(
             @RequestBody @Valid EventRequest.BannerOrderUpdateRequest request
@@ -202,7 +202,7 @@ public class EventController {
     }
 
     @PutMapping(value = "/home/admin/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(
             summary = "배너 수정 API",
             description = """
@@ -220,7 +220,7 @@ public class EventController {
     }
 
     @DeleteMapping("/home/banners/{bannerId}")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "배너 삭제 API", description = "지우실 배너 아이디를 입력해주세요")
     public BaseResponse<EventResponse.CommonBannerResponse> deleteHomeBanner(
             @PathVariable Long bannerId

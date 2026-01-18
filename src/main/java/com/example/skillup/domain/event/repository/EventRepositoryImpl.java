@@ -84,7 +84,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
           AND (:startDate IS NULL OR e.event_start BETWEEN :startDate AND :endDate)
         """;
 
-        boolean hasTargetRole = cond.getTargetRole() != null && !cond.getTargetRole().isBlank();
+        boolean hasTargetRole = cond.getTargetRole() != null && !cond.getTargetRole().toString().isBlank();
 
         if (hasTargetRole) {
             baseQuery += " AND tr.name = :targetRole ";

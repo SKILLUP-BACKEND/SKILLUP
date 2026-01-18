@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +36,7 @@ public class ArticleController {
 
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/admin")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "아티클 등록 API",
             description = """
                     아티클 생성 API 입니다.
@@ -53,7 +54,7 @@ public class ArticleController {
     }
 
     @GetMapping(value = "/admin")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "관리자 아티클 조회 API", description = "관리자가 Article 목록을 조회합니다. sort 값은 게시일순 , 등록일순 두가지 입니다. 둘 중 하나를 입력해주세요")
     public BaseResponse<ArticleResponse.AdminArticleResponseList> adminGetArticles(
             @RequestParam(required = false) String keyword,
@@ -65,7 +66,7 @@ public class ArticleController {
     }
 
     @GetMapping(value = "/{articleId}/admin")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "관리자 아티클 상세 조회 API", description = "관리자가 Article 목록을 조회합니다. sort 값은 게시일순 , 등록일순 두가지 입니다. 둘 중 하나를 입력해주세요")
     public BaseResponse<ArticleResponse.AdminArticleDetailsResponse> adminGetArticlesDetail(
             @PathVariable Long articleId
@@ -74,7 +75,7 @@ public class ArticleController {
     }
 
     @DeleteMapping(value = "/{articleId}/admin")
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "관리자 아티클 삭제 API", description = "관리자가 Article 을 삭제합니다 삭제하려는 Article 의 ID 를 입력해주세요")
     public BaseResponse<ArticleResponse.CommonArticleResponse> adminDeleteArticle(
             @PathVariable Long articleId
@@ -84,7 +85,7 @@ public class ArticleController {
 
 
     @PutMapping(value = "/{articleId}/admin", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(
             summary = "아티클 수정 API",
             description = """
