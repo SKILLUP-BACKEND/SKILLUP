@@ -76,7 +76,7 @@ public class UserController {
     public BaseResponse<UserResponse.UserProfileResponse> updateProfile(
             @AuthenticationPrincipal UsersDetails userDetails,
             @RequestPart UserRequest.UserUpdateRequest request,
-            @RequestPart MultipartFile profileImage
+            @RequestPart(required = false) MultipartFile profileImage
     ) {
         return BaseResponse.success("유저 업데이트 성공", userService.updateUser(userDetails.getUser(), request, profileImage));
     }
