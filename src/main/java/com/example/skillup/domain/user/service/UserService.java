@@ -111,7 +111,9 @@ public class UserService {
         user = notFoundGuardService.getUsersNative(user.getId());
         TargetRole role = notFoundGuardService.getRole(request.getRole());
         Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
-        String userProfileImageUrl = s3Service.uploadFile(profileImage, "user/profile");
+        String userProfileImageUrl=null;
+        if(profileImage!=null && !profileImage.isEmpty())
+            userProfileImageUrl = s3Service.uploadFile(profileImage, "user/profile");
         user.update(request, role, interests, userProfileImageUrl);
         return userMapper.toUserProfileResponse(user);
     }
