@@ -129,9 +129,9 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Users user) {
+    public void deleteUser(UserRequest.UserWithdrawRequest request,Users user) {
         user = notFoundGuardService.getUsersNative(user.getId());
-        user.withdraw();
+        user.withdraw(request.getDetail());
     }
 
     @Transactional

@@ -1,9 +1,12 @@
 package com.example.skillup.domain.user.dto.request;
 
 import java.util.List;
+
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 public class UserRequest
 {
@@ -25,5 +28,13 @@ public class UserRequest
     public static class UserOAuthSignupRequest {
         private List<String> interests;
         String role;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserWithdrawRequest {
+        @Size(max = 500, message = "탈퇴 사유는 최대 500자까지 입력할 수 있습니다.")
+        private String detail;
     }
 }
