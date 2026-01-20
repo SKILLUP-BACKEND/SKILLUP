@@ -95,8 +95,10 @@ public class UserController {
 
     @DeleteMapping("my-page/with-draw")
     @Operation(description = "탈퇴 사유를 받고 유저를 탈퇴 대기상태로 만듭니다. (14일 이후 완전 탈퇴)")
-    public BaseResponse<Boolean> deleteUser(@AuthenticationPrincipal UsersDetails userDetails) {
-        userService.deleteUser(userDetails.getUser());
+    public BaseResponse<Boolean> deleteUser(
+            @RequestBody UserRequest.UserWithdrawRequest request,
+            @AuthenticationPrincipal UsersDetails userDetails) {
+        userService.deleteUser(request,userDetails.getUser());
         return BaseResponse.success("회원 탈퇴 성공",true);
     }
 

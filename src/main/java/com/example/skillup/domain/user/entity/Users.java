@@ -74,6 +74,9 @@ public class Users extends BaseEntity
     @Enumerated(EnumType.STRING)
     private SocialLoginType socialLoginType;
 
+    @Column(length = 500)
+    private String withDrawReason;
+
     @Builder.Default
     @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(
@@ -101,7 +104,8 @@ public class Users extends BaseEntity
         if (userProfileImageUrl != null) this.profileImageUrl = userProfileImageUrl;
     }
 
-    public void withdraw() {
+    public void withdraw(String withDrawReason) {
+        this.withDrawReason = withDrawReason;
         this.status=UserStatus.WITHDRAWN;
         delete();
     }
