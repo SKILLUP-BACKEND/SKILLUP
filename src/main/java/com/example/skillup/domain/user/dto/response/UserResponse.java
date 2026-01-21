@@ -23,6 +23,7 @@ public class UserResponse {
     public static class MyPageHomeResponse {
         private String name;
         private String email;
+        private String profileImageUrl;
     }
 
     @Getter

@@ -65,6 +65,7 @@ public class UserMapper {
         return UserResponse.MyPageHomeResponse.builder()
                 .email(user.getEmail())
                 .name(user.getName())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 
