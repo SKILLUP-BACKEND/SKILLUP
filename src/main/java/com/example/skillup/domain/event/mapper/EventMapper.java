@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -188,7 +189,8 @@ public class EventMapper {
             List<EventRepositoryImpl.EventWithPopularity> events,
             Pageable pageable,
             int page,
-            int totalCount
+            int totalCount,
+            Set<Long> bookmarkedEventIds
     ) {
         return EventResponse.SearchEventResponseList.builder()
                 .homeEventResponseList(
@@ -196,9 +198,10 @@ public class EventMapper {
                                 .map(r -> {
                                     Event event = r.getEvent();
                                     double score = r.getPopularity();
+                                    boolean bookmarked = bookmarkedEventIds.contains(event.getId());
                                     return toFeaturedEvent(
                                             event,
-                                            false,
+                                            bookmarked,
                                             event.isRecommendedManual(),
                                             event.isAd(),
                                             score
@@ -213,29 +216,33 @@ public class EventMapper {
                 .build();
     }
 
-    public List<EventResponse.HomeEventResponse> toHomeEventResponsList(List<Event> events) {
+    public List<EventResponse.HomeEventResponse> toHomeEventResponsList(List<Event> events , Set<Long> bookmarkedEventIds) {
         return events.stream()
-                .map(event ->
-                        toFeaturedEvent(
-                                event,
-                                false,
-                                event.isRecommendedManual(),
-                                event.isAd(),
-                                null
-                        )
+                .map(event -> {
+                            boolean bookmarked = bookmarkedEventIds.contains(event.getId());
+                            return toFeaturedEvent(
+                                    event,
+                                    bookmarked,
+                                    event.isRecommendedManual(),
+                                    event.isAd(),
+                                    null
+                            );
+                        }
                 )
                 .toList();
     }
 
     public List<EventResponse.HomeEventResponse> toCategoryPageEventResponseList(
-            List<EventRepositoryImpl.EventWithPopularity> events
+            List<EventRepositoryImpl.EventWithPopularity> events,
+            Set<Long> bookmarkedEventIds
     ) {
         return events.stream()
                 .map(r -> {
                     Event event = r.getEvent();
+                    boolean bookmarked = bookmarkedEventIds.contains(event.getId());
                     return toFeaturedEvent(
                             event,
-                            false,
+                            bookmarked,
                             event.isRecommendedManual(),
                             event.isAd(),
                             r.getPopularity()
