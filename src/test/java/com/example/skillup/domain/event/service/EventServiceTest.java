@@ -37,6 +37,7 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -419,17 +420,17 @@ public class EventServiceTest {
         EventResponse.SearchEventResponseList resultByCategory
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRole("DESIGNER").sort(EventSortType.LATEST).page(0).build());
+                        .targetRole(JobGroup.DESIGN).sort(EventSortType.LATEST).page(0).build() , null);
         EventResponse.SearchEventResponseList resultByCategory2
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
                         .sort(EventSortType.LATEST)
-                        .page(1).build());
+                        .page(1).build() , null);
 
         EventResponse.SearchEventResponseList resultByCategory3
                 = eventService.getEventBySearch
                 (EventRequest.EventSearchCondition.builder().category(EventCategory.CONFERENCE_SEMINAR)
-                        .targetRole("PLANNER").sort(EventSortType.LATEST).page(0).build());
+                        .targetRole(JobGroup.PM).sort(EventSortType.LATEST).page(0).build() , null);
 
         assertThat(resultByCategory).isNotNull();
         System.out.println(resultByCategory.getTotal());
@@ -563,11 +564,11 @@ public class EventServiceTest {
                 .page(0)
                 .build();
 
-        EventResponse.SearchEventResponseList resultsByPopularity = eventService.getEventBySearch(condPopularity);
+        EventResponse.SearchEventResponseList resultsByPopularity = eventService.getEventBySearch(condPopularity , null);
 
-        EventResponse.SearchEventResponseList resultsByLatest = eventService.getEventBySearch(condLatest);
+        EventResponse.SearchEventResponseList resultsByLatest = eventService.getEventBySearch(condLatest , null);
 
-        EventResponse.SearchEventResponseList resultsByDeadLine = eventService.getEventBySearch(condDeadline);
+        EventResponse.SearchEventResponseList resultsByDeadLine = eventService.getEventBySearch(condDeadline , null);
 
         // assertions
         assertThat(resultsByDeadLine).isNotNull();
@@ -597,7 +598,7 @@ public class EventServiceTest {
         Event savedEvent3 = eventRepository.save(createEvent("저장", EventCategory.NETWORKING_MENTORING));
 
         List<EventResponse.HomeEventResponse> result = eventService.getSupplementaryEvents(
-                EventCategory.NETWORKING_MENTORING);
+                EventCategory.NETWORKING_MENTORING , null);
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());
@@ -656,7 +657,7 @@ public class EventServiceTest {
 
         eventActionRepository.save(action);
 
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(3L);
+        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(3L , null);
         assertThat(events).isNotEmpty();
         assertThat(events.size()).isEqualTo(2);
         for (EventResponse.HomeEventResponse event : events) {
