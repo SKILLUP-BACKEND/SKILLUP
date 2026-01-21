@@ -33,6 +33,7 @@ public class SecurityConstant {
             "/user/test-login",                  // GET (테스트용)
             "/user/my-page/profile/interest",    // GET
             "/user/my-page/with-draw/category",   // GET
+            "/user/my-page/qna",   // GET
 
             // ========== OAuth (public) ==========
             "/oauth/**"
