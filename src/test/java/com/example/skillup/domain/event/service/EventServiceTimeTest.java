@@ -1,23 +1,33 @@
 package com.example.skillup.domain.event.service;
 
 
+import static com.example.skillup.domain.event.enums.ActionType.APPLY;
+
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.HashTag;
-import com.example.skillup.domain.event.enums.*;
-import com.example.skillup.domain.event.repository.*;
+import com.example.skillup.domain.event.enums.ActionType;
+import com.example.skillup.domain.event.enums.ActorType;
+import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventSortType;
+import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.enums.HashTagCategory;
+import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static com.example.skillup.domain.event.enums.ActionType.APPLY;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -112,11 +122,11 @@ public class EventServiceTimeTest
                 .build();
 
 
-        eventService.getRecommendedEvents(3L);
+        eventService.getRecommendedEvents(3L , null);
         eventService.getSupplementaryEvents(
-                EventCategory.NETWORKING_MENTORING);
-        eventService.getEventBySearch(condPopularity);
+                EventCategory.NETWORKING_MENTORING , null);
+        eventService.getEventBySearch(condPopularity , null);
         eventService.getEventDetail(3L,null,"3L");
-        eventService.getClosingSoonEvents(null,8);
+        eventService.getClosingSoonEvents(8 , null);
     }
 }

@@ -130,9 +130,10 @@ public class EventController {
     @Operation(summary = "추천/인기 행사 리스트", description = "진행예정/진행중 행사 중 수동 추천 또는 인기점수 상위 이벤트를 직군 탭 기준으로 반환합니다.")
     public BaseResponse<EventResponse.featuredEventResponseList> getFeaturedEvents(
             @RequestParam(defaultValue = "ALL") JobGroup tab,
-            @RequestParam(defaultValue = "8") int size
+            @RequestParam(defaultValue = "8") int size,
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size));
+        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size , user));
     }
 
     @GetMapping("/home/closing-soon")
@@ -142,15 +143,11 @@ public class EventController {
     )
     public BaseResponse<EventResponse.featuredEventResponseList> getClosingSoonEvents(
             @RequestParam(defaultValue = "4") int size,
-            @AuthenticationPrincipal UsersDetails user
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        String jobGroup = (user != null && user.getUser() != null)
-                ? user.getUser().getRole().getName()
-                : null;
-
         return BaseResponse.success(
                 "곧 종료되는 행사 리스트 조회 성공",
-                eventService.getClosingSoonEvents(jobGroup, size)
+                eventService.getClosingSoonEvents(size , user)
         );
     }
 
@@ -161,9 +158,10 @@ public class EventController {
             @RequestParam(defaultValue = "BOOTCAMP_CLUB") EventCategory category,
             @RequestParam(defaultValue = "ALL") JobGroup tab,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size , tab));
+        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size , tab , user));
     }
 
     @GetMapping("/home/admin/banners")
@@ -231,19 +229,23 @@ public class EventController {
     @PostMapping("category-page/search")
     @Operation(summary = "행사 카테고리 페이지에서 검색하는 API(검색 조건이 많아 Json으로 보내기 위해서 Post 사용)", description = "특정 조건의 행사들을 불러옵니다.")
     public BaseResponse<EventResponse.SearchEventResponseList> getEventBySearch(
-            @Valid @RequestBody EventRequest.EventSearchCondition condition
+            @Valid @RequestBody EventRequest.EventSearchCondition condition,
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition);
+        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition , user);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
+
 
     @GetMapping("category-page/recommended")
     @Operation(summary = "행사 카테고리 페이지 검색에서 이벤트가 부족할 때 다른 카테고리의 이벤트를 불러옵니다"
             , description = "카테고리 화면 이벤트 보충 api")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getSupplementaryEvents(
-            @RequestParam EventCategory category) {
+            @RequestParam EventCategory category,
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
+    ) {
 
-        List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category);
+        List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category , user);
         return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공", events);
     }
 
@@ -252,7 +254,7 @@ public class EventController {
             , description = "홈 화면 이벤트 추천 api")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(
             @AuthenticationPrincipal UsersDetails user) {
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId());
+        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId() , user);
         return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공", events);
     }
 
@@ -269,7 +271,7 @@ public class EventController {
             cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
         }
         List<EventResponse.HomeEventResponse> events =
-                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : cookieGuestId);
+                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : cookieGuestId , user);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
     }
 

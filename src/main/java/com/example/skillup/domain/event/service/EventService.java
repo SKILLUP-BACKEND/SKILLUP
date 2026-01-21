@@ -14,6 +14,7 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
@@ -21,6 +22,7 @@ import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.GuestRepository;
+import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
@@ -30,9 +32,11 @@ import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -55,6 +59,8 @@ public class EventService {
     private final S3Service s3Service;
     private final AssociationBinder associationBinder;
     private final NotFoundGuardService notFoundGuardService;
+    private final EventBookmarkRepository eventBookmarkRepository;
+    private final UserRepository userRepository;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -245,7 +251,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public EventResponse.featuredEventResponseList getFeaturedEvents(JobGroup tab, int size) {
+    public EventResponse.featuredEventResponseList getFeaturedEvents(JobGroup tab, int size, UsersDetails user) {
         String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
         String roleFilter = null;
 
@@ -260,14 +266,16 @@ public class EventService {
                 PageRequest.of(0, Math.max(1, size))
         );
 
-        // TODO: 북마크 여부 실제 연동 (현재 false 고정)
-        boolean bookmarked = false;
+        List<Long> EventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
+
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, EventIds);
 
         return eventMapper.toFeaturedEventResponseList(rows.stream()
                 .map(r -> {
                     double score = r.getPopularity();
                     Event event = r.getEvent();
                     boolean recommended = event.isRecommendedManual() || score >= recommendThreshold;
+                    boolean bookmarked = (user != null) && bookmarkedEventIds.contains(event.getId());
                     return eventMapper.toFeaturedEvent(event, bookmarked, recommended, event.isAd(), score);
                 })
                 .toList(), tab.getToKorean());
@@ -275,18 +283,25 @@ public class EventService {
 
 
     @Transactional(readOnly = true)
-    public EventResponse.featuredEventResponseList getClosingSoonEvents(String roleName, int size) {
+    public EventResponse.featuredEventResponseList getClosingSoonEvents(int size, UsersDetails user) {
         LocalDateTime due = now.plusDays(14);
+
+        String roleName = notFoundGuardService.getUsersNative(user.getUser().getId()).getRole().getName();
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
                 roleName, since, now, due, PageRequest.of(0, size)
         );
 
+        List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
+
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+
         List<EventResponse.HomeEventResponse> items = rows.stream()
                 .map(r -> {
                     double score = r.getPopularity();
                     Event event = r.getEvent();
-                    return eventMapper.toFeaturedEvent(event, false, false, false, score);
+                    boolean bookmarked = (user != null) && bookmarkedEventIds.contains(event.getId());
+                    return eventMapper.toFeaturedEvent(event, bookmarked, false, false, score);
                 })
                 .toList();
 
@@ -296,7 +311,8 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse.CategoryEventResponseList getEventsByCategoryForHome(EventCategory category,
                                                                               int page,
-                                                                              int size, JobGroup tab) {
+                                                                              int size, JobGroup tab,
+                                                                              UsersDetails user) {
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
@@ -311,11 +327,15 @@ public class EventService {
                     category, since, now, due, pageable);
         }
 
+        List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+
         List<EventResponse.HomeEventResponse> items = rows.stream()
                 .map(r -> {
                     double score = r.getPopularity();
                     Event event = r.getEvent();
-                    return eventMapper.toFeaturedEvent(event, false, false, false, score);
+                    boolean bookmarked = (user != null) && bookmarkedEventIds.contains(event.getId());
+                    return eventMapper.toFeaturedEvent(event, bookmarked, false, false, score);
                 })
                 .toList();
         return eventMapper.toCategoryEventResponseList(items, category);
@@ -334,10 +354,13 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition) {
+    public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition,
+                                                                  UsersDetails user) {
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = findByCategoryWithSearch(condition, pageable);
 
+        List<Long> eventIds = events.stream().map(r -> r.getEvent().getId()).toList();
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
 
         JobGroup targetRole = condition.getTargetRole();
         String targetRoleKr = (targetRole == null) ? null : targetRole.getToKorean();
@@ -348,12 +371,13 @@ public class EventService {
                 now,
                 targetRolesIsEmpty);
 
-        return eventMapper.toCategoryPageEventResponseListWithPageable(events, pageable, condition.getPage(), count);
+        return eventMapper.toCategoryPageEventResponseListWithPageable(events, pageable, condition.getPage(), count,
+                bookmarkedEventIds);
     }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getSupplementaryEvents(EventCategory category) {
+    public List<EventResponse.HomeEventResponse> getSupplementaryEvents(EventCategory category, UsersDetails user) {
 
         int MIN_COUNT = 3;
         Pageable pageable = PageRequest.of(0, 4);
@@ -378,25 +402,34 @@ public class EventService {
             }
         }
 
-        return eventMapper.toCategoryPageEventResponseList(result);
+        List<Long> eventIds = result.stream().map(r -> r.getEvent().getId()).toList();
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+
+        return eventMapper.toCategoryPageEventResponseList(result, bookmarkedEventIds);
     }
 
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId) {
+    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId, UsersDetails user) {
         List<Event> events = eventRepository.findRecommendedEventForHome(actorId, since);
 
-        return eventMapper.toHomeEventResponsList(events);
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+
+        return eventMapper.toHomeEventResponsList(events, bookmarkedEventIds);
     }
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId) {
+    public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId, UsersDetails user) {
         Pageable pageable = PageRequest.of(0, 10);
         List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable);
 
-        return eventMapper.toHomeEventResponsList(events);
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+
+        return eventMapper.toHomeEventResponsList(events, bookmarkedEventIds);
 
     }
 
@@ -444,4 +477,12 @@ public class EventService {
                 (condition, pageable, since, now);
     }
 
+    private Set<Long> getBookmarkedEventId(UsersDetails user, List<Long> eventIds) {
+        Set<Long> bookmarkedEventIds = new HashSet<>();
+
+        if (user != null && !eventIds.isEmpty()) {
+            bookmarkedEventIds.addAll(eventBookmarkRepository.findBookmarkedEventIds(user.getUser().getId(), eventIds));
+        }
+        return bookmarkedEventIds;
+    }
 }

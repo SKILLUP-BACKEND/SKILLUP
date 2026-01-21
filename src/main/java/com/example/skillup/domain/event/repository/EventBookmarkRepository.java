@@ -2,12 +2,9 @@ package com.example.skillup.domain.event.repository;
 
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
-import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.user.entity.Users;
-
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,4 +34,14 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     List<Event> findEventsByUserWithDeadLine(@Param("user") Users user,
                               Pageable pageable);
 
+
+    @Query("""
+        select eb.event.id
+        from EventBookmark eb
+        where eb.user.id = :userId
+          and eb.event.id in :eventIds
+          and eb.isBookmarked = true
+    """)
+    List<Long> findBookmarkedEventIds(@Param("userId") Long userId,
+                                      @Param("eventIds") List<Long> eventIds);
 }
