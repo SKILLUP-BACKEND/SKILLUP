@@ -36,7 +36,9 @@ public class SecurityConstant {
             "/user/my-page/qna",   // GET
 
             // ========== OAuth (public) ==========
-            "/oauth/**"
+            "/oauth/**",
+            // ========== Admin ==========
+            "/admin/login"
     };
 
     // Swagger UI 관련 공개 경로

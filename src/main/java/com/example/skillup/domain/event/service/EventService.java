@@ -286,7 +286,10 @@ public class EventService {
     public EventResponse.featuredEventResponseList getClosingSoonEvents(int size, UsersDetails user) {
         LocalDateTime due = now.plusDays(14);
 
-        String roleName = notFoundGuardService.getUsersNative(user.getUser().getId()).getRole().getName();
+        String roleName = null;
+        if (user != null) {
+            roleName = notFoundGuardService.getUsersNative(user.getUser().getId()).getRole().getName();
+        }
 
         List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
                 roleName, since, now, due, PageRequest.of(0, size)
