@@ -22,6 +22,7 @@ public enum CommonErrorCode implements ResultCode {
     FILE_SIZE_EXCEED("FILE_SIZE_EXCEED", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
     FILE_DELETE_ERROR("FILE_DELETE_ERROR" , "파일 삭제중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST),
     ELASTICSEARCH_ERROR("ELASTICSEARCH_ERROR" , "일라스틱 서치 업로드 중 오류가 발생했습니다." , HttpStatus.BAD_GATEWAY),
+    INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버에 오류가 발생했습니다",HttpStatus.INTERNAL_SERVER_ERROR)
     ;
 
 
