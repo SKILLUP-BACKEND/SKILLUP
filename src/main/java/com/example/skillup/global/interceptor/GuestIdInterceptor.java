@@ -44,7 +44,7 @@ public class GuestIdInterceptor implements HandlerInterceptor {
                 .httpOnly(true)
                 .maxAge(60 * 60 * 24 * 30)
                 .sameSite("None")
-                .secure("https".equalsIgnoreCase(request.getScheme()) || request.isSecure())
+                .secure(true)
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
