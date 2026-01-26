@@ -1,6 +1,5 @@
 package com.example.skillup.domain.admin.controller;
 
-import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import com.example.skillup.domain.admin.dto.AdminLoginRequest;
 import com.example.skillup.domain.admin.dto.AdminResponse;
 import com.example.skillup.domain.admin.dto.SynonymRequest;
@@ -14,9 +13,14 @@ import com.example.skillup.global.search.service.EventIndexerService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin")
@@ -79,9 +83,9 @@ public class AdminController {
 
     @GetMapping("/users")
     @Operation(summary = "검색 조건으로 유저를 조회합니다.")
-    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyWard
+    public BaseResponse<AdminResponse.AdminUserPageResponse> getUsersBySearch(@RequestParam(required = false) String keyword
             , @RequestParam boolean deleted, @RequestParam int page) {
-        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyWard,deleted,page));
+        return BaseResponse.success("성공적으로 유저가 조회 되었습니다.", adminService.getUsersBySearch(keyword,deleted,page));
     }
 
     @GetMapping("/users/{userId}")
