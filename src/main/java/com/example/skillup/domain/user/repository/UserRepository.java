@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<Users, Long> {
                     """,
             nativeQuery = true
     )
-    List<Users> findUsersByKeyWardAndDeleted(@Param("keyWard") String keyWard, @Param("deleted") Boolean deleted,
+    List<Users> findUsersByKeyWardAndDeleted(@Param("keyword") String keyword, @Param("deleted") Boolean deleted,
                                              Pageable pageable);
 
     @Query(value = """

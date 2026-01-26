@@ -143,9 +143,9 @@ public class AdminService {
         return deletedTerms;
     }
 
-    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyWard, boolean deleted, int page) {
+    public AdminResponse.AdminUserPageResponse getUsersBySearch(String keyword, boolean deleted, int page) {
         Pageable pageable = PageRequest.of(page, 20);
-        List<Users> users = userRepository.findUsersByKeyWardAndDeleted(keyWard, deleted, pageable);
+        List<Users> users = userRepository.findUsersByKeyWardAndDeleted(keyword, deleted, pageable);
         List<UserResponse.AdminUserResponse> adminUserResponse = new ArrayList<>();
 
         for (Users user : users) {
