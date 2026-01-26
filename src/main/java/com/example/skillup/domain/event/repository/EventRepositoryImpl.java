@@ -110,7 +110,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
 
 
         if (hasTargetRole) {
-            query.setParameter("targetRole", cond.getTargetRole());
+            query.setParameter("targetRole", cond.getTargetRole().getToKorean());
         }
 
 
