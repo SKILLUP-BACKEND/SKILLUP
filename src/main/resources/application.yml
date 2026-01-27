@@ -42,6 +42,14 @@ jwt:
   issuer: ${JWT_ISSUER}
   secret: ${JWT_SECRET}
 
+map:
+  naver:
+    base-url: https://maps.apigw.ntruss.com
+    geocode-path: /map-geocode/v2/geocode
+    client:
+      id: ${NAVER_MAP_CLIENT_ID}
+      secret: ${NAVER_MAP_CLIENT_SECRET}
+
 sns:
   naver:
     url: https://nid.naver.com/oauth2.0/authorize
