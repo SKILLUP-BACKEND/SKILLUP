@@ -53,7 +53,7 @@ public class EventController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 등록 API", description = "관리자가 행사를 등록합니다.")
+    @Operation(summary = "행사 등록 API(관리자용)", description = "관리자가 행사를 등록합니다.")
     @ApiResponse(responseCode = "200", description = "행사 등록 성공",
             content = @Content(mediaType = "application/json"))
     public BaseResponse<EventResponse.CommonEventResponse> createEvent(
@@ -67,7 +67,7 @@ public class EventController {
 
     @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 수정 API", description = "관리자가 특정 행사를 수정합니다.")
+    @Operation(summary = "행사 수정 API(관리자용)", description = "관리자가 특정 행사를 수정합니다.")
     public BaseResponse<EventResponse.CommonEventResponse> updateEvent(
             @PathVariable Long eventId,
             @RequestPart("request") @Valid EventRequest.UpdateEvent request,
@@ -78,7 +78,7 @@ public class EventController {
 
     @PatchMapping("/{eventId}/visibility")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 숨김/공개 API", description = "행사의 id 와 행사의 상태의 값을 입력해주세요 입력해주신 값으로 변경됩니다. true 공개 false 숨김")
+    @Operation(summary = "행사 숨김/공개 API(관리자용)", description = "행사의 id 와 행사의 상태의 값을 입력해주세요 입력해주신 값으로 변경됩니다. true 공개 false 숨김")
     public BaseResponse<EventResponse.CommonEventResponse> visibilityEvent(
             @PathVariable Long eventId,
             @RequestParam @NotNull boolean visibility
@@ -101,7 +101,7 @@ public class EventController {
 
     @DeleteMapping("/{eventId}")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "행사 삭제 API", description = "관리자가 특정 행사를 삭제합니다.")
+    @Operation(summary = "행사 삭제 API(관리자용)", description = "관리자가 특정 행사를 삭제합니다.")
     @ApiResponse(responseCode = "200", description = "행사 삭제 성공",
             content = @Content(mediaType = "application/json"))
     public BaseResponse<EventResponse.CommonEventResponse> deleteEvent(
@@ -165,8 +165,8 @@ public class EventController {
     }
 
     @GetMapping("/home/admin/banners")
-    //@PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "관리자용 배너 리스트 API 입니다.", description = "관리자용 배너 조회 API 입니다. 현재 배너 + 이전 배너 를 반환합니다. page 값은 1부터 넣어주세요(이전 배너용 페이지)")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 리스트 API 입니다.(관리자용)", description = "관리자용 배너 조회 API 입니다. 현재 배너 + 이전 배너 를 반환합니다. page 값은 1부터 넣어주세요(이전 배너용 페이지)")
     public BaseResponse<EventResponse.EventBannerAdminResponse> getBannersAll(
             @RequestParam(defaultValue = "0") int page
     ) {
@@ -182,7 +182,7 @@ public class EventController {
 
     @PostMapping(value = "/home/admin/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "배너 등록 API", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
+    @Operation(summary = "배너 등록 API(관리자용)", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")
     public BaseResponse<EventResponse.EventBannerResponse> createHomeBanners(
             @RequestPart @Valid EventRequest.CreateEventBannerRequest request,
             @RequestPart("bannerImage") MultipartFile bannerImage) {
@@ -191,7 +191,7 @@ public class EventController {
 
     @PatchMapping("/home/admin/banners/order")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "배너 순서 정렬 API", description = "정렬된 상태의 배너의 ID 값을 순서대로 보내주세요 앞에 오는게 우선순위가 높습니다.")
+    @Operation(summary = "배너 순서 정렬 API(관리자용)", description = "정렬된 상태의 배너의 ID 값을 순서대로 보내주세요 앞에 오는게 우선순위가 높습니다.")
     public BaseResponse<Void> updateDisplayOrderHomeBanners(
             @RequestBody @Valid EventRequest.BannerOrderUpdateRequest request
     ) {
@@ -202,10 +202,10 @@ public class EventController {
     @PutMapping(value = "/home/admin/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
     @Operation(
-            summary = "배너 수정 API",
+            summary = "배너 수정 API(관리자용)",
             description = """
                     배너 수정 API 입니다.
-                    - 배너 타입: MAIN_BANNER 또는 SUB_BANNER
+                    - 배너 타입: MAIN_BANNER
                     - 이미지 파일(profileImage)은 선택적으로 전송 가능합니다.
                     """
     )
@@ -219,7 +219,7 @@ public class EventController {
 
     @DeleteMapping("/home/banners/{bannerId}")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(summary = "배너 삭제 API", description = "지우실 배너 아이디를 입력해주세요")
+    @Operation(summary = "배너 삭제 API(관리자용)", description = "지우실 배너 아이디를 입력해주세요")
     public BaseResponse<EventResponse.CommonBannerResponse> deleteHomeBanner(
             @PathVariable Long bannerId
     ) {
