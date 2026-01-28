@@ -18,6 +18,8 @@ import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
+import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -61,6 +63,7 @@ public class EventService {
     private final NotFoundGuardService notFoundGuardService;
     private final EventBookmarkRepository eventBookmarkRepository;
     private final UserRepository userRepository;
+    private final GeocodingService geocodingService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -105,7 +108,13 @@ public class EventService {
             thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        Event event = eventMapper.toEntity(request, thumbnailUrl);
+        //행사 위치 변한
+        GeoPoint eventGeoPoint = null;
+        if(!request.getIsOnline() && !request.getLocationText().isBlank()){
+            eventGeoPoint = geocodingService.geocode(request.getLocationText());
+        }
+
+        Event event = eventMapper.toEntity(request, thumbnailUrl , eventGeoPoint);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
