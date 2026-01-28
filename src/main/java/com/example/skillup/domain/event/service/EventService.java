@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventService {
@@ -112,6 +114,7 @@ public class EventService {
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline() && !request.getLocationText().isBlank()) {
             eventGeoPoint = geocodingService.geocode(request.getLocationText());
+            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(), eventGeoPoint.roadAddress());
         }
 
         Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
@@ -204,6 +207,7 @@ public class EventService {
         }
 
         GeoPoint point = geocodingService.geocode(address);
+        log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", point.lat(), point.lng(), point.roadAddress());
         event.updateCoordinates(point.lat(), point.lng());
     }
 
