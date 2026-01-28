@@ -33,6 +33,7 @@ public class ArticleResponse {
     @Getter
     @Builder
     public static class AdminArticleResponse {
+        private Long id;
         private String thumbnailUrl;
         private String title;
         private String source;
