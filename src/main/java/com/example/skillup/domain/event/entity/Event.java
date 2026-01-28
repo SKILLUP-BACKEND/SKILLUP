@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,6 +80,12 @@ public class Event extends BaseEntity {
     private Boolean isOnline;
     private String locationText;
     private String locationLink;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
 
     // 신청 링크
     private String applyLink;

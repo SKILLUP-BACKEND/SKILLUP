@@ -1,5 +1,7 @@
 package com.example.skillup.global.common;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import org.springframework.data.domain.Pageable;
@@ -26,5 +28,10 @@ public class CommonMapper {
                 .pageSize(pageable.getPageSize())
                 .totalPages((int) Math.ceil((double) count / (pageable.getPageSize())))
                 .build();
+    }
+
+    public static BigDecimal toBigDecimal(Double value) {
+        if (value == null) return null;
+        return BigDecimal.valueOf(value).setScale(7, RoundingMode.HALF_UP);
     }
 }

@@ -1,5 +1,7 @@
 package com.example.skillup.domain.event.mapper;
 
+import static com.example.skillup.global.common.CommonMapper.toBigDecimal;
+
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.entity.Event;
@@ -8,8 +10,10 @@ import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.search.document.EventDocument;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,7 +31,10 @@ public class EventMapper {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
-    public Event toEntity(EventRequest.CreateEvent request , String thumbnailUrl) {
+    public Event toEntity(EventRequest.CreateEvent request , String thumbnailUrl , GeoPoint geoPoint) {
+
+        BigDecimal lat = (geoPoint == null) ? null : toBigDecimal(geoPoint.lat());
+        BigDecimal lng = (geoPoint == null) ? null : toBigDecimal(geoPoint.lng());
 
         return Event.builder()
                 .title(request.getTitle())
@@ -46,6 +53,8 @@ public class EventMapper {
                 .contact(request.getContact())
                 .description(request.getDescription())
                 .status(request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED)
+                .latitude(lat)
+                .longitude(lng)
                 .build();
     }
 
@@ -77,6 +86,8 @@ public class EventMapper {
                         .stream()
                         .map(TargetRole::getName)
                         .collect(Collectors.toSet()))
+                .longitude((event.getLongitude() == null) ? null : event.getLongitude().doubleValue())
+                .latitude((event.getLatitude() == null) ? null : event.getLatitude().doubleValue())
                 .build();
     }
 
