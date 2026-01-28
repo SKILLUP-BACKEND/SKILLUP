@@ -6,6 +6,7 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.common.CommonMapper;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -160,6 +161,11 @@ public class Event extends BaseEntity {
         this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
-
     }
+
+    public void updateCoordinates(Double lat, Double lng) {
+        this.latitude = CommonMapper.toBigDecimal(lat);
+        this.longitude = CommonMapper.toBigDecimal(lng);
+    }
+
 }

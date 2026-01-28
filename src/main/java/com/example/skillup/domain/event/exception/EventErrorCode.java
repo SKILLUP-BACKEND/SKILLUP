@@ -17,7 +17,8 @@ public enum EventErrorCode implements ResultCode {
     EVENT_INCORRECT_USER("EVENT_INCORRECT_USER", "해당 기능에 올바른 사용자가 아닙니다.", HttpStatus.BAD_REQUEST),
     EVENT_SEARCH_ERROR("EVENT_SEARCH_ERROR", "검색 기능 시 에러가 발생했습니다.", HttpStatus.BAD_REQUEST),
     BANNER_ENTITY_NOT_FOUND("BANNER_ENTITY_NOT_FOUND", "배너가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
-    INVALID_BANNER_ID("INVALID_BANNER_ID" , "잘못된 배너 아이디입니다." , HttpStatus.BAD_REQUEST),;
+    INVALID_BANNER_ID("INVALID_BANNER_ID" , "잘못된 배너 아이디입니다." , HttpStatus.BAD_REQUEST),
+    INVALID_LOCATION_TEXT("INVALID_LOCATION_TEXT","오프라인 행사에는 주소가 필수입니다.", HttpStatus.BAD_REQUEST),;
 
     private final String code;
     private final String message;

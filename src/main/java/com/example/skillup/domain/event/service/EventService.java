@@ -108,13 +108,13 @@ public class EventService {
             thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        //행사 위치 변한
+
         GeoPoint eventGeoPoint = null;
-        if(!request.getIsOnline() && !request.getLocationText().isBlank()){
+        if (!request.getIsOnline() && !request.getLocationText().isBlank()) {
             eventGeoPoint = geocodingService.geocode(request.getLocationText());
         }
 
-        Event event = eventMapper.toEntity(request, thumbnailUrl , eventGeoPoint);
+        Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
@@ -154,6 +154,8 @@ public class EventService {
                                                          MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
+        String oldLocationText = event.getLocationText();
+        Boolean oldIsOnline = event.getIsOnline();
         String imageUrl = event.getThumbnailUrl();
 
         if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
@@ -166,6 +168,14 @@ public class EventService {
         }
 
         event.update(request, imageUrl);
+
+        boolean locationChanged = request.getLocationText() != null && !request.getLocationText().equals(oldLocationText);
+
+        boolean onlineChanged = request.getIsOnline() != null && !request.getIsOnline().equals(oldIsOnline);
+
+        if (locationChanged || onlineChanged) {
+            applyGeocode(event);
+        }
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
@@ -180,6 +190,21 @@ public class EventService {
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
+    }
+
+    private void applyGeocode(Event event) {
+        if (event.getIsOnline()) {
+            event.updateCoordinates(null, null);
+            return;
+        }
+
+        String address = event.getLocationText();
+        if (address == null || address.isBlank()) {
+            throw new EventException(EventErrorCode.INVALID_LOCATION_TEXT);
+        }
+
+        GeoPoint point = geocodingService.geocode(address);
+        event.updateCoordinates(point.lat(), point.lng());
     }
 
 
