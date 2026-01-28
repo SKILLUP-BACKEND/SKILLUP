@@ -112,9 +112,9 @@ public class EventServiceTest {
     void setUp() {
         eventRepository.deleteAll();
         targetRoleRepository.deleteAll();
-        targetRole = targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
-        targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
-        targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
+        targetRole = targetRoleRepository.save(TargetRole.builder().name("기획자").build());
+        targetRoleRepository.save(TargetRole.builder().name("디자이너").build());
+        targetRoleRepository.save(TargetRole.builder().name("AI 개발자").build());
         hashTag = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#스포츠").build());
         hashTag2 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#러닝").build());
         hashTag3 = hashTagRepository.save(HashTag.builder().category(HashTagCategory.EVENT_TYPE).name("#서울").build());
@@ -132,9 +132,9 @@ public class EventServiceTest {
 
     private Event createEvent(String title, EventCategory category) {
         Set<TargetRole> roles = targetRoleRepository.findAll().stream()
-                .filter(r -> r.getName().equals("DESIGNER"))
+                .filter(r -> r.getName().equals("디자이너"))
                 .collect(Collectors.toSet());
-        roles.add(targetRoleRepository.findByName("AI_DEVELOPER").orElseThrow());
+        roles.add(targetRoleRepository.findByName("AI 개발자").orElseThrow());
         Set<HashTag> tags = new HashSet<>();
         tags.add(hashTagRepository.findByName("#PLANNER").orElseThrow());
 
@@ -151,7 +151,7 @@ public class EventServiceTest {
                 .price(15000)
                 .isOnline(true)
                 .locationLink("http://example.com")
-                .locationText("test")
+                .locationText("서울특별시 강남구 영동대로 513")
                 .applyLink("http://apply.example.com")
                 .contact("010-1234-5678")
                 .description("test")
@@ -183,10 +183,10 @@ public class EventServiceTest {
                 LocalDateTime.of(2025, 9, 10, 23, 59),
                 true,
                 null,
-                List.of("DESIGNER"),
+                List.of("디자이너"),
                 false,
-                true,
-                "서울 올림픽공원",
+                false,
+                "서울특별시 강남구 영동대로 513",
                 "http://maps.example.com",
                 "http://apply.example.com",
                 "010-1234-5678",
@@ -224,10 +224,10 @@ public class EventServiceTest {
                 LocalDateTime.of(2025, 9, 10, 23, 59),
                 true,
                 null,
-                List.of("DESIGNER"),
+                List.of("디자이너"),
                 true,   // 임시 저장
                 false,
-                "서울 올림픽공원",
+                "서울특별시 강남구 영동대로 513",
                 "http://maps.example.com",
                 "http://apply.example.com",
                 "010-1234-5678",
@@ -277,7 +277,7 @@ public class EventServiceTest {
                 LocalDateTime.of(2025, 9, 10, 23, 59),
                 true,
                 null,
-                List.of("DESIGNER"),
+                List.of("디자이너"),
                 false,
                 true,
                 "서울 올림픽공원",
@@ -313,10 +313,10 @@ public class EventServiceTest {
                 LocalDateTime.of(2025, 9, 30, 23, 59),
                 false,
                 20000,
-                List.of("PLANNER", "AI_DEVELOPER"),
+                List.of("기획자", "AI 개발자"),
                 true,
                 false,
-                "서울 코엑스",
+                "서울특별시 강남구 영동대로 513",
                 "http://maps.example.com/new",
                 "http://apply.example.com/new",
                 "010-9876-5432",
@@ -358,9 +358,9 @@ public class EventServiceTest {
                 updatedEvent.getTargetRoles().stream()
                         .map(TargetRole::getName)
                         .collect(Collectors.toList())
-        ).containsExactlyInAnyOrder("PLANNER", "AI_DEVELOPER");
+        ).containsExactlyInAnyOrder("기획자", "AI 개발자");
         assertThat(updatedEvent.getIsOnline()).isFalse();
-        assertThat(updatedEvent.getLocationText()).isEqualTo("서울 코엑스");
+        assertThat(updatedEvent.getLocationText()).isEqualTo("서울특별시 강남구 영동대로 513");
         assertThat(updatedEvent.getLocationLink()).isEqualTo("http://maps.example.com/new");
         assertThat(updatedEvent.getApplyLink()).isEqualTo("http://apply.example.com/new");
         assertThat(updatedEvent.getContact()).isEqualTo("010-9876-5432");
@@ -371,6 +371,8 @@ public class EventServiceTest {
                         .collect(Collectors.toList())
         ).containsExactlyInAnyOrder("#AI", "#워크숍");
         assertThat(updatedEvent.getStatus()).isEqualTo(EventStatus.DRAFT);
+        assertThat(updatedEvent.getLatitude().doubleValue()).isEqualTo(37.5118239);
+        assertThat(updatedEvent.getLongitude().doubleValue()).isEqualTo(127.0591591);
     }
 
     @Test
@@ -679,8 +681,8 @@ public class EventServiceTest {
     @Test
     @DisplayName("getRole 성공 테스트")
     public void getTargetRoleByName_Success() {
-        TargetRole targetRole = notFoundGuardService.getRole("PLANNER");
-        assertEquals("PLANNER", targetRole.getName());
+        TargetRole targetRole = notFoundGuardService.getRole("기획자");
+        assertEquals("기획자", targetRole.getName());
     }
 
     @Test
