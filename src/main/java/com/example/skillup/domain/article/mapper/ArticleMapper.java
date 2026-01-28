@@ -33,6 +33,7 @@ public class ArticleMapper {
 
     public AdminArticleResponse toAdminArticleResponse(Article article) {
         return AdminArticleResponse.builder()
+                .id(article.getId())
                 .thumbnailUrl(article.getThumbnailUrl())
                 .title(article.getTitle())
                 .source(article.getSource())
