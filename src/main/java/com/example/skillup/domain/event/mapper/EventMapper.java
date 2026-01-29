@@ -126,7 +126,8 @@ public class EventMapper {
 
     public EventResponse.HomeEventResponse mapEsDocToHomeItem(
             EventDocument eventDocument,
-            Double score
+            Double score,
+            boolean isBookmarked
     ) {
         LocalDateTime startDt = eventDocument.getEventStart() == null
                 ? null
@@ -171,17 +172,18 @@ public class EventMapper {
                 .d_dayLabel(d_day)
                 .recommended(Boolean.TRUE.equals(eventDocument.getRecommendedManual()))
                 .ad(Boolean.TRUE.equals(eventDocument.getAd()))
-                .bookmarked(false)
+                .bookmarked(isBookmarked)
                 .category(category)
                 .recommendedRate(recommendedRate)
                 .build();
     }
 
     public EventResponse.SearchEventResponseList toSearchEventResponseList
-            (int total, List<EventResponse.HomeEventResponse> events) {
+            (int total, List<EventResponse.HomeEventResponse> events , boolean fallback) {
         return EventResponse.SearchEventResponseList.builder()
                 .total(total)
                 .homeEventResponseList(events)
+                .fallback(fallback)
                 .build();
     }
 

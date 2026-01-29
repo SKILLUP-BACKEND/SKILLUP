@@ -276,10 +276,11 @@ public class EventController {
     }
 
     @PostMapping("/search/home")
-    @Operation(summary = "행사 검색 api", description = "검색 내용의 행사들을 불러옵니다.")
+    @Operation(summary = "행사 검색 api", description = "검색 내용의 행사들을 불러옵니다.(fallback 의 값이 true 이면 검색 결과 0 추천 행사 , false 이면 검색 성공)")
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
-            @Valid @RequestBody EventRequest.EventSearchRequest request) {
-        return BaseResponse.success("검색 성공", eventSearchService.search(request));
+            @Valid @RequestBody EventRequest.EventSearchRequest request,
+            @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user) {
+        return BaseResponse.success("검색 성공", eventSearchService.search(request , user));
     }
 
     @PatchMapping("/{eventId}/apply")

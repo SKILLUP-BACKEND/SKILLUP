@@ -480,7 +480,7 @@ public class EventService {
                 (condition, pageable, since, now);
     }
 
-    private Set<Long> getBookmarkedEventId(UsersDetails user, List<Long> eventIds) {
+    public Set<Long> getBookmarkedEventId(UsersDetails user, List<Long> eventIds) {
         Set<Long> bookmarkedEventIds = new HashSet<>();
 
         if (user != null && !eventIds.isEmpty()) {
