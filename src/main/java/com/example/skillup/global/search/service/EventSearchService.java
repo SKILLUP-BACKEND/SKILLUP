@@ -17,6 +17,7 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.service.EventService;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.search.document.EventDocument;
 import com.example.skillup.global.search.exception.SearchErrorCode;
@@ -26,6 +27,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +46,11 @@ public class EventSearchService {
     private final ElasticsearchClient elasticsearchClient;
     private final EventMapper eventMapper;
     private final EventRepository eventRepository;
+    private final EventService eventService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
 
-    public EventResponse.SearchEventResponseList search(EventRequest.EventSearchRequest request , UsersDetails user) {
+    public EventResponse.SearchEventResponseList search(EventRequest.EventSearchRequest request, UsersDetails user) {
 
         // 1) 전처리
         String searchString = request.getSearchString() == null ? "" : request.getSearchString().trim();
@@ -153,19 +157,37 @@ public class EventSearchService {
                     PageRequest.of(0, 4)
             );
 
+            List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
+            Set<Long> bookmarkedEventIds = eventService.getBookmarkedEventId(user, eventIds);
+
             return eventMapper.toSearchEventResponseList(0, rows.stream()
                     .map(r -> {
                         double score = r.getPopularity();
                         Event event = r.getEvent();
                         boolean recommended = event.isRecommendedManual();
-                        return eventMapper.toFeaturedEvent(event, false, recommended, event.isAd(), score);
-                    }).toList() , true);
+                        boolean bookmarked = (user != null) && bookmarkedEventIds.contains(event.getId());
+                        return eventMapper.toFeaturedEvent(event, bookmarked, recommended, event.isAd(), score);
+                    }).toList(), true);
         }
+
+        List<Long> eventIdsForSearching = documentSearchResponse.hits().hits().stream()
+                .map(hit -> hit.source() == null ? null : hit.source().getId())
+                .filter(Objects::nonNull)
+                .toList();
+        Set<Long> bookmarkedEventIdsForSearching = eventService.getBookmarkedEventId(user, eventIdsForSearching);
+
         List<EventResponse.HomeEventResponse> items = documentSearchResponse.hits().hits().stream()
-                .map(hit -> eventMapper.mapEsDocToHomeItem(hit.source(), hit.score()))
+                .map(hit -> {
+                    EventDocument document = hit.source();
+                    if (document == null) {
+                        throw new SearchException(SearchErrorCode.SEARCH_DOCUMENT_SOURCE_NULL);
+                    }
+                    boolean bookmarked = (user != null) && bookmarkedEventIdsForSearching.contains(document.getId());
+                    return eventMapper.mapEsDocToHomeItem(document, hit.score(), bookmarked);
+                })
                 .toList();
 
-        return eventMapper.toSearchEventResponseList(total, items , false);
+        return eventMapper.toSearchEventResponseList(total, items, false);
     }
 }
 

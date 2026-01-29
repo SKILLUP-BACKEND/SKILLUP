@@ -12,6 +12,7 @@ public enum SearchErrorCode implements ResultCode {
     SEARCH_SEARCH_QUERY_TOO_SHORT("SEARCH_SEARCH_QUERY_TOO_SHORT", "검색어는 2글자 이상 입력해 주세요.", HttpStatus.BAD_REQUEST),
     SEARCH_SEARCH_ERROR("SEARCH_SEARCH_ERROR", "검색 기능 시 에러가 발생했습니다.", HttpStatus.BAD_REQUEST),
     GROUP_ENTITY_NOT_FOUND("GROUP_ENTITY_NOT_FOUND","GRUOP 이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    SEARCH_DOCUMENT_SOURCE_NULL("SEARCH_DOCUMENT_SOURCE_NULL", "검색 결과 문서 데이터(_source)가 비어있습니다.", HttpStatus.SERVICE_UNAVAILABLE),
     ;
 
     private final String code;
