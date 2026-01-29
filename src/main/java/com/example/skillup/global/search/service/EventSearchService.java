@@ -17,6 +17,7 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.global.search.document.EventDocument;
 import com.example.skillup.global.search.exception.SearchErrorCode;
 import com.example.skillup.global.search.exception.SearchException;
@@ -45,7 +46,7 @@ public class EventSearchService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
 
-    public EventResponse.SearchEventResponseList search(EventRequest.EventSearchRequest request) {
+    public EventResponse.SearchEventResponseList search(EventRequest.EventSearchRequest request , UsersDetails user) {
 
         // 1) 전처리
         String searchString = request.getSearchString() == null ? "" : request.getSearchString().trim();
@@ -149,22 +150,22 @@ public class EventSearchService {
                     null,
                     since,
                     LocalDateTime.now(),
-                    PageRequest.of(0, 10)
+                    PageRequest.of(0, 4)
             );
 
-            return eventMapper.toSearchEventResponseList(rows.size(), rows.stream()
+            return eventMapper.toSearchEventResponseList(0, rows.stream()
                     .map(r -> {
                         double score = r.getPopularity();
                         Event event = r.getEvent();
                         boolean recommended = event.isRecommendedManual();
                         return eventMapper.toFeaturedEvent(event, false, recommended, event.isAd(), score);
-                    }).toList());
+                    }).toList() , true);
         }
         List<EventResponse.HomeEventResponse> items = documentSearchResponse.hits().hits().stream()
                 .map(hit -> eventMapper.mapEsDocToHomeItem(hit.source(), hit.score()))
                 .toList();
 
-        return eventMapper.toSearchEventResponseList(total, items);
+        return eventMapper.toSearchEventResponseList(total, items , false);
     }
 }
 

@@ -178,10 +178,11 @@ public class EventMapper {
     }
 
     public EventResponse.SearchEventResponseList toSearchEventResponseList
-            (int total, List<EventResponse.HomeEventResponse> events) {
+            (int total, List<EventResponse.HomeEventResponse> events , boolean fallback) {
         return EventResponse.SearchEventResponseList.builder()
                 .total(total)
                 .homeEventResponseList(events)
+                .fallback(fallback)
                 .build();
     }
 

@@ -132,6 +132,7 @@ public class EventResponse {
         @Builder.Default
         private List<HomeEventResponse> homeEventResponseList = Collections.emptyList();
         private CommonResponse.PageInfoResponse pageInfoResponse;
+        private boolean fallback;
     }
 
     @Getter
