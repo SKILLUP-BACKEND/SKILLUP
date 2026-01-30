@@ -141,6 +141,7 @@ public class EventResponse {
     public static class EventBannerResponse {
         private int displayOrder;
 
+        private Long id;
         private String title;
         private String bannerImageUrl;
         private String bannerLink;
