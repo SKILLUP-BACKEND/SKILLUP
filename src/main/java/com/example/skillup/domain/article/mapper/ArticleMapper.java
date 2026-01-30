@@ -81,6 +81,7 @@ public class ArticleMapper {
                 .originalUrl(article.getOriginalUrl())
                 .clickCount(article.getClickCount())
                 .thumbnailUrl(article.getThumbnailUrl())
+                .status(article.getStatus())
                 .build();
     }
 
