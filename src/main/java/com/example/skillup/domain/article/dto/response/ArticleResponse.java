@@ -56,7 +56,6 @@ public class ArticleResponse {
         private String originalUrl;
         private Long clickCount;
         private String thumbnailUrl;
-        private ArticleStatus status;
     }
 
     @AllArgsConstructor

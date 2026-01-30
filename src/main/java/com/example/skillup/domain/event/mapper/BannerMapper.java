@@ -24,7 +24,6 @@ public class BannerMapper {
 
     public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
         return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
-                .id(eventBanner.getId())
                 .title(eventBanner.getTitle())
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
@@ -36,7 +35,6 @@ public class BannerMapper {
 
     public EventResponse.EventBannerResponse toCreateBannerResponse(EventBanner eventBanner) {
         return EventResponse.EventBannerResponse.builder()
-                .id(eventBanner.getId())
                 .title(eventBanner.getTitle())
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
