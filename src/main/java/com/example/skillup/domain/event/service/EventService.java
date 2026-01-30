@@ -465,7 +465,7 @@ public class EventService {
     @HandleDataAccessException
     public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId, UsersDetails user) {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable);
+        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable , ActionType.VIEW);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);

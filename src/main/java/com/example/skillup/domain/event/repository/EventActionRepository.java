@@ -2,9 +2,7 @@ package com.example.skillup.domain.event.repository;
 
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
-import com.example.skillup.domain.event.entity.TargetRole;
 import com.example.skillup.domain.event.enums.ActionType;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +19,10 @@ public interface EventActionRepository extends JpaRepository<EventAction, Long> 
     @Query("""
         SELECT ea.event
         FROM EventAction ea
-        WHERE ea.actorId = :actorId
+        WHERE ea.actorId = :actorId AND ea.actionType = :actionType
         ORDER BY ea.updatedAt DESC
 """)
-    List<Event> findRecentEventsByActorId(@Param("actorId")String actorId, Pageable pageable);
+    List<Event> findRecentEventsByActorId(@Param("actorId")String actorId, Pageable pageable , @Param("actionType")ActionType actionType);
 
     List<EventAction> findAllByEventAndActionType(Event event, ActionType actionType);
 
