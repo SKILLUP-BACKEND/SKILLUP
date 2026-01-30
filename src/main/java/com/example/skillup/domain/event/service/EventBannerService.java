@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.EventBannerResponse;
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.exception.EventErrorCode;
@@ -130,4 +131,8 @@ public class EventBannerService {
 
     }
 
+    public EventBannerResponse getBannerDetail(Long bannerId) {
+        EventBanner eventBanner = eventBannerRepository.getEventBanner(bannerId);
+        return bannerMapper.toCreateBannerResponse(eventBanner);
+    }
 }
