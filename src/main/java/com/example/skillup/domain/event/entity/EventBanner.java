@@ -36,7 +36,7 @@ public class EventBanner extends BaseEntity {
     @Column(nullable = false, length = 20)
     private BannerType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false , length = 512)
     public String bannerImageUrl;
 
     @Column(nullable = false, length = 100)

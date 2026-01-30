@@ -133,7 +133,7 @@ public class EventController {
             @RequestParam(defaultValue = "8") int size,
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size , user));
+        return BaseResponse.success("추천/인기 행사 리스트 조회 성공", eventService.getFeaturedEvents(tab, size, user));
     }
 
     @GetMapping("/home/closing-soon")
@@ -147,7 +147,7 @@ public class EventController {
     ) {
         return BaseResponse.success(
                 "곧 종료되는 행사 리스트 조회 성공",
-                eventService.getClosingSoonEvents(size , user)
+                eventService.getClosingSoonEvents(size, user)
         );
     }
 
@@ -161,7 +161,8 @@ public class EventController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        return BaseResponse.success("카테고리별 리스트 조회 성공", eventService.getEventsByCategoryForHome(category, page, size , tab , user));
+        return BaseResponse.success("카테고리별 리스트 조회 성공",
+                eventService.getEventsByCategoryForHome(category, page, size, tab, user));
     }
 
     @GetMapping("/home/admin/banners")
@@ -199,6 +200,16 @@ public class EventController {
         return BaseResponse.success("배너 순서 수정 성공", null);
     }
 
+    @GetMapping("/home/admin/banners/{bannerId}")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "배너 상세 조회 API 입니다.(관리자용)")
+    public BaseResponse<EventResponse.EventBannerResponse> getBannerDetail(
+            @PathVariable Long bannerId
+    ) {
+        return BaseResponse.success("배너 상세 조회 성공", eventBannerService.getBannerDetail(bannerId));
+    }
+
+
     @PutMapping(value = "/home/admin/banners/{bannerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
     @Operation(
@@ -232,7 +243,7 @@ public class EventController {
             @Valid @RequestBody EventRequest.EventSearchCondition condition,
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
-        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition , user);
+        EventResponse.SearchEventResponseList response = eventService.getEventBySearch(condition, user);
         return BaseResponse.success("카테고리 페이지 검색 성공", response);
     }
 
@@ -245,7 +256,7 @@ public class EventController {
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user
     ) {
 
-        List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category , user);
+        List<EventResponse.HomeEventResponse> events = eventService.getSupplementaryEvents(category, user);
         return BaseResponse.success("카테고리 페이지 추천 이벤트 조회 성공", events);
     }
 
@@ -254,7 +265,7 @@ public class EventController {
             , description = "홈 화면 이벤트 추천 api")
     public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(
             @AuthenticationPrincipal UsersDetails user) {
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId() , user);
+        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId(), user);
         return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공", events);
     }
 
@@ -271,7 +282,8 @@ public class EventController {
             cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
         }
         List<EventResponse.HomeEventResponse> events =
-                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : cookieGuestId , user);
+                eventService.getRecentEvents(user != null ? String.valueOf(user.getUser().getId()) : cookieGuestId,
+                        user);
         return BaseResponse.success("홈 화면에서 최근 본 이벤트 조회 성공", events);
     }
 
@@ -280,7 +292,7 @@ public class EventController {
     public BaseResponse<EventResponse.SearchEventResponseList> searchEvents(
             @Valid @RequestBody EventRequest.EventSearchRequest request,
             @AuthenticationPrincipal(errorOnInvalidType = false) UsersDetails user) {
-        return BaseResponse.success("검색 성공", eventSearchService.search(request , user));
+        return BaseResponse.success("검색 성공", eventSearchService.search(request, user));
     }
 
     @PatchMapping("/{eventId}/apply")
