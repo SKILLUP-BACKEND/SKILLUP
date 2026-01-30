@@ -36,6 +36,7 @@ public class BannerMapper {
 
     public EventResponse.EventBannerResponse toCreateBannerResponse(EventBanner eventBanner) {
         return EventResponse.EventBannerResponse.builder()
+                .id(eventBanner.getId())
                 .title(eventBanner.getTitle())
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
