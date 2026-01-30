@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.EventBannerResponse;
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.domain.event.exception.EventErrorCode;
@@ -49,7 +50,6 @@ public class EventBannerService {
     //배너 종류 : 화면에 보이는 배너 + 시작 기간을 기다리고 있는 배너 / 이전 배너
     @Transactional(readOnly = true)
     public EventResponse.EventBannerAdminResponse getEventBanners(int page) {
-
 
         List<EventBanner> mainBanners = eventBannerRepository.findCurrentAndWaitingEventBannersByType(
                 BannerType.MAIN_BANNER, now);
@@ -130,4 +130,8 @@ public class EventBannerService {
 
     }
 
+    public EventBannerResponse getBannerDetail(Long bannerId) {
+        EventBanner eventBanner = eventBannerRepository.getEventBanner(bannerId);
+        return bannerMapper.toCreateBannerResponse(eventBanner);
+    }
 }
