@@ -7,9 +7,15 @@ import com.example.skillup.domain.oauth.exception.OauthException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleOauth implements SocialOauth {
     @Value("${sns.google.url}")
     private String GOOGLE_SNS_BASE_URL;
@@ -55,16 +62,25 @@ public class GoogleOauth implements SocialOauth {
     public String requestAccessToken(String code) {
         RestTemplate restTemplate = new RestTemplate();
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("code", code);
-        params.put("client_id", GOOGLE_SNS_CLIENT_ID);
-        params.put("client_secret", GOOGLE_SNS_CLIENT_SECRET);
-        params.put("redirect_uri", GOOGLE_SNS_CALLBACK_URL);
-        params.put("grant_type", "authorization_code");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("code", code);
+        body.add("client_id", GOOGLE_SNS_CLIENT_ID);
+        body.add("client_secret", GOOGLE_SNS_CLIENT_SECRET);
+        body.add("redirect_uri", GOOGLE_SNS_CALLBACK_URL);
+        body.add("grant_type", "authorization_code");
+
+        log.info("google callback url = {}", GOOGLE_SNS_CALLBACK_URL);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
 
         try {
             ResponseEntity<String> responseEntity =
-                    restTemplate.postForEntity(GOOGLE_SNS_TOKEN_BASE_URL, params, String.class);
+                    restTemplate.postForEntity(GOOGLE_SNS_TOKEN_BASE_URL, request, String.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 return responseEntity.getBody();
