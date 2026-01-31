@@ -144,7 +144,7 @@ public class EventService {
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
         }
-
+        //TODO eventbookmarked 및 eventaction 도 연동해서 지워야할듯
         event.delete();
 
         eventIndexerService.delete(event.getId());
@@ -404,7 +404,7 @@ public class EventService {
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
 
         JobGroup targetRole = condition.getTargetRole();
-        String targetRoleKr = (targetRole == null) ? null : targetRole.getToKorean();
+        String targetRoleKr = (targetRole == null || targetRole.equals(JobGroup.ALL)) ? null : targetRole.getToKorean();
         boolean targetRolesIsEmpty = (targetRoleKr == null || targetRoleKr.isEmpty());
 
         int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
@@ -453,7 +453,7 @@ public class EventService {
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId, UsersDetails user) {
-        List<Event> events = eventRepository.findRecommendedEventForHome(actorId, since);
+        List<Event> events = eventRepository.findRecommendedEventForHome(actorId.toString(), actorId , since);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
