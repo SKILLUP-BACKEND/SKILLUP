@@ -6,6 +6,7 @@ import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.global.common.BaseEntity;
+import com.example.skillup.global.common.CommonMapper;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,6 +81,12 @@ public class Event extends BaseEntity {
     private Boolean isOnline;
     private String locationText;
     private String locationLink;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
 
     // 신청 링크
     private String applyLink;
@@ -153,6 +161,11 @@ public class Event extends BaseEntity {
         this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
-
     }
+
+    public void updateCoordinates(Double lat, Double lng) {
+        this.latitude = CommonMapper.toBigDecimal(lat);
+        this.longitude = CommonMapper.toBigDecimal(lng);
+    }
+
 }

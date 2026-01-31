@@ -49,6 +49,9 @@ public class EventResponse {
         private String locationText; //TODO : 위치 자표를 받는 거 고민
         private String locationLink; //TODO : 필요한지 고민
 
+        private Double latitude;
+        private Double longitude;
+
         private String applyLink;
 
         private EventStatus status;

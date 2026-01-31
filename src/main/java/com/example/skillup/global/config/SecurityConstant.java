@@ -38,7 +38,9 @@ public class SecurityConstant {
             // ========== OAuth (public) ==========
             "/oauth/**",
             // ========== Admin ==========
-            "/admin/login"
+            "/admin/login",
+            // ========== Test ==========
+            "/api/test/**"
     };
 
     // Swagger UI 관련 공개 경로

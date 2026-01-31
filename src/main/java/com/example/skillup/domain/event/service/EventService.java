@@ -18,6 +18,8 @@ import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
+import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -38,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventService {
@@ -61,6 +65,7 @@ public class EventService {
     private final NotFoundGuardService notFoundGuardService;
     private final EventBookmarkRepository eventBookmarkRepository;
     private final UserRepository userRepository;
+    private final GeocodingService geocodingService;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -105,7 +110,14 @@ public class EventService {
             thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-        Event event = eventMapper.toEntity(request, thumbnailUrl);
+
+        GeoPoint eventGeoPoint = null;
+        if (!request.getIsOnline()) {
+            eventGeoPoint = geocodingService.geocode(request.getLocationText());
+            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(), eventGeoPoint.roadAddress());
+        }
+
+        Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
@@ -145,6 +157,8 @@ public class EventService {
                                                          MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
+        String oldLocationText = event.getLocationText();
+        Boolean oldIsOnline = event.getIsOnline();
         String imageUrl = event.getThumbnailUrl();
 
         if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
@@ -157,6 +171,14 @@ public class EventService {
         }
 
         event.update(request, imageUrl);
+
+        boolean locationChanged = request.getLocationText() != null && !request.getLocationText().equals(oldLocationText);
+
+        boolean onlineChanged = request.getIsOnline() != null && !request.getIsOnline().equals(oldIsOnline);
+
+        if (locationChanged || onlineChanged) {
+            applyGeocode(event);
+        }
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
@@ -171,6 +193,22 @@ public class EventService {
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
+    }
+
+    private void applyGeocode(Event event) {
+        if (event.getIsOnline()) {
+            event.updateCoordinates(null, null);
+            return;
+        }
+
+        String address = event.getLocationText();
+        if (address == null || address.isBlank()) {
+            throw new EventException(EventErrorCode.INVALID_LOCATION_TEXT);
+        }
+
+        GeoPoint point = geocodingService.geocode(address);
+        log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", point.lat(), point.lng(), point.roadAddress());
+        event.updateCoordinates(point.lat(), point.lng());
     }
 
 
