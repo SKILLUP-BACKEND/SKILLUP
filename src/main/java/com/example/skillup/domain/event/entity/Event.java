@@ -117,8 +117,8 @@ public class Event extends BaseEntity {
     private long viewsCount = 0L;
 
     @Builder.Default
-    @Column(name = "likes_count", nullable = false)
-    private long likesCount = 0L;
+    @Column(name = "bookmarked_count", nullable = false)
+    private long bookmarkedCount = 0L;
 
     @Builder.Default
     @Column(name = "apply_clicks", nullable = false)
