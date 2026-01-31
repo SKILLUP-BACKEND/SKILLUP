@@ -250,7 +250,7 @@ public class EventRepositoryTest
     }
     @Transactional(readOnly = true)
     void findRecommendedInDB() {
-        List<Event>top6EventIds=eventRepository.findRecommendedEventForHome(1100L,since);
+        List<Event>top6EventIds=eventRepository.findRecommendedEventForHome("1100" , 1100L,since);
     }
 
     @Transactional(readOnly = true)
