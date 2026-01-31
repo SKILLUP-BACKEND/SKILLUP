@@ -28,7 +28,7 @@ public class NaverGeocodingProvider implements GeocodingProvider {
 
     @Override
     public GeoPoint geocode(String query) {
-        if (query == null || query.isEmpty()) {
+        if (query == null || query.isBlank()) {
             throw new MapException(MapErrorCode.INVALID_ADDRESS_QUERY, "query(주소)는 필수입니다.");
         }
 

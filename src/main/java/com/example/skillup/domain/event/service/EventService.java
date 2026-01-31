@@ -112,7 +112,7 @@ public class EventService {
 
 
         GeoPoint eventGeoPoint = null;
-        if (!request.getIsOnline() && !request.getLocationText().isBlank()) {
+        if (!request.getIsOnline()) {
             eventGeoPoint = geocodingService.geocode(request.getLocationText());
             log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(), eventGeoPoint.roadAddress());
         }
