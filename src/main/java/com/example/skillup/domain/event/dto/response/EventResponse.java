@@ -216,6 +216,7 @@ public class EventResponse {
     @Getter
     @Builder
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class AdminEventRow {
         private Long id;
 
@@ -225,12 +226,21 @@ public class EventResponse {
         private String category;
 
         private String eventPeriodText;
+        private LocalDate eventRecruitEnd;
 
-        private long viewsCount;
-        private long bookmarksCount;
+        private Long viewsCount;
+        private Long bookmarksCount;
 
         private String status;
 
         private LocalDateTime createdAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminDraftEventResponse{
+        List<AdminEventRow> draftEventRowList;
+        Long totalEventCount;
     }
 }

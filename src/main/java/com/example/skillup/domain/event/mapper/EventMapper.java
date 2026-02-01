@@ -300,6 +300,29 @@ public class EventMapper {
         ).toList();
     }
 
+
+
+    public EventResponse.AdminDraftEventResponse toAdminDraftEventRowList(List<Event> events){
+
+        List<EventResponse.AdminEventRow> eventRow = IntStream.range(0,events.size()).mapToObj(
+                idx -> {
+                    Event event = events.get(idx);
+                    long no = events.size() - idx;
+
+                    return EventResponse.AdminEventRow.builder()
+                            .id(event.getId())
+                            .no(no)
+                            .title(event.getTitle())
+                            .eventRecruitEnd(event.getRecruitEnd().toLocalDate())
+                            .eventPeriodText(formatRange(event.getEventStart(), event.getEventEnd(), DATE_FMT))
+                            .createdAt(event.getCreatedAt())
+                            .build();
+                }
+        ).toList();
+
+        return new EventResponse.AdminDraftEventResponse(eventRow , (long)events.size());
+    }
+
     public EventResponse.AdminEventPageResponse toAdminEventPageResponse(List<EventResponse.AdminEventRow> eventRowList,
                                                                          AdminEventSummaryProjection countSummary,
                                                                          List<AdminCategoryCountProjection> categoryCount,

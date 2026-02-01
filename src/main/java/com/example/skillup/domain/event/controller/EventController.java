@@ -6,6 +6,7 @@ import com.example.skillup.domain.event.dto.response.EventResponse.EventApplyRes
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventBookmark;
 import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventSortType;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.service.EventBannerService;
 import com.example.skillup.domain.event.service.EventBookmarkService;
@@ -134,6 +135,20 @@ public class EventController {
     ) {
         return BaseResponse.success("행사관리 페이지 조회 성공", eventService.getAdminEventPage(request));
     }
+
+
+    @GetMapping("/admin/drafts")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "임시저장(DRAFT) 행사 목록 조회(관리자용)",
+            description = "관리자 모달에서 선택할 임시저장(DRAFT) 행사 목록을 정렬 기준에 따라 조회합니다 최대 200개까지. "
+                    + "정렬 방식은 DEADLINE(모집 마감일순) ,CREATED_AT(등록일 순) ")
+    public BaseResponse<EventResponse.AdminDraftEventResponse> getAdminDraftEvents(
+            @RequestParam(required = false, defaultValue = "CREATED_AT") EventSortType sort
+    ) {
+        return BaseResponse.success("임시저장 행사 목록 조회 성공",
+                eventService.getAdminDraftEvents(sort));
+    }
+
 
     @GetMapping("/{eventId}")
     @Operation(summary = "행사 상세 조회 API", description = "특정 행사의 상세 정보를 불러옵니다.")

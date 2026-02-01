@@ -3,6 +3,7 @@ package com.example.skillup.domain.event.service;
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.request.EventRequest.AdminEventPageRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.AdminDraftEventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
@@ -77,6 +78,7 @@ public class EventService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+
 
 
 
@@ -578,5 +580,17 @@ public class EventService {
 
             default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE , sortType.name() +"은 ");
         };
+    }
+
+    public AdminDraftEventResponse getAdminDraftEvents(EventSortType sortType) {
+
+        List<Event> events = switch (sortType) {
+            case DEADLINE -> eventRepository.findTop200ByStatusOrderByRecruitEndAsc(EventStatus.DRAFT);
+            case CREATED_AT -> eventRepository.findTop200ByStatusOrderByCreatedAtDesc(EventStatus.DRAFT);
+
+            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE , sortType.name() +"은 ");
+        };
+
+        return eventMapper.toAdminDraftEventRowList(events);
     }
 }

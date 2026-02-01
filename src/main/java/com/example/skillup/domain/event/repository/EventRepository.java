@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.repository;
 
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.enums.EventCategory;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import java.time.LocalDate;
@@ -299,6 +300,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("includeEnded") boolean includeEnded,
             @Param("now") LocalDateTime now
     );
+
+    List<Event> findTop200ByStatusOrderByRecruitEndAsc(EventStatus eventStatus);
+
+    List<Event> findTop200ByStatusOrderByCreatedAtDesc(EventStatus eventStatus);
 
 
     public interface AdminEventSummaryProjection {
