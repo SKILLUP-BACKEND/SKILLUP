@@ -1,7 +1,9 @@
 package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
+import com.example.skillup.domain.event.dto.request.EventRequest.AdminEventPageRequest;
 import com.example.skillup.domain.event.dto.response.EventResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
 import com.example.skillup.domain.event.entity.EventLike;
@@ -17,6 +19,8 @@ import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.EventLikeRepository;
 import com.example.skillup.domain.event.repository.EventRepository;
+import com.example.skillup.domain.event.repository.EventRepository.AdminCategoryCountProjection;
+import com.example.skillup.domain.event.repository.EventRepository.AdminEventSummaryProjection;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.domain.map.service.GeocodingService;
@@ -26,6 +30,8 @@ import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.aop.HandleDataAccessException;
+import com.example.skillup.global.common.CommonMapper;
+import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.search.service.EventIndexerService;
@@ -42,8 +48,10 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -69,6 +77,8 @@ public class EventService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+
+
 
     private record ActorInfo(String actorId, ActorType actorType) {
     }
@@ -525,5 +535,48 @@ public class EventService {
             bookmarkedEventIds.addAll(eventBookmarkRepository.findBookmarkedEventIds(user.getUser().getId(), eventIds));
         }
         return bookmarkedEventIds;
+    }
+
+
+    @Transactional(readOnly = true)
+    public AdminEventPageResponse getAdminEventPage(AdminEventPageRequest request) {
+
+        String keyword = request.getKeyword();
+        if(keyword != null) {
+            keyword = keyword.trim();
+            keyword = keyword.isEmpty() ? null : keyword;
+        }
+
+        int page = request.getPage();
+        Pageable pageable = PageRequest.of(page, 20 , toSpringSort(request.getSort()));
+        //검색 결과 표시용 event
+        Page<Event> result = eventRepository.findAdminEvents(request.getIncludeEnded(), request.getCategory(), keyword, now, pageable);
+
+        List<EventResponse.AdminEventRow> rows = eventMapper.toAdminEventRowList(result.getContent() , page , 20 ,
+                result.getTotalElements(), now);
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonMapper.toPageInfoResponse(pageable , page , (int)result.getTotalElements());
+
+
+        log.info("total elements: {}", result.getTotalElements());
+
+        //상단바
+        AdminEventSummaryProjection countSummary = eventRepository.fetchAdminSummary(request.getIncludeEnded(), now);
+        //검색 결과 상단바
+        List<AdminCategoryCountProjection> categoryCount = eventRepository.fetchAdminCategoryCounts(request.getIncludeEnded() , keyword , now);
+
+        return eventMapper.toAdminEventPageResponse(rows , countSummary , categoryCount ,pageInfoResponse);
+    }
+
+    private Sort toSpringSort(EventSortType sortType) {
+        if (sortType == null) return Sort.by(Sort.Direction.ASC, "eventStart");
+
+        return switch (sortType) {
+            case EVENT_START -> Sort.by(Sort.Direction.ASC, "eventStart");
+            case VIEWS -> Sort.by(Sort.Direction.DESC, "viewsCount");
+            case BOOKMARKS -> Sort.by(Sort.Direction.DESC, "bookmarkedCount");
+            case CREATED_AT -> Sort.by(Sort.Direction.DESC, "createdAt");
+
+            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE , sortType.name() +"은 ");
+        };
     }
 }

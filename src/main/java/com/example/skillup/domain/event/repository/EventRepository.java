@@ -245,6 +245,94 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
                                                                                            @Param("due") LocalDateTime due,
                                                                                            Pageable pageable);
 
+    @Query("""
+        select e
+        from Event e
+        where (:category = com.example.skillup.domain.event.enums.EventCategory.ALL or e.category = :category)
+          and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%')))
+          and (:includeEnded = true or e.eventEnd >= :now)
+          and (e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED)
+    """)
+    Page<Event> findAdminEvents(
+            @Param("includeEnded") boolean includeEnded,
+            @Param("category") EventCategory category,
+            @Param("keyword") String keyword,
+            @Param("now") LocalDateTime now,
+            Pageable pageable
+    );
+
+
+    @Query("""
+    select
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+        then 1 else 0 end), 0) as totalRegistered,
+
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+             and e.recruitStart > :now
+        then 1 else 0 end), 0) as recruitingScheduled,
+
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+             and e.recruitStart <= :now and :now <= e.recruitEnd
+        then 1 else 0 end), 0) as recruiting,
+
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+             and e.recruitEnd < :now and e.eventEnd >= :now
+        then 1 else 0 end), 0) as recruitingClosed,
+
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
+             and e.eventStart <= :now and e.eventEnd >= :now
+        then 1 else 0 end), 0) as ongoing,
+        
+      coalesce(sum(case
+        when e.status = com.example.skillup.domain.event.enums.EventStatus.DRAFT
+        then 1 else 0 end), 0) as creatableCount
+
+    from Event e
+    where (:includeEnded = true or e.eventEnd >= :now) 
+""")
+    AdminEventSummaryProjection fetchAdminSummary(
+            @Param("includeEnded") boolean includeEnded,
+            @Param("now") LocalDateTime now
+    );
+
+
+    public interface AdminEventSummaryProjection {
+        long getTotalRegistered();
+        long getRecruitingScheduled();
+        long getRecruiting();
+        long getRecruitingClosed();
+        long getOngoing();
+        long getCreatableCount();
+    }
+
+    @Query("""
+    select e.category as category, count(e) as count
+    from Event e
+    where (:includeEnded = true or e.eventEnd is null or e.eventEnd >= :now)
+      and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%')))
+      and (e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED)
+    group by e.category
+""")
+    List<AdminCategoryCountProjection> fetchAdminCategoryCounts(
+            @Param("includeEnded") boolean includeEnded,
+            @Param("keyword") String keyword,
+            @Param("now") LocalDateTime now
+    );
+
+    public interface AdminCategoryCountProjection {
+        EventCategory getCategory();
+        long getCount();
+    }
+
+
+
+
+
     public interface PopularEventProjection {
         Event getEvent();
         Long getViews14();

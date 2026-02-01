@@ -178,4 +178,59 @@ public class EventResponse {
         private String comment;
 
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventPageResponse {
+        //통계
+        private AdminEventSummary summary;
+        // 카테고리 카운트
+        private List<AdminCategoryCount> categoryCounts;
+
+        private List<AdminEventRow> events;
+        private CommonResponse.PageInfoResponse pageInfoResponse;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventSummary {
+        private long totalRegisteredCount;
+        private long recruitingScheduledCount;  // 모집예정
+        private long recruitingCount;           // 모집중
+        private long recruitingClosedCount;     // 모집마감
+        private long ongoingCount;
+        private Long creatableCount;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminCategoryCount {
+        private String category;
+        private long count;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventRow {
+        private Long id;
+
+        private Long no;
+
+        private String title;
+        private String category;
+
+        private String eventPeriodText;
+
+        private long viewsCount;
+        private long bookmarksCount;
+
+        private String status;
+
+        private LocalDateTime createdAt;
+    }
 }

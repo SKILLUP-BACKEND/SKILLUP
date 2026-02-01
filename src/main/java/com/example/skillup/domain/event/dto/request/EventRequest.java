@@ -257,4 +257,26 @@ public class EventRequest {
         @NotEmpty List<Long> bannerIds;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventPageRequest {
+
+        @Builder.Default
+        private Boolean includeEnded = false;
+
+        @NotNull(message = "카테고리를 선택해주세요.")
+        @Builder.Default
+        private EventCategory category = EventCategory.ALL;
+
+        private String keyword;
+
+        @Builder.Default
+        private EventSortType sort = EventSortType.EVENT_START;
+
+        @NotNull(message = "페이지 번호를 입력해주세요.")
+        private Integer page;
+
+    }
+
 }
