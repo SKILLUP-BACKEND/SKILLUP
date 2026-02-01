@@ -80,8 +80,6 @@ public class EventService {
     LocalDateTime now = LocalDateTime.now();
 
 
-
-
     private record ActorInfo(String actorId, ActorType actorType) {
     }
 
@@ -122,11 +120,11 @@ public class EventService {
             thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
         }
 
-
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline()) {
             eventGeoPoint = geocodingService.geocode(request.getLocationText());
-            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(), eventGeoPoint.roadAddress());
+            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(),
+                    eventGeoPoint.roadAddress());
         }
 
         Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
@@ -184,7 +182,8 @@ public class EventService {
 
         event.update(request, imageUrl);
 
-        boolean locationChanged = request.getLocationText() != null && !request.getLocationText().equals(oldLocationText);
+        boolean locationChanged =
+                request.getLocationText() != null && !request.getLocationText().equals(oldLocationText);
 
         boolean onlineChanged = request.getIsOnline() != null && !request.getIsOnline().equals(oldIsOnline);
 
@@ -465,7 +464,7 @@ public class EventService {
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId, UsersDetails user) {
-        List<Event> events = eventRepository.findRecommendedEventForHome(actorId.toString(), actorId , since);
+        List<Event> events = eventRepository.findRecommendedEventForHome(actorId.toString(), actorId, since);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
@@ -477,7 +476,7 @@ public class EventService {
     @HandleDataAccessException
     public List<EventResponse.HomeEventResponse> getRecentEvents(String actorId, UsersDetails user) {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable , ActionType.VIEW);
+        List<Event> events = eventActionRepository.findRecentEventsByActorId(actorId, pageable, ActionType.VIEW);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
@@ -544,33 +543,37 @@ public class EventService {
     public AdminEventPageResponse getAdminEventPage(AdminEventPageRequest request) {
 
         String keyword = request.getKeyword();
-        if(keyword != null) {
+        if (keyword != null) {
             keyword = keyword.trim();
             keyword = keyword.isEmpty() ? null : keyword;
         }
 
         int page = request.getPage();
-        Pageable pageable = PageRequest.of(page, 20 , toSpringSort(request.getSort()));
+        Pageable pageable = PageRequest.of(page, 20, toSpringSort(request.getSort()));
         //검색 결과 표시용 event
-        Page<Event> result = eventRepository.findAdminEvents(request.getIncludeEnded(), request.getCategory(), keyword, now, pageable);
+        Page<Event> result = eventRepository.findAdminEvents(request.getIncludeEnded(), request.getCategory(), keyword,
+                now, pageable);
 
-        List<EventResponse.AdminEventRow> rows = eventMapper.toAdminEventRowList(result.getContent() , page , 20 ,
+        List<EventResponse.AdminEventRow> rows = eventMapper.toAdminEventRowList(result.getContent(), page, 20,
                 result.getTotalElements(), now);
-        CommonResponse.PageInfoResponse pageInfoResponse = CommonMapper.toPageInfoResponse(pageable , page , (int)result.getTotalElements());
-
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonMapper.toPageInfoResponse(pageable, page,
+                (int) result.getTotalElements());
 
         log.info("total elements: {}", result.getTotalElements());
 
         //상단바
         AdminEventSummaryProjection countSummary = eventRepository.fetchAdminSummary(request.getIncludeEnded(), now);
         //검색 결과 상단바
-        List<AdminCategoryCountProjection> categoryCount = eventRepository.fetchAdminCategoryCounts(request.getIncludeEnded() , keyword , now);
+        List<AdminCategoryCountProjection> categoryCount = eventRepository.fetchAdminCategoryCounts(
+                request.getIncludeEnded(), keyword, now);
 
-        return eventMapper.toAdminEventPageResponse(rows , countSummary , categoryCount ,pageInfoResponse);
+        return eventMapper.toAdminEventPageResponse(rows, countSummary, categoryCount, pageInfoResponse);
     }
 
     private Sort toSpringSort(EventSortType sortType) {
-        if (sortType == null) return Sort.by(Sort.Direction.ASC, "eventStart");
+        if (sortType == null) {
+            return Sort.by(Sort.Direction.ASC, "eventStart");
+        }
 
         return switch (sortType) {
             case EVENT_START -> Sort.by(Sort.Direction.ASC, "eventStart");
@@ -578,7 +581,7 @@ public class EventService {
             case BOOKMARKS -> Sort.by(Sort.Direction.DESC, "bookmarkedCount");
             case CREATED_AT -> Sort.by(Sort.Direction.DESC, "createdAt");
 
-            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE , sortType.name() +"은 ");
+            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE, sortType.name() + "은 ");
         };
     }
 
@@ -588,7 +591,7 @@ public class EventService {
             case DEADLINE -> eventRepository.findTop200ByStatusOrderByRecruitEndAsc(EventStatus.DRAFT);
             case CREATED_AT -> eventRepository.findTop200ByStatusOrderByCreatedAtDesc(EventStatus.DRAFT);
 
-            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE , sortType.name() +"은 ");
+            default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE, sortType.name() + "은 ");
         };
 
         return eventMapper.toAdminDraftEventRowList(events);

@@ -164,7 +164,7 @@ public class EventResponse {
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class EventBannerAdminResponse{
+    public static class EventBannerAdminResponse {
         private List<EventBannerResponse> eventActiveBannerList;
         private List<EventBannerResponse> eventPastBannerList;
     }
@@ -239,7 +239,7 @@ public class EventResponse {
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class AdminDraftEventResponse{
+    public static class AdminDraftEventResponse {
         List<AdminEventRow> draftEventRowList;
         Long totalEventCount;
     }

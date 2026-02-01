@@ -255,8 +255,9 @@ public class EventRequest {
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class BannerOrderUpdateRequest{
-        @NotEmpty List<Long> bannerIds;
+    public static class BannerOrderUpdateRequest {
+        @NotEmpty
+        List<Long> bannerIds;
     }
 
     @Getter

@@ -117,13 +117,13 @@ public class EventController {
     @Operation(
             summary = "행사관리 페이지 조회 API(관리자용)",
             description = """
-                행사관리 페이지에 필요한 데이터를 조회합니다.
-                - 종료된 행사 포함 토글(includeEnded)
-                - 카테고리 탭 필터(category)
-                - 검색(keyword)
-                - 정렬(EVENT_START("행사 시작일 순"),VIEWS("조회수 많은 순"),BOOKMARKS("저장 많은 순"),CREATED_AT("등록일 순"))
-                - 페이지
-                """
+                    행사관리 페이지에 필요한 데이터를 조회합니다.
+                    - 종료된 행사 포함 토글(includeEnded)
+                    - 카테고리 탭 필터(category)
+                    - 검색(keyword)
+                    - 정렬(EVENT_START("행사 시작일 순"),VIEWS("조회수 많은 순"),BOOKMARKS("저장 많은 순"),CREATED_AT("등록일 순"))
+                    - 페이지
+                    """
     )
     @ApiResponse(
             responseCode = "200",
