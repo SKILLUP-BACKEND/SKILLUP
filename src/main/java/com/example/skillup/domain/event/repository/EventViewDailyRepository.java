@@ -14,8 +14,8 @@ public interface EventViewDailyRepository extends JpaRepository<EventViewDaily, 
     // 오늘 카운트 +1 (없으면 insert, 있으면 cnt+1)
     @Modifying
     @Query(value = """
-            INSERT INTO event_view_daily(event_id, view_date, cnt)
-            VALUES (:eventId, CURRENT_DATE, 1)
+            INSERT INTO event_view_daily(event_id, view_date, cnt , created_at, updated_at)
+            VALUES (:eventId, CURRENT_DATE, 1 , CURRENT_TIMESTAMP , CURRENT_TIMESTAMP)
             ON DUPLICATE KEY UPDATE cnt = cnt + 1,
                 updated_at = CURRENT_TIMESTAMP
             """, nativeQuery = true)

@@ -43,10 +43,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     select
         e as event,
         coalesce(sum(v.cnt), 0) as views14,
-        count(distinct el.id) as likesCnt,
+        count(distinct eb.id) as bookmarksCnt,
         (
             coalesce(sum(v.cnt), 0) * 0.6
-          + count(distinct el.id) * 0.3
+          + count(distinct eb.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
@@ -57,8 +57,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     from Event e
     left join EventViewDaily v
            on v.event = e and v.createdAt >= :since
-    left join EventLike el
-           on el.event = e and el.createdAt >= :since
+    left join EventBookmark eb
+           on eb.event = e and eb.createdAt >= :since
     left join EventAction ea
            on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -75,10 +75,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     order by
         (
             coalesce(sum(v.cnt), 0) * 0.6
-          + count(distinct el.id) * 0.3
+          + count(distinct eb.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
-                     then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
+                     then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
                      else 0
                 end
             ) * 0.1
@@ -96,10 +96,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     select
         e as event,
         coalesce(sum(v.cnt), 0) as views14,
-        count(distinct el.id) as likesCnt,
+        count(distinct eb.id) as bookmarksCnt,
         (
             coalesce(sum(v.cnt), 0) * 0.6
-          + count(distinct el.id) * 0.3
+          + count(distinct eb.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
@@ -110,8 +110,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     from Event e
     left join EventViewDaily v
            on v.event = e and v.createdAt >= :since
-    left join EventLike el
-           on el.event = e
+    left join EventBookmark eb
+           on eb.event = e and eb.createdAt >= :since
     left join EventAction ea
            on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -130,7 +130,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     order by
           (
             coalesce(sum(v.cnt), 0) * 0.6
-            + count(distinct el.id) * 0.3
+            + count(distinct eb.id) * 0.3
             + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
@@ -149,10 +149,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     select
         e as event,
         coalesce(sum(v.cnt), 0) as views14,
-        count(distinct el.id) as likesCnt,
+        count(distinct eb.id) as bookmarksCnt,
         (
             coalesce(sum(v.cnt), 0) * 0.6
-          + count(distinct el.id) * 0.3
+          + count(distinct eb.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
@@ -163,8 +163,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     from Event e
     left join EventViewDaily v
            on v.event = e and v.createdAt >= :since
-    left join EventLike el
-           on el.event = e
+    left join EventBookmark eb
+           on eb.event = e
     left join EventAction ea
            on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -184,7 +184,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     order by
           (
             coalesce(sum(v.cnt), 0) * 0.6
-            + count(distinct el.id) * 0.3
+            + count(distinct eb.id) * 0.3
             + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
@@ -203,10 +203,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     select
         e as event,
         coalesce(sum(v.cnt), 0) as views14,
-        count(distinct el.id) as likesCnt,
+        count(distinct eb.id) as bookmarksCnt,
         (
             coalesce(sum(v.cnt), 0) * 0.6
-          + count(distinct el.id) * 0.3
+          + count(distinct eb.id) * 0.3
           + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
@@ -217,8 +217,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     from Event e
     left join EventViewDaily v
            on v.event = e and v.createdAt >= :since
-    left join EventLike el
-           on el.event = e
+    left join EventBookmark eb
+           on eb.event = e
     left join EventAction ea
            on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
     where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -230,7 +230,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     order by
            (
             coalesce(sum(v.cnt), 0) * 0.6
-            + count(distinct el.id) * 0.3
+            + count(distinct eb.id) * 0.3
             + (
                 case when coalesce(sum(v.cnt), 0) > 0
                      then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
@@ -248,41 +248,71 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     public interface PopularEventProjection {
         Event getEvent();
         Long getViews14();
-        Long getLikesCnt();
+        Long getBookmarksCnt();
         Double getPopularity();
     }
 
     @Query(value = """
-    SELECT e.*
-    FROM `event` e
-    JOIN event_hash_tags eht ON e.id = eht.event_id
-    JOIN (
-        SELECT eht2.hash_tags_id,
-            SUM(
-                CAST(
-                    CASE ea.action_type
-                        WHEN 'VIEW'  THEN 0.3E0
-                        WHEN 'SAVE'  THEN 0.6E0
-                        WHEN 'APPLY' THEN 0.1E0
-                        ELSE 0E0
-                    END AS DOUBLE)
-                ) AS score
-    FROM event_action ea
-    JOIN event_hash_tags eht2 ON ea.event_id = eht2.event_id
-    WHERE ea.actor_id = :actorId
-      AND ea.created_at >= :since
-    GROUP BY eht2.hash_tags_id
-    ORDER BY score DESC
-    LIMIT 10) AS tt ON eht.hash_tags_id = tt.hash_tags_id
-    WHERE e.id NOT IN (
-        SELECT ea2.event_id
+SELECT e.*
+FROM `event` e
+JOIN event_hash_tags eht ON e.id = eht.event_id
+JOIN (
+    SELECT activity_tag_weights.hash_tags_id,
+           SUM(activity_tag_weights.weight) AS score
+    FROM (
+        SELECT eht2.hash_tags_id AS hash_tags_id,
+               0.3E0 AS weight
+        FROM event_action ea
+        JOIN event_hash_tags eht2 ON ea.event_id = eht2.event_id
+        WHERE ea.actor_id = :actorId
+          AND ea.created_at >= :since
+          AND ea.action_type = 'VIEW'
+
+        UNION ALL
+
+        -- 북마크 점수 환산
+        SELECT eht3.hash_tags_id AS hash_tags_id,
+               0.6E0 AS weight
+        FROM event_bookmark eb
+        JOIN event_hash_tags eht3 ON eb.event_id = eht3.event_id
+        WHERE eb.user_id = :userId
+          AND eb.deleted_at IS NULL
+          AND eb.is_bookmarked = true
+          AND eb.updated_at >= :since
+
+        UNION ALL
+
+        SELECT eht4.hash_tags_id AS hash_tags_id,
+               0.1E0 AS weight
         FROM event_action ea2
+        JOIN event_hash_tags eht4 ON ea2.event_id = eht4.event_id
         WHERE ea2.actor_id = :actorId
-    )
-    GROUP BY e.id
-    ORDER BY SUM(tt.score) DESC LIMIT 6
-     """, nativeQuery = true)
-    List<Event> findRecommendedEventForHome( @Param("actorId") Long actorId,@Param("since") LocalDateTime since);
+          AND ea2.created_at >= :since
+          AND ea2.action_type = 'APPLY'
+    ) AS activity_tag_weights
+    GROUP BY activity_tag_weights.hash_tags_id
+    ORDER BY score DESC
+    LIMIT 10
+) AS top_tags ON eht.hash_tags_id = top_tags.hash_tags_id
+WHERE e.id NOT IN (
+    -- 북마크 및 이미 보거나 신청한 행사 제외
+    SELECT ea3.event_id
+    FROM event_action ea3
+    WHERE ea3.actor_id = :actorId
+
+    UNION
+
+    SELECT eb2.event_id
+    FROM event_bookmark eb2
+    WHERE eb2.user_id = :userId
+      AND eb2.deleted_at IS NULL
+      AND eb2.is_bookmarked = true
+)
+GROUP BY e.id
+ORDER BY SUM(top_tags.score) DESC
+LIMIT 6
+""", nativeQuery = true)
+    List<Event> findRecommendedEventForHome( @Param("actorId") String actorId,@Param("userId") Long userId ,@Param("since") LocalDateTime since);
 
 
 
