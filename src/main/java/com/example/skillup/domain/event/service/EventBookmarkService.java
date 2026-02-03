@@ -32,8 +32,12 @@ public class EventBookmarkService {
 
         Optional<EventBookmark> eventBookmarkOptional = eventBookmarkRepository.findByUserAndEvent(user.getUser(),
                 event);
+
+        int delta = 1;
         if (eventBookmarkOptional.isPresent()) {
             eventBookmarkOptional.get().changeBookmarked();
+            delta = eventBookmarkOptional.get().getIsBookmarked() ? 1 : -1;
+            eventRepository.incrementBookmarks(event.getId(), delta);
             return eventBookmarkOptional.get();
         }
 
@@ -42,6 +46,7 @@ public class EventBookmarkService {
                 .user(user.getUser())
                 .isBookmarked(true)
                 .build();
+        eventRepository.incrementBookmarks(event.getId(), delta);
         eventBookmarkRepository.save(eventBookmark);
         return eventBookmark;
     }
