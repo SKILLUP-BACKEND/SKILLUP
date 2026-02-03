@@ -28,6 +28,14 @@ public class EventResponse {
     }
 
     @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class EventHashTagResponse{
+        List<HomeEventResponse> events;
+        List<String> hashTags;
+    }
+
+    @Getter
     @AllArgsConstructor
     @Builder
     public static class EventSelectResponse {

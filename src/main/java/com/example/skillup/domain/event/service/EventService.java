@@ -5,8 +5,10 @@ import com.example.skillup.domain.event.dto.request.EventRequest.AdminEventPageR
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminDraftEventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
+import com.example.skillup.domain.event.dto.response.EventResponse.EventHashTagResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
+import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.domain.event.enums.ActionType;
 import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
@@ -22,6 +24,7 @@ import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepository.AdminCategoryCountProjection;
 import com.example.skillup.domain.event.repository.EventRepository.AdminEventSummaryProjection;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
@@ -73,6 +76,7 @@ public class EventService {
     private final EventBookmarkRepository eventBookmarkRepository;
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
+    private final HashTagRepository hashTagRepository;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -448,13 +452,18 @@ public class EventService {
 
     @Transactional(readOnly = true)
     @HandleDataAccessException
-    public List<EventResponse.HomeEventResponse> getRecommendedEvents(Long actorId, UsersDetails user) {
+    public EventHashTagResponse getRecommendedEvents(Long actorId, UsersDetails user) {
         List<Event> events = eventRepository.findRecommendedEventForHome(actorId.toString(), actorId, since);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
+        List<HashTag> Top6HashTags = hashTagRepository.findUserTopHashTagEntitiesTop6(actorId.toString() , actorId , since);
 
-        return eventMapper.toHomeEventResponsList(events, bookmarkedEventIds);
+        //현재는 중복으로 조회를 하는데 해당 중복 구간을 나누기가 어려워서 납뒀습니다.
+        //중복으로 하지 않으려면 이벤트 정렬 순서만 없으면 상관없지만 tag_score 점수를 활용해서 이벤트도 점수에따라 순차적으로 내리려면 이렇게 하는 현재로선 방법이 최선인 거 같아요
+        //추후에 더 좋은 방법 있으면 리팩토링 해보는것도 좋을 거 같아요
+
+        return eventMapper.toEventHashTagResponse(events , bookmarkedEventIds , Top6HashTags);
     }
 
     @Transactional(readOnly = true)

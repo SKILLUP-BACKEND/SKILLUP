@@ -81,7 +81,7 @@ public class EventBookmarkServiceTest {
                 .thumbnailUrl("https://example.com/thumb/backend.jpg")
                 .applyClicks(120L)
                 .viewsCount(0L)
-                .likesCount(0L)
+                .bookmarkedCount(0L)
                 .applyLink("https://example.com/apply/backend")
                 .locationText("서울 강남")
                 .locationLink("https://maps.example.com/abc")

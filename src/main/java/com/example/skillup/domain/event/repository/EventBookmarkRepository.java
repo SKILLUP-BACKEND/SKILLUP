@@ -18,7 +18,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     @Query("""
         select eb.event
         from EventBookmark eb
-        where eb.user = :user
+        where eb.user = :user and eb.isBookmarked = true
         order by eb.createdAt desc
        """)
     List<Event> findEventsByUserWithLatest(@Param("user") Users user,
@@ -28,7 +28,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     @Query("""
         select eb.event
         from EventBookmark eb
-        where eb.user = :user
+        where eb.user = :user and eb.isBookmarked = true
         order by eb.event.recruitEnd asc
        """)
     List<Event> findEventsByUserWithDeadLine(@Param("user") Users user,
