@@ -39,11 +39,13 @@ public class EventRequest {
 
         @NotNull(message = "행사 시작일을 입력해주세요.")
         private LocalDateTime eventStart;
+        @NotNull(message = "행사 마감일을 입력해주세요.")
         private LocalDateTime eventEnd;
 
 
         @NotNull(message = "모집 시작일을 입력해주세요.")
         private LocalDateTime recruitStart;
+        @NotNull(message = "모집 마감일을 입력해주세요.")
         private LocalDateTime recruitEnd;
 
 
@@ -253,8 +255,31 @@ public class EventRequest {
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class BannerOrderUpdateRequest{
-        @NotEmpty List<Long> bannerIds;
+    public static class BannerOrderUpdateRequest {
+        @NotEmpty
+        List<Long> bannerIds;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventPageRequest {
+
+        @Builder.Default
+        private Boolean includeEnded = false;
+
+        @NotNull(message = "카테고리를 선택해주세요.")
+        @Builder.Default
+        private EventCategory category = EventCategory.ALL;
+
+        private String keyword;
+
+        @Builder.Default
+        private EventSortType sort = EventSortType.EVENT_START;
+
+        @NotNull(message = "페이지 번호를 입력해주세요.")
+        private Integer page;
+
     }
 
 }

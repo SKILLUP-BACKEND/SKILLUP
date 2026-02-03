@@ -164,7 +164,7 @@ public class EventResponse {
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class EventBannerAdminResponse{
+    public static class EventBannerAdminResponse {
         private List<EventBannerResponse> eventActiveBannerList;
         private List<EventBannerResponse> eventPastBannerList;
     }
@@ -177,5 +177,70 @@ public class EventResponse {
         private Long eventId;
         private String comment;
 
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventPageResponse {
+        //통계
+        private AdminEventSummary summary;
+        // 카테고리 카운트
+        private List<AdminCategoryCount> categoryCounts;
+
+        private List<AdminEventRow> events;
+        private CommonResponse.PageInfoResponse pageInfoResponse;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminEventSummary {
+        private long totalRegisteredCount;
+        private long recruitingScheduledCount;  // 모집예정
+        private long recruitingCount;           // 모집중
+        private long recruitingClosedCount;     // 모집마감
+        private long ongoingCount;
+        private Long creatableCount;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminCategoryCount {
+        private String category;
+        private long count;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class AdminEventRow {
+        private Long id;
+
+        private Long no;
+
+        private String title;
+        private String category;
+
+        private String eventPeriodText;
+        private LocalDate eventRecruitEnd;
+
+        private Long viewsCount;
+        private Long bookmarksCount;
+
+        private String status;
+
+        private LocalDateTime createdAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class AdminDraftEventResponse {
+        List<AdminEventRow> draftEventRowList;
+        Long totalEventCount;
     }
 }
