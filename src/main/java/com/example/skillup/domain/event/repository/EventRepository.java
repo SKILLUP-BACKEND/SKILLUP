@@ -5,7 +5,6 @@ import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -36,10 +35,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
             UPDATE event
-               SET likes_count = GREATEST(likes_count + :delta, 0) ,  updated_at = CURRENT_TIMESTAMP
+               SET bookmarked_count = GREATEST(bookmarked_count + :delta, 0) ,  updated_at = CURRENT_TIMESTAMP
              WHERE id = :eventId
             """, nativeQuery = true)
-    int incrementLikes(@Param("eventId") Long eventId, @Param("delta") int delta);
+    int incrementBookmarks(@Param("eventId") Long eventId, @Param("delta") int delta);
 
     @Query("""
             select
@@ -60,7 +59,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             left join EventViewDaily v
                    on v.event = e and v.createdAt >= :since
             left join EventBookmark eb
-                   on eb.event = e and eb.createdAt >= :since
+                   on eb.event = e and eb.createdAt >= :since and eb.isBookmarked = true
             left join EventAction ea
                    on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
             where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -94,57 +93,21 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
 
     @Query("""
-            select
-                e as event,
-                coalesce(sum(v.cnt), 0) as views14,
-                count(distinct eb.id) as bookmarksCnt,
-                (
-                    coalesce(sum(v.cnt), 0) * 0.6
-                  + count(distinct eb.id) * 0.3
-                  + (
-                        case when coalesce(sum(v.cnt), 0) > 0
-                             then (1.0 * count(distinct ea.id) / coalesce(sum(v.cnt), 0))
-                             else 0
-                        end
-                    ) * 0.1
-                ) as popularity
+            select distinct e
             from Event e
-            left join EventViewDaily v
-                   on v.event = e and v.createdAt >= :since
-            left join EventBookmark eb
-                   on eb.event = e and eb.createdAt >= :since
-            left join EventAction ea
-                   on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
+            join e.targetRoles tr
             where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and (e.eventEnd is null or e.eventEnd >= :now)
-              and e.recruitEnd is not null
-              and e.recruitEnd between :now and :due
-              and (
-                    :roleName is null
-                    or exists (
-                        select 1
-                        from Event e2 join e2.targetRoles tr2
-                        where e2 = e and tr2.name = :roleName
-                    )
-              )
-            group by e
-            order by
-                  (
-                    coalesce(sum(v.cnt), 0) * 0.6
-                    + count(distinct eb.id) * 0.3
-                    + (
-                        case when coalesce(sum(v.cnt), 0) > 0
-                             then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
-                             else 0
-                        end
-                    ) * 0.1
-                ) desc, e.recruitEnd asc, e.createdAt desc
+              and e.eventEnd >= :now
+              and e.eventEnd <= :due
+              and (:roleName is null or tr.name = :roleName)
+            order by e.recruitEnd asc, e.createdAt desc
             """)
-    List<PopularEventProjection> findClosingSoonForHomeWithPopularity(@Param("roleName") String roleName,
-                                                                      @Param("since") LocalDateTime since,
-                                                                      @Param("now") LocalDateTime now,
-                                                                      @Param("due") LocalDateTime due,
-                                                                      Pageable pageable);
+    List<Event> findClosingSoonForHome(
+            @Param("roleName") String roleName,
+            @Param("now") LocalDateTime now,
+            @Param("due") LocalDateTime due,
+            Pageable pageable
+    );
 
     @Query("""
             select
@@ -165,7 +128,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             left join EventViewDaily v
                    on v.event = e and v.createdAt >= :since
             left join EventBookmark eb
-                   on eb.event = e
+                   on eb.event = e and eb.isBookmarked = true and eb.updatedAt >= :since
             left join EventAction ea
                    on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
             where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -219,7 +182,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             left join EventViewDaily v
                    on v.event = e and v.createdAt >= :since
             left join EventBookmark eb
-                   on eb.event = e
+                   on eb.event = e and eb.isBookmarked = true and eb.updatedAt >= :since
             left join EventAction ea
                    on ea.event = e and ea.createdAt >= :since and ea.actionType = 'APPLY'
             where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
@@ -247,108 +210,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("due") LocalDateTime due,
             Pageable pageable);
 
-    @Query("""
-                select e
-                from Event e
-                where (:category = com.example.skillup.domain.event.enums.EventCategory.ALL or e.category = :category)
-                  and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%')))
-                  and (:includeEnded = true or e.eventEnd >= :now)
-                  and (e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED)
-            """)
-    Page<Event> findAdminEvents(
-            @Param("includeEnded") boolean includeEnded,
-            @Param("category") EventCategory category,
-            @Param("keyword") String keyword,
-            @Param("now") LocalDateTime now,
-            Pageable pageable
-    );
-
-
-    @Query("""
-                select
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-                    then 1 else 0 end), 0) as totalRegistered,
-            
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-                         and e.recruitStart > :now
-                    then 1 else 0 end), 0) as recruitingScheduled,
-            
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-                         and e.recruitStart <= :now and :now <= e.recruitEnd
-                    then 1 else 0 end), 0) as recruiting,
-            
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-                         and e.recruitEnd < :now and e.eventEnd >= :now
-                    then 1 else 0 end), 0) as recruitingClosed,
-            
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-                         and e.eventStart <= :now and e.eventEnd >= :now
-                    then 1 else 0 end), 0) as ongoing,
-            
-                  coalesce(sum(case
-                    when e.status = com.example.skillup.domain.event.enums.EventStatus.DRAFT
-                    then 1 else 0 end), 0) as creatableCount
-            
-                from Event e
-                where (:includeEnded = true or e.eventEnd >= :now) 
-            """)
-    AdminEventSummaryProjection fetchAdminSummary(
-            @Param("includeEnded") boolean includeEnded,
-            @Param("now") LocalDateTime now
-    );
-
-    List<Event> findTop200ByStatusOrderByRecruitEndAsc(EventStatus eventStatus);
-
-    List<Event> findTop200ByStatusOrderByCreatedAtDesc(EventStatus eventStatus);
-
-
-    public interface AdminEventSummaryProjection {
-        long getTotalRegistered();
-
-        long getRecruitingScheduled();
-
-        long getRecruiting();
-
-        long getRecruitingClosed();
-
-        long getOngoing();
-
-        long getCreatableCount();
-    }
-
-    @Query("""
-                select e.category as category, count(e) as count
-                from Event e
-                where (:includeEnded = true or e.eventEnd is null or e.eventEnd >= :now)
-                  and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%')))
-                  and (e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED)
-                group by e.category
-            """)
-    List<AdminCategoryCountProjection> fetchAdminCategoryCounts(
-            @Param("includeEnded") boolean includeEnded,
-            @Param("keyword") String keyword,
-            @Param("now") LocalDateTime now
-    );
-
-    public interface AdminCategoryCountProjection {
-        EventCategory getCategory();
-
-        long getCount();
-    }
-
-
     public interface PopularEventProjection {
         Event getEvent();
-
         Long getViews14();
-
         Long getBookmarksCnt();
-
         Double getPopularity();
     }
 
@@ -399,6 +264,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
                 SELECT ea3.event_id
                 FROM event_action ea3
                 WHERE ea3.actor_id = :actorId
+                AND ea3.action_type = 'APPLY'
             
                 UNION
             
@@ -446,144 +312,4 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("now") LocalDateTime now,
             @Param("targetRolesIsEmpty") Boolean targetRolesIsEmpty
     );
-
-
-    // 위에는 점수까지 포함(test 용) 아래는 점수 포함하지 않은 쿼리문
-    @Query("""
-            select e
-            from Event e
-            left join EventViewDaily v
-                   on v.event = e and v.createdAt >= :since
-            left join EventLike el
-                   on el.event = e
-            where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and (e.eventEnd is null or e.eventEnd >= :now)
-              and (
-                    :roleName is null
-                    or exists (
-                        select 1
-                        from Event e2 join e2.targetRoles tr2
-                        where e2 = e and tr2.name = :roleName
-                    )
-              )
-            group by e
-            order by
-                coalesce(sum(v.cnt), 0) * 0.6
-              + count(distinct el.id) * 0.3
-              + (
-                    case when coalesce(sum(v.cnt), 0) > 0
-                         then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
-                         else 0
-                    end
-                ) * 0.1
-              desc , e.createdAt desc
-            """)
-    List<Event> findPopularForHome(@Param("roleName") String roleName,
-                                   @Param("since") LocalDate since,
-                                   @Param("now") LocalDateTime now,
-                                   Pageable pageable);
-
-    @Query("""
-            select e
-            from Event e
-            left join EventViewDaily v
-                   on v.event = e and v.createdAt >= :since
-            left join EventLike el
-                   on el.event = e
-            where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and (e.eventEnd is null or e.eventEnd >= :now)
-              and e.recruitEnd is not null
-              and e.recruitEnd between :now and :due
-              and (
-                    :roleName is null
-                    or exists (
-                        select 1
-                        from Event e2 join e2.targetRoles tr2
-                        where e2 = e and tr2.name = :roleName
-                    )
-              )
-            group by e
-            order by
-                coalesce(sum(v.cnt), 0) * 0.6
-              + count(distinct el.id) * 0.3
-              + (
-                    case when coalesce(sum(v.cnt), 0) > 0
-                         then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
-                         else 0
-                    end
-                ) * 0.1
-              desc,
-              e.createdAt desc
-            """)
-    List<Event> findClosingSoonForHome(@Param("roleName") String roleName,
-                                       @Param("since") LocalDate since,
-                                       @Param("now") LocalDateTime now,
-                                       @Param("due") LocalDateTime due,
-                                       Pageable pageable);
-
-    @Query("""
-            select e
-            from Event e
-            left join EventViewDaily v
-                   on v.event = e and v.createdAt >= :since
-            left join EventLike el
-                   on el.event = e
-            where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and e.category = com.example.skillup.domain.event.enums.EventCategory.BOOTCAMP_CLUB
-              and (e.eventEnd is null or e.eventEnd >= :now)
-              and e.recruitEnd is not null
-              and e.recruitEnd >= :now
-            group by e
-            order by
-                coalesce(sum(v.cnt), 0) * 0.6
-              + count(distinct el.id) * 0.3
-              + (
-                    case when coalesce(sum(v.cnt), 0) > 0
-                         then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
-                         else 0
-                    end
-                ) * 0.1
-              desc,
-              e.recruitEnd asc,
-              e.createdAt desc
-            """)
-    List<Event> findBootcampsOpenOrderByPopularity(@Param("since") LocalDate since,
-                                                   @Param("now") LocalDateTime now,
-                                                   Pageable pageable);
-
-    @Query("""
-            select e
-            from Event e
-            left join EventViewDaily v
-                   on v.event = e and v.createdAt >= :since
-            left join EventLike el
-                   on el.event = e
-            where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and e.category = :category
-              and (e.eventEnd is null or e.eventEnd >= :now)
-              and e.recruitEnd is not null
-              and e.recruitEnd between :now and :due
-            group by e
-            order by
-                coalesce(sum(v.cnt), 0) * 0.6
-              + count(distinct el.id) * 0.3
-              + (
-                    case when coalesce(sum(v.cnt), 0) > 0
-                         then (1.0 * e.applyClicks / coalesce(sum(v.cnt), 0))
-                         else 0
-                    end
-                ) * 0.1
-              desc,
-              e.recruitEnd asc,
-              e.createdAt desc
-            """)
-    List<Event> findByCategoryWithin30DaysOrderByPopularity(@Param("category") EventCategory category,
-                                                            @Param("since") LocalDate since,
-                                                            @Param("now") LocalDateTime now,
-                                                            @Param("due") LocalDateTime due,
-                                                            Pageable pageable);
-
-    //
-
-
 }

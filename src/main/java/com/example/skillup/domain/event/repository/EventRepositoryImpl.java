@@ -73,7 +73,7 @@ public class EventRepositoryImpl implements EventRepositoryNative {
                ) AS popularity
         FROM event e
         LEFT JOIN event_view_daily v ON v.event_id = e.id AND v.created_at >= :since
-        LEFT JOIN event_bookmark eb ON eb.event_id = e.id AND eb.created_at >= :since
+        LEFT JOIN event_bookmark eb ON eb.event_id = e.id AND eb.created_at >= :since AND eb.is_bookmarked = true
         LEFT JOIN event_action ea ON ea.event_id = e.id AND ea.created_at >= :since AND ea.action_type = 'APPLY'
         LEFT JOIN event_target_role etr ON etr.event_id = e.id
         LEFT JOIN target_role tr ON tr.id = etr.role_id
