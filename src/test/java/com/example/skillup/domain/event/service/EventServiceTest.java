@@ -655,16 +655,23 @@ public class EventServiceTest {
         eventRepository.saveAll(List.of(event1, event2, event3));
 
         EventAction action = EventAction.builder().event(event2).actorType(ActorType.USER).actionType(ActionType.VIEW)
-                .actorId("3L").build();
+                .actorId("3").build();
 
         eventActionRepository.save(action);
 
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(3L , null);
-        assertThat(events).isNotEmpty();
-        assertThat(events.size()).isEqualTo(2);
-        for (EventResponse.HomeEventResponse event : events) {
-            System.out.println(event.getTitle());
-        }
+        EventResponse.EventHashTagResponse response = eventService.getRecommendedEvents(3L , null);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getEvents()).isNotNull();
+        assertThat(response.getHashTags()).isNotNull();
+
+        assertThat(response.getEvents()).isNotEmpty();
+
+        assertThat(response.getHashTags()).isNotEmpty();
+        assertThat(response.getHashTags().size()).isEqualTo(3);
+        assertThat(response.getEvents())
+                .extracting(EventResponse.HomeEventResponse::getTitle)
+                .contains("테스트 이벤트2");
 
     }
 
