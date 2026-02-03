@@ -254,6 +254,15 @@ public class EventMapper {
                 .toList();
     }
 
+    public EventResponse.EventHashTagResponse toEventHashTagResponse(List<Event> events , Set<Long> bookmarkedEventIds , List<HashTag> hashTags) {
+        List<EventResponse.HomeEventResponse> eventResponses = toHomeEventResponsList(events, bookmarkedEventIds);
+
+        return EventResponse.EventHashTagResponse.builder()
+                .events(eventResponses)
+                .hashTags(hashTags.stream().map(HashTag::getName).toList())
+                .build();
+    }
+
     public List<EventResponse.HomeEventResponse> toCategoryPageEventResponseList(
             List<EventRepositoryImpl.EventWithPopularity> events,
             Set<Long> bookmarkedEventIds

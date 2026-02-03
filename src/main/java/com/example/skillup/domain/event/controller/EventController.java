@@ -303,10 +303,9 @@ public class EventController {
     @GetMapping("home/recommended")
     @Operation(summary = "홈 화면에서 해쉬태그 기반으로 이벤트를 추천합니다"
             , description = "홈 화면 이벤트 추천 api")
-    public BaseResponse<List<EventResponse.HomeEventResponse>> getRecommendedEvents(
+    public BaseResponse<EventResponse.EventHashTagResponse> getRecommendedEvents(
             @AuthenticationPrincipal UsersDetails user) {
-        List<EventResponse.HomeEventResponse> events = eventService.getRecommendedEvents(user.getUser().getId(), user);
-        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공", events);
+        return BaseResponse.success("홈 화면에서 추천 이벤트 조회 성공", eventService.getRecommendedEvents(user.getUser().getId(), user));
     }
 
     @GetMapping("home/recent")
