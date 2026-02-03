@@ -7,7 +7,6 @@ import com.example.skillup.domain.event.dto.response.EventResponse.AdminDraftEve
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.entity.EventAction;
-import com.example.skillup.domain.event.entity.EventLike;
 import com.example.skillup.domain.event.enums.ActionType;
 import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
@@ -26,7 +25,6 @@ import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
-import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.UsersDetails;
 import com.example.skillup.domain.user.repository.GuestRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
@@ -78,6 +76,7 @@ public class EventService {
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
+    LocalDateTime twoMonthAgo = now.minusMonths(2);
 
 
     private record ActorInfo(String actorId, ActorType actorType) {
@@ -340,20 +339,18 @@ public class EventService {
             roleName = notFoundGuardService.getUsersNative(user.getUser().getId()).getRole().getName();
         }
 
-        List<EventRepository.PopularEventProjection> rows = eventRepository.findClosingSoonForHomeWithPopularity(
-                roleName, since, now, due, PageRequest.of(0, size)
+        List<Event> rows = eventRepository.findClosingSoonForHome(
+                roleName ,now, due, PageRequest.of(0, size)
         );
 
-        List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
+        List<Long> eventIds = rows.stream().map(Event::getId).toList();
 
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
 
         List<EventResponse.HomeEventResponse> items = rows.stream()
-                .map(r -> {
-                    double score = r.getPopularity();
-                    Event event = r.getEvent();
+                .map(event -> {
                     boolean bookmarked = (user != null) && bookmarkedEventIds.contains(event.getId());
-                    return eventMapper.toFeaturedEvent(event, bookmarked, false, false, score);
+                    return eventMapper.toFeaturedEvent(event, bookmarked, false, false, null);
                 })
                 .toList();
 
@@ -371,12 +368,12 @@ public class EventService {
         if (category == EventCategory.BOOTCAMP_CLUB) {
             String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
             // 부트캠프/동아리: 모집중만 노출
-            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(since, now, roleName, pageable);
+            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName, pageable);
         } else {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
             rows = eventRepository.findByCategoryWithin30DaysOrderByPopularityWithPopularity(
-                    category, since, now, due, pageable);
+                    category, twoMonthAgo, now, due, pageable);
         }
 
         List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
@@ -392,18 +389,6 @@ public class EventService {
                 .toList();
         return eventMapper.toCategoryEventResponseList(items, category);
     }
-
-    @Transactional
-    public void toggleLike(Event event, Users users) {
-        if (eventLikeRepository.existsByEventIdAndUserId(event.getId(), users.getId())) {
-            eventLikeRepository.deleteByEventIdAndUserId(event.getId(), users.getId());
-            eventRepository.incrementLikes(event.getId(), -1);
-        } else {
-            eventLikeRepository.save(new EventLike(event, users));
-            eventRepository.incrementLikes(event.getId(), 1);
-        }
-    }
-
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition,
