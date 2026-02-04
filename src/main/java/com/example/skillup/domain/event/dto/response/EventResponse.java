@@ -153,6 +153,7 @@ public class EventResponse {
         private int displayOrder;
 
         private Long id;
+        private Long no;
         private String mainTitle;
         private String subTitle;
         private Long clickCount;
