@@ -221,6 +221,15 @@ public class EventController {
         return BaseResponse.success("배너 리스트 조회 성공", eventBannerService.getActiveEventBanners());
     }
 
+    @PostMapping("home/apply/banner/{bannerId}")
+    @Operation(summary = "배너 조회수 증가 api 입니다.")
+    public BaseResponse<Void> applyBanner(
+            @PathVariable Long bannerId
+    ){
+        eventBannerService.applyBanner(bannerId);
+        return BaseResponse.success("배너 조회수가 성공적으로 증가했습니다." , null);
+    }
+
     @PostMapping(value = "/home/admin/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "배너 등록 API(관리자용)", description = "배너 등록 API 입니다. / 배너타입은 MAIN_BANNER 또는 SUB_BANNER 입니다.")

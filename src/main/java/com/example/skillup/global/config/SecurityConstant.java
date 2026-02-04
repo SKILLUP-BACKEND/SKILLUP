@@ -15,6 +15,7 @@ public class SecurityConstant {
             "/events/home/category",           // GET
             "/events/home/banners",            // GET
             "/events/search/home",             // POST
+            "/events/home/apply/banner/*",     // POST
 
             // Category page
             "/events/category-page/search",     // POST

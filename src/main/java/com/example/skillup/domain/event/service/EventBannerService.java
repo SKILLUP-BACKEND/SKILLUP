@@ -135,4 +135,12 @@ public class EventBannerService {
         EventBanner eventBanner = eventBannerRepository.getEventBanner(bannerId);
         return bannerMapper.toCreateBannerResponse(eventBanner);
     }
+
+    @Transactional
+    public void applyBanner(Long bannerId) {
+        EventBanner eventBanner = eventBannerRepository.getEventBanner(bannerId);
+        eventBanner.incrementClickCount();
+
+        eventBannerRepository.save(eventBanner);
+    }
 }

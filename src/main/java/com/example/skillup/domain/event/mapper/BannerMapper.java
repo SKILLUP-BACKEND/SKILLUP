@@ -26,13 +26,10 @@ public class BannerMapper {
         return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
                 .id(eventBanner.getId())
                 .mainTitle(eventBanner.getMainTitle())
-                .subTitle(eventBanner.getSubTitle())
-                .description(eventBanner.getDescription())
-                .bannerImageUrl(eventBanner.getBannerImageUrl())
-                .bannerLink(eventBanner.getBannerLink())
                 .displayOrder(eventBanner.getDisplayOrder())
-                .StartAt(eventBanner.getStartAt())
-                .EndAt(eventBanner.getEndAt())
+                .startAt(eventBanner.getStartAt())
+                .endAt(eventBanner.getEndAt())
+                .clickCount(eventBanner.getClickCount())
                 .build()).toList();
     }
 
@@ -59,8 +56,9 @@ public class BannerMapper {
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
                 .displayOrder(eventBanner.getDisplayOrder())
-                .StartAt(eventBanner.getStartAt())
-                .EndAt(eventBanner.getEndAt())
+                .clickCount(eventBanner.getClickCount())
+                .startAt(eventBanner.getStartAt())
+                .endAt(eventBanner.getEndAt())
                 .bannerType(eventBanner.getType().toString())
                 .build();
     }

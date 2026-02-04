@@ -36,7 +36,7 @@ public class EventBanner extends BaseEntity {
     @Column(nullable = false, length = 20)
     private BannerType type;
 
-    @Column(nullable = false , length = 512)
+    @Column(nullable = false, length = 512)
     public String bannerImageUrl;
 
     @Column(nullable = false, length = 100)
@@ -62,7 +62,10 @@ public class EventBanner extends BaseEntity {
     private LocalDate startAt;
 
     @Column
-    private LocalDate endAt; //null 이면 무기한
+    private LocalDate endAt;
+
+    @Builder.Default
+    private Long ClickCount = 0L;
 
 
     public void updateInfo(EventRequest.UpdateEventBannerRequest request) {
@@ -94,4 +97,9 @@ public class EventBanner extends BaseEntity {
     public void updateBannerOrder(int displayOrder) {
         this.displayOrder = displayOrder;
     }
+
+    public void incrementClickCount() {
+        this.ClickCount++;
+    }
+
 }

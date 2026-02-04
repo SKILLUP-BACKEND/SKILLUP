@@ -160,8 +160,8 @@ public class EventResponse {
         private String bannerImageUrl;
         private String bannerLink;
         private String bannerType;
-        private LocalDate StartAt;
-        private LocalDate EndAt;
+        private LocalDate startAt;
+        private LocalDate endAt;
 
     }
 
