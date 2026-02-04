@@ -15,17 +15,19 @@ public class BannerMapper {
         return new EventResponse.EventBannersResponseList(mainBanner);
     }
 
-    public EventResponse.EventBannerAdminResponse toEventBannerAdminResponse(
+    public EventResponse.EventBannerAdminResponse toEventBannerAdminResponseList(
             List<EventBannerResponse> mainBanner , List<EventBannerResponse> pastBanner
     ){
         return new EventResponse.EventBannerAdminResponse(mainBanner,pastBanner);
     }
 
 
-    public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
+    public List<EventResponse.EventBannerResponse> toEventBannerAdminResponse(List<EventBanner> eventBanners) {
         return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
                 .id(eventBanner.getId())
-                .title(eventBanner.getTitle())
+                .mainTitle(eventBanner.getMainTitle())
+                .subTitle(eventBanner.getSubTitle())
+                .description(eventBanner.getDescription())
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
                 .displayOrder(eventBanner.getDisplayOrder())
@@ -34,10 +36,26 @@ public class BannerMapper {
                 .build()).toList();
     }
 
+    public List<EventResponse.EventBannerResponse> toEventBannerResponse(List<EventBanner> eventBanners) {
+        return eventBanners.stream().map(eventBanner -> EventResponse.EventBannerResponse.builder()
+                .id(eventBanner.getId())
+                .mainTitle(eventBanner.getMainTitle())
+                .subTitle(eventBanner.getSubTitle())
+                .description(eventBanner.getDescription())
+                .bannerImageUrl(eventBanner.getBannerImageUrl())
+                .bannerLink(eventBanner.getBannerLink())
+                .displayOrder(eventBanner.getDisplayOrder())
+                .build()).toList();
+    }
+
+
+
     public EventResponse.EventBannerResponse toCreateBannerResponse(EventBanner eventBanner) {
         return EventResponse.EventBannerResponse.builder()
                 .id(eventBanner.getId())
-                .title(eventBanner.getTitle())
+                .mainTitle(eventBanner.getMainTitle())
+                .subTitle(eventBanner.getSubTitle())
+                .description(eventBanner.getDescription())
                 .bannerImageUrl(eventBanner.getBannerImageUrl())
                 .bannerLink(eventBanner.getBannerLink())
                 .displayOrder(eventBanner.getDisplayOrder())
@@ -50,13 +68,16 @@ public class BannerMapper {
     public EventBanner toEventBanner(EventRequest.CreateEventBannerRequest request, int displayOrder,
                                      String BannerImageUrl) {
         return EventBanner.builder()
-                .title(request.getTitle())
+                .mainTitle(request.getMainTitle())
+                .subTitle(request.getSubTitle())
+                .description(request.getDescription())
                 .bannerLink(request.getBannerLink())
                 .displayOrder(displayOrder)
                 .type(BannerType.MAIN_BANNER)
                 .startAt(request.getBannerStart())
                 .endAt(request.getBannerEnd())
                 .bannerImageUrl(BannerImageUrl)
+                .ClickCount(0L)
                 .build();
     }
 

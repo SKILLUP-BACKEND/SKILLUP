@@ -206,9 +206,16 @@ public class EventRequest {
     @AllArgsConstructor
     public static class CreateEventBannerRequest {
 
-        @NotBlank(message = "배너명을 입력해주세요")
-        @Size(max = 100)
-        private String title;
+        @NotBlank
+        @Size(max = 20, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
+        private String subTitle;
+
+        @NotBlank
+        @Size(max = 30, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
+        private String mainTitle;
+
+        @Size(max = 50, message = "설명은 최대 50자까지 입력할 수 있어요.")
+        private String description;
 
         @NotNull(message = "배너 클릭시 이동 할 링크를 입력해주세요")
         private String bannerLink;
@@ -232,9 +239,16 @@ public class EventRequest {
     @AllArgsConstructor
     public static class UpdateEventBannerRequest {
 
-        @NotBlank(message = "배너명을 입력해주세요")
-        @Size(max = 100)
-        private String title;
+        @NotBlank
+        @Size(max = 20, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
+        private String subTitle;
+
+        @NotBlank
+        @Size(max = 30, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
+        private String mainTitle;
+
+        @Size(max = 50, message = "설명은 최대 50자까지 입력할 수 있어요.")
+        private String description;
 
         @NotNull
         private String bannerLink;

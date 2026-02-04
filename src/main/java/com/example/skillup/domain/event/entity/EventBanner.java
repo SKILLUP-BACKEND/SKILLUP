@@ -40,7 +40,11 @@ public class EventBanner extends BaseEntity {
     public String bannerImageUrl;
 
     @Column(nullable = false, length = 100)
-    private String title;
+    private String mainTitle;
+
+    private String subTitle;
+
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
@@ -62,9 +66,16 @@ public class EventBanner extends BaseEntity {
 
 
     public void updateInfo(EventRequest.UpdateEventBannerRequest request) {
-        if (request.getTitle() != null) {
-            this.title = request.getTitle();
+        if (request.getMainTitle() != null) {
+            this.mainTitle = request.getMainTitle();
         }
+        if (request.getSubTitle() != null) {
+            this.subTitle = request.getSubTitle();
+        }
+        if (request.getDescription() != null) {
+            this.description = request.getDescription();
+        }
+
         if (request.getBannerLink() != null) {
             this.bannerLink = request.getBannerLink();
         }
@@ -80,7 +91,7 @@ public class EventBanner extends BaseEntity {
         this.bannerImageUrl = newBannerImageUrl;
     }
 
-    public void updateBannerOrder(int displayOrder){
+    public void updateBannerOrder(int displayOrder) {
         this.displayOrder = displayOrder;
     }
 }

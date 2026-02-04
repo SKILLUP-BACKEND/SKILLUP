@@ -57,10 +57,10 @@ public class EventBannerService {
         List<EventBanner> pastBanners = eventBannerRepository.findPastEventBannersByType(
                 BannerType.MAIN_BANNER, now, PageRequest.of(page, 5));
 
-        List<EventResponse.EventBannerResponse> mainEventBanners = bannerMapper.toEventBannerResponse(mainBanners);
-        List<EventResponse.EventBannerResponse> pastEventBanners = bannerMapper.toEventBannerResponse(pastBanners);
+        List<EventResponse.EventBannerResponse> mainEventBanners = bannerMapper.toEventBannerAdminResponse(mainBanners);
+        List<EventResponse.EventBannerResponse> pastEventBanners = bannerMapper.toEventBannerAdminResponse(pastBanners);
 
-        return bannerMapper.toEventBannerAdminResponse(mainEventBanners, pastEventBanners);
+        return bannerMapper.toEventBannerAdminResponseList(mainEventBanners, pastEventBanners);
 
     }
 
