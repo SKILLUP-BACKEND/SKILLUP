@@ -8,6 +8,7 @@ import com.example.skillup.domain.event.enums.BannerType;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +23,30 @@ public class BannerMapper {
             List<EventBannerResponse> mainBanner , Page<EventBanner> pastBannerPages
     ){
         CommonResponse.PageInfoResponse pageInfoResponse = CommonMapper.toPageInfoResponse(pastBannerPages.getPageable() , pastBannerPages.getNumber(),(int)pastBannerPages.getTotalElements());
-        List<EventBannerResponse> pastBanner = this.toEventBannerAdminResponse(pastBannerPages.getContent());
+        List<EventBannerResponse> pastBanner = this.toEventPastBannerAdminResponse(pastBannerPages.getContent() ,
+                pastBannerPages.getNumber(), pastBannerPages.getSize(), (int)pastBannerPages.getTotalElements());
         return new EventResponse.EventBannerAdminResponse(mainBanner,pastBanner, pageInfoResponse);
+    }
+
+    public List<EventResponse.EventBannerResponse> toEventPastBannerAdminResponse(List<EventBanner> eventBanners , int page , int size , int totalCount){
+        int startIndex = page * size;
+
+        return IntStream.range(0,eventBanners.size()).mapToObj(
+                idx ->{
+                    EventBanner eventBanner = eventBanners.get(idx);
+                    long no = totalCount - (startIndex + idx);
+
+                    return  EventResponse.EventBannerResponse.builder()
+                            .id(eventBanner.getId())
+                            .no(no)
+                            .mainTitle(eventBanner.getMainTitle())
+                            .displayOrder(eventBanner.getDisplayOrder())
+                            .startAt(eventBanner.getStartAt())
+                            .endAt(eventBanner.getEndAt())
+                            .clickCount(eventBanner.getClickCount())
+                            .build();
+                }
+        ).toList();
     }
 
 
