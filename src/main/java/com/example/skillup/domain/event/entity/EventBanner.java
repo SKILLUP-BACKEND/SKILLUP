@@ -36,11 +36,17 @@ public class EventBanner extends BaseEntity {
     @Column(nullable = false, length = 20)
     private BannerType type;
 
-    @Column(nullable = false , length = 512)
+    @Column(nullable = false, length = 512)
     public String bannerImageUrl;
 
-    @Column(nullable = false, length = 100)
-    private String title;
+    @Column(nullable = false, length = 30)
+    private String mainTitle;
+
+    @Column(nullable = false , length = 20)
+    private String subTitle;
+
+    @Column(nullable = false , length = 50)
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
@@ -58,13 +64,23 @@ public class EventBanner extends BaseEntity {
     private LocalDate startAt;
 
     @Column
-    private LocalDate endAt; //null 이면 무기한
+    private LocalDate endAt;
+
+    @Builder.Default
+    private Long ClickCount = 0L;
 
 
     public void updateInfo(EventRequest.UpdateEventBannerRequest request) {
-        if (request.getTitle() != null) {
-            this.title = request.getTitle();
+        if (request.getMainTitle() != null) {
+            this.mainTitle = request.getMainTitle();
         }
+        if (request.getSubTitle() != null) {
+            this.subTitle = request.getSubTitle();
+        }
+        if (request.getDescription() != null) {
+            this.description = request.getDescription();
+        }
+
         if (request.getBannerLink() != null) {
             this.bannerLink = request.getBannerLink();
         }
@@ -80,7 +96,12 @@ public class EventBanner extends BaseEntity {
         this.bannerImageUrl = newBannerImageUrl;
     }
 
-    public void updateBannerOrder(int displayOrder){
+    public void updateBannerOrder(int displayOrder) {
         this.displayOrder = displayOrder;
     }
+
+    public void incrementClickCount() {
+        this.ClickCount++;
+    }
+
 }

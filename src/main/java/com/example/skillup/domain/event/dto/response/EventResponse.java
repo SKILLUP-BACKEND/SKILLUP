@@ -153,12 +153,15 @@ public class EventResponse {
         private int displayOrder;
 
         private Long id;
-        private String title;
+        private String mainTitle;
+        private String subTitle;
+        private Long clickCount;
+        private String description;
         private String bannerImageUrl;
         private String bannerLink;
         private String bannerType;
-        private LocalDate StartAt;
-        private LocalDate EndAt;
+        private LocalDate startAt;
+        private LocalDate endAt;
 
     }
 
@@ -175,6 +178,7 @@ public class EventResponse {
     public static class EventBannerAdminResponse {
         private List<EventBannerResponse> eventActiveBannerList;
         private List<EventBannerResponse> eventPastBannerList;
+        private CommonResponse.PageInfoResponse pageInfoResponse;
     }
 
 
