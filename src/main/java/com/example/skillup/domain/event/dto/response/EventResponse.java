@@ -178,6 +178,7 @@ public class EventResponse {
     public static class EventBannerAdminResponse {
         private List<EventBannerResponse> eventActiveBannerList;
         private List<EventBannerResponse> eventPastBannerList;
+        private CommonResponse.PageInfoResponse pageInfoResponse;
     }
 
 

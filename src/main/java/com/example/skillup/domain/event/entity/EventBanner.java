@@ -39,11 +39,13 @@ public class EventBanner extends BaseEntity {
     @Column(nullable = false, length = 512)
     public String bannerImageUrl;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 30)
     private String mainTitle;
 
+    @Column(nullable = false , length = 20)
     private String subTitle;
 
+    @Column(nullable = false , length = 50)
     private String description;
 
     @Column(nullable = false)

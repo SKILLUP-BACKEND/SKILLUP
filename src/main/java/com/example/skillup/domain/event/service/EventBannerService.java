@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,13 +55,13 @@ public class EventBannerService {
 
         List<EventBanner> mainBanners = eventBannerRepository.findCurrentAndWaitingEventBannersByType(
                 BannerType.MAIN_BANNER, now);
-        List<EventBanner> pastBanners = eventBannerRepository.findPastEventBannersByType(
+        Page<EventBanner> pastBanners = eventBannerRepository.findPastEventBannersByType(
                 BannerType.MAIN_BANNER, now, PageRequest.of(page, 5));
 
         List<EventResponse.EventBannerResponse> mainEventBanners = bannerMapper.toEventBannerAdminResponse(mainBanners);
-        List<EventResponse.EventBannerResponse> pastEventBanners = bannerMapper.toEventBannerAdminResponse(pastBanners);
 
-        return bannerMapper.toEventBannerAdminResponseList(mainEventBanners, pastEventBanners);
+
+        return bannerMapper.toEventBannerAdminResponseList(mainEventBanners, pastBanners);
 
     }
 

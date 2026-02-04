@@ -5,7 +5,10 @@ import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.EventBannerResponse;
 import com.example.skillup.domain.event.entity.EventBanner;
 import com.example.skillup.domain.event.enums.BannerType;
+import com.example.skillup.global.common.CommonMapper;
+import com.example.skillup.global.common.CommonResponse;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,9 +19,11 @@ public class BannerMapper {
     }
 
     public EventResponse.EventBannerAdminResponse toEventBannerAdminResponseList(
-            List<EventBannerResponse> mainBanner , List<EventBannerResponse> pastBanner
+            List<EventBannerResponse> mainBanner , Page<EventBanner> pastBannerPages
     ){
-        return new EventResponse.EventBannerAdminResponse(mainBanner,pastBanner);
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonMapper.toPageInfoResponse(pastBannerPages.getPageable() , pastBannerPages.getNumber(),(int)pastBannerPages.getTotalElements());
+        List<EventBannerResponse> pastBanner = this.toEventBannerAdminResponse(pastBannerPages.getContent());
+        return new EventResponse.EventBannerAdminResponse(mainBanner,pastBanner, pageInfoResponse);
     }
 
 
