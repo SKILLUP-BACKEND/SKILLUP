@@ -12,19 +12,24 @@ import com.example.skillup.domain.event.repository.TargetRoleRepository;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
+import com.example.skillup.domain.user.entity.RecentSearch;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.exception.UserErrorCode;
+import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.InquiryRepository;
 import com.example.skillup.domain.user.repository.InterestRepository;
+import com.example.skillup.domain.user.repository.RecentSearchRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.domain.user.repository.WithdrawReasonCategoryRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
-
-import java.util.*;
-
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +41,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+
+    private static final int RETENTION_DAYS = 30;
+
     final private UserMapper userMapper;
     final private EventBookmarkRepository eventBookmarkRepository;
     final private InterestRepository interestRepository;
@@ -46,6 +54,7 @@ public class UserService {
     private final WithdrawReasonCategoryRepository withDrawReasonCategoryRepository;
     private final S3Service s3Service;
     private final NotFoundGuardService notFoundGuardService;
+    private final RecentSearchRepository recentSearchRepository;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user) {
         return userMapper.toMyPageHomeResponse(user);
@@ -141,5 +150,62 @@ public class UserService {
         TargetRole role = notFoundGuardService.getRole(request.getRole());
         Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
         user.update(null,role,interests,null);
+    }
+
+
+
+    @Transactional
+    public UserResponse.RecentSearchListResponse getRecentSearches(Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime since = now.minusDays(RETENTION_DAYS);
+
+        recentSearchRepository.deleteExpiredByUserId(userId , since);
+
+        List<RecentSearch> recentKeywords =
+                recentSearchRepository.findTopByUserIdSinceOrderByUpdatedAtDesc(
+                        userId, since, PageRequest.of(0, 6)
+                );
+
+        return userMapper.toRecentSearchListResponse(recentKeywords);
+    }
+
+
+
+    @Transactional
+    public void saveRecentSearchKeyword(Long userId, String keyword) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime since = now.minusDays(RETENTION_DAYS);
+
+        recentSearchRepository.deleteExpiredByUserId(userId , since); // 만료된 데이터 정리
+
+        String trimmedKeyword = keyword.trim();
+
+        RecentSearch recent = recentSearchRepository.findByUserIdAndKeyword(userId, trimmedKeyword)
+                .map(existing ->{
+                    existing.setUpdatedAt();
+                    return existing;
+                })
+                .orElseGet(()-> RecentSearch.builder()
+                        .userId(userId)
+                        .keyword(trimmedKeyword)
+                        .build());
+
+        recentSearchRepository.save(recent);
+    }
+
+    @Transactional
+    public void deleteRecentSearchKeyword(Long userId, Long recentId) {
+        RecentSearch recentSearch = recentSearchRepository.getRecentSearch(recentId);
+
+        if (!recentSearch.getUserId().equals(userId)) {
+            throw new UserException(UserErrorCode.RECENT_SEARCH_FORBIDDEN);
+        }
+
+        recentSearchRepository.delete(recentSearch);
+    }
+
+    @Transactional
+    public void deleteAll(Long userId) {
+        recentSearchRepository.deleteAllByUserId(userId);
     }
 }
