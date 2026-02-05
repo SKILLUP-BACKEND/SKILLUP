@@ -1,7 +1,6 @@
 package com.example.skillup.domain.user.controller;
 
 
-
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.UsersDetails;
@@ -10,12 +9,21 @@ import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -26,10 +34,9 @@ public class UserController {
     private final AuthService authService;
 
     @GetMapping()
-    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user)
-    {
+    public BaseResponse<UserResponse.UserProfileResponse> getUsers(@AuthenticationPrincipal UsersDetails user) {
         return BaseResponse.success("유저 조회 성공"
-        ,userService.getUsers(user.getUser()));
+                , userService.getUsers(user.getUser()));
 
     }
 
@@ -65,9 +72,8 @@ public class UserController {
     @GetMapping("/my-page/profile/interest")
     @Operation(summary = "유저 프로필상 직무별 관심사를 불러옵니다(관심사의 유지 보수 및 정합성 관리를 위하여 DB 레벨에서 관리) "
             , description = "유저 프로필상 직무별 관심사를 가져오는 API ")
-    public BaseResponse<List<UserResponse.InterestResponse>> getInterestByRole(@RequestParam String roleName)
-    {
-        return BaseResponse.success("직무별 관심사 조회 성공",userService.getInterestByRole(roleName));
+    public BaseResponse<List<UserResponse.InterestResponse>> getInterestByRole(@RequestParam String roleName) {
+        return BaseResponse.success("직무별 관심사 조회 성공", userService.getInterestByRole(roleName));
     }
 
     @PutMapping(value = "/my-page/profile/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -88,9 +94,9 @@ public class UserController {
     }
 
     @GetMapping("my-page/with-draw/category")
-    @Operation(description="사이트에서 제공하는 정형화된 탈퇴 사유 목록을 조회합니다.")
+    @Operation(description = "사이트에서 제공하는 정형화된 탈퇴 사유 목록을 조회합니다.")
     public BaseResponse<List<UserResponse.WithDrawReasonCategoryResponse>> getWithDrawReasonCategory() {
-        return BaseResponse.success("정형화된 탈퇴 사유 조회 성공",userService.getWithDrawReasonCategory());
+        return BaseResponse.success("정형화된 탈퇴 사유 조회 성공", userService.getWithDrawReasonCategory());
     }
 
     @DeleteMapping("my-page/with-draw")
@@ -98,8 +104,8 @@ public class UserController {
     public BaseResponse<Boolean> deleteUser(
             @RequestBody UserRequest.UserWithdrawRequest request,
             @AuthenticationPrincipal UsersDetails userDetails) {
-        userService.deleteUser(request,userDetails.getUser());
-        return BaseResponse.success("회원 탈퇴 성공",true);
+        userService.deleteUser(request, userDetails.getUser());
+        return BaseResponse.success("회원 탈퇴 성공", true);
     }
 
     @PutMapping("/oauth/signup")
@@ -110,8 +116,43 @@ public class UserController {
             @AuthenticationPrincipal UsersDetails user
     ) {
         userService.completeSignup(user.getUser(), request);
-        return BaseResponse.success("추가 정보 입력 성공",null);
+        return BaseResponse.success("추가 정보 입력 성공", null);
     }
 
+    @GetMapping("/search/recent")
+    @Operation(summary = "검색 기록 조회 API", description = "최근 검색 기록 6개를 조회하는 API 입니다.")
+    public BaseResponse<UserResponse.RecentSearchListResponse> getRecent(
+            @AuthenticationPrincipal(errorOnInvalidType = true) UsersDetails user
+    ) {
+        return BaseResponse.success("최근 검색 기록 조회 성공", userService.getRecentSearches(user.getUser().getId()));
+    }
 
+    @PostMapping("/search/recent")
+    @Operation(summary = "검색 기록 저장 API")
+    public BaseResponse<Void> saveRecentKeyword(
+            @AuthenticationPrincipal(errorOnInvalidType = true) UsersDetails user,
+            @Valid @RequestBody UserRequest.SaveRecentSearchRequest request
+    ) {
+        userService.saveRecentSearchKeyword(user.getUser().getId(), request.getKeyword());
+        return BaseResponse.success("검색 기록 저장에 성공했습니다.", null);
+    }
+
+    @DeleteMapping("/search/recent/{recentId}")
+    @Operation(summary = "단일 검색 기록 삭제 API")
+    public BaseResponse<Void> deleteRecentKeywordOne(
+            @AuthenticationPrincipal(errorOnInvalidType = true) UsersDetails user,
+            @PathVariable Long recentId
+    ) {
+        userService.deleteRecentSearchKeyword(user.getUser().getId(), recentId);
+        return BaseResponse.success("검색 기록 삭제 성공", null);
+    }
+
+    @DeleteMapping("/search/recent/all")
+    @Operation(summary = "전체 검색 기록 삭제 API")
+    public BaseResponse<Void> deleteRecentKeywordAll(
+            @AuthenticationPrincipal(errorOnInvalidType = true) UsersDetails user
+    ) {
+        userService.deleteAll(user.getUser().getId());
+        return BaseResponse.success("검색 기록 전체 삭제 성공" , null);
+    }
 }

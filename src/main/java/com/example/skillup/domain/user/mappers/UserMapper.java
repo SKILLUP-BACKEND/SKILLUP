@@ -7,16 +7,16 @@ import com.example.skillup.domain.oauth.dto.OauthRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Inquiry;
 import com.example.skillup.domain.user.entity.Interest;
+import com.example.skillup.domain.user.entity.RecentSearch;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.entity.WithdrawReasonCategory;
 import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
@@ -145,6 +145,17 @@ public class UserMapper {
                 .viewCount(viewCount)
                 .saveCount(saveCount)
                 .applyCount(applyCount)
+                .build();
+    }
+
+    public UserResponse.RecentSearchListResponse toRecentSearchListResponse(List<RecentSearch> recentSearches) {
+        return UserResponse.RecentSearchListResponse.builder()
+                .items(recentSearches.stream()
+                        .map(r -> UserResponse.RecentSearchItem.builder()
+                                .id(r.getId())
+                                .keyword(r.getKeyword())
+                                .build())
+                        .toList())
                 .build();
     }
 

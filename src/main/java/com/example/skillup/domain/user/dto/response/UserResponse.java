@@ -1,18 +1,11 @@
 package com.example.skillup.domain.user.dto.response;
 
 import com.example.skillup.domain.event.dto.response.EventResponse;
-import com.example.skillup.domain.event.entity.TargetRole;
-import com.example.skillup.domain.oauth.Entity.SocialLoginType;
-import com.example.skillup.domain.user.entity.Users;
-import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
-import jakarta.persistence.Column;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public class UserResponse {
 
@@ -116,5 +109,20 @@ public class UserResponse {
     public static class WithDrawReasonCategoryResponse
     {
         private String description;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class RecentSearchItem {
+        private Long id;
+        private String keyword;
+    }
+
+    @Getter
+    @Builder
+    public static class RecentSearchListResponse {
+        private List<RecentSearchItem> items;
     }
 }
