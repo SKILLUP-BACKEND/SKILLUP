@@ -70,10 +70,10 @@ public class UserMapper {
     }
 
     public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user, List<EventResponse.HomeEventResponse> recruitingEvents,
-                                                                        List<EventResponse.HomeEventResponse> closedEvents, CommonResponse.PageInfoResponse pageInfoResponse)
+                                                                        List<EventResponse.HomeEventResponse> closedEvents, CommonResponse.PageInfoResponse pageInfoResponse, long totalElements)
     {
         return UserResponse.MyPageBookMarkResponse.builder()
-                .bookmarkCount(recruitingEvents.size()+closedEvents.size())
+                .bookmarkCount((int) totalElements)
                 .recruitingEvents(recruitingEvents)
                 .closedEvents(closedEvents)
                 .email(user.getEmail())

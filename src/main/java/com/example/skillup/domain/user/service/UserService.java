@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -62,8 +63,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, String sort, int page) {
-        List<Event> eventBookmarks = new ArrayList<>();
         Pageable pageable = PageRequest.of(page, 9);
+        Page<Event> eventBookmarks = Page.empty(pageable);
 
         //user를 영속성 컨텍스트로 만들기 위해서
         user = notFoundGuardService.getUsersNative(user.getId());
@@ -72,15 +73,15 @@ public class UserService {
             case "latest" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
             case "deadline" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
         }
-        List<EventResponse.HomeEventResponse> eventBookmarksDto = eventBookmarks.stream()
+        List<EventResponse.HomeEventResponse> eventBookmarksDto = eventBookmarks.getContent().stream()
                 .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
                 .toList();
 
         CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
                 .builder()
                 .currentPage(page + 1)
-                .pageSize(pageable.getPageSize())
-                .totalPages((int) Math.ceil((double) eventBookmarksDto.size() / (pageable.getPageSize())))
+                .pageSize(eventBookmarks.getSize())
+                .totalPages(eventBookmarks.getTotalPages())
                 .build();
 
         List<EventResponse.HomeEventResponse> recruitingEvents = new ArrayList<>();
@@ -93,7 +94,7 @@ public class UserService {
                 recruitingEvents.add(event);
             }
         }
-        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse);
+        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse ,eventBookmarks.getTotalElements() );
     }
 
     @Transactional(readOnly = true)
