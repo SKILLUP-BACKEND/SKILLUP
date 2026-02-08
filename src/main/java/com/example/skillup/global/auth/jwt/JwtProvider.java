@@ -83,11 +83,6 @@ public class JwtProvider {
         List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + role)
         );
-        if ("OWNER".equals(subject)) {
-            return new UsernamePasswordAuthenticationToken( new org.springframework.security.core.
-                    userdetails.User(claims.getSubject(),"",authorities ),
-                    token, authorities);
-        }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
 
