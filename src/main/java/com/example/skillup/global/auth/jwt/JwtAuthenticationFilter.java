@@ -1,5 +1,6 @@
 package com.example.skillup.global.auth.jwt;
 
+import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.global.auth.RefreshToken.RefreshToken;
 import com.example.skillup.global.auth.RefreshToken.RefreshTokenRepository;
 import com.example.skillup.global.auth.service.AuthService;
@@ -50,7 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                String newAccessToken = jwtProvider.generateToken(email, "users", Duration.ofHours(1));
+                //이게 그 동안 오류가 무조건 Role을 users로 갱신해서 오류가 발생했네요 이메일 값으로 어드민을 분별해야 할 거 같아
+                // 수정했습니다.
+
+                String role = email.equals("skillup02.official@gmail.com") ? AdminRole.OWNER.toString() : "users";
+
+
+                String newAccessToken = jwtProvider.generateToken(email, role, Duration.ofHours(1));
                 response.setHeader("Authorization", "Bearer " + newAccessToken);
 
                 Authentication auth = jwtProvider.getAuthentication(newAccessToken);
