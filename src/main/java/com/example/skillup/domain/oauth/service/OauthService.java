@@ -67,7 +67,7 @@ public class OauthService {
         } else {
             user = userMapper.fromOauthInfo(
                     oauthInfoRequest,
-                    targetRoleRepository.findByName("기본").orElseThrow()
+                    targetRoleRepository.findByName("기획자").orElseThrow()
             );
             userRepository.save(user);
             isNewUser = true;
