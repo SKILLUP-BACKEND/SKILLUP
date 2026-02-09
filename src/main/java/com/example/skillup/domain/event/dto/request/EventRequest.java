@@ -57,8 +57,39 @@ public class EventRequest {
         @Size(min = 1, message = "최소 1개의 추천 대상이 필요합니다.")
         private List<String> targetRoles;
 
-        @NotNull(message = "임시저장인지 등록인지 값을 보내주세요")
-        private boolean draft; // true 임시저장, false 최종등록
+        private Boolean isOnline;
+
+        private String locationText;
+        private String locationLink;
+
+        private String applyLink;
+
+        private String contact;
+
+        private String description;
+
+        @Size(max = 5, message = "해시태그는 5개 이하로 선택해주세요.")
+        private List<String> hashTags;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class CreateDraftEvent {
+
+        private String title;
+
+        private EventCategory category;
+
+        private LocalDateTime eventStart;
+        private LocalDateTime eventEnd;
+
+        private LocalDateTime recruitStart;
+        private LocalDateTime recruitEnd;
+
+        private Boolean isFree;
+        private Integer price;
+
+        private List<String> targetRoles;
 
         private Boolean isOnline;
 

@@ -148,6 +148,28 @@ public class EventService {
     }
 
     @Transactional
+    public Event createDraftEvent(EventRequest.CreateDraftEvent request, MultipartFile thumbnailImage) {
+
+        String thumbnailUrl = null;
+        if (thumbnailImage != null) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+        }
+
+        Event event = eventMapper.toDraftEntity(request, thumbnailUrl);
+
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
+        }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
+        }
+
+        return eventRepository.save(event);
+    }
+
+
+    @Transactional
     public EventResponse.CommonEventResponse deleteEvent(Long eventId) {
         Event event = eventRepository.getEvent(eventId);
 
@@ -250,7 +272,6 @@ public class EventService {
                                                             String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-
         boolean isAdmin = (user != null) && user.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
 
@@ -260,7 +281,7 @@ public class EventService {
 
         boolean isBookmarked = false;
 
-        if(isAdmin) {
+        if (isAdmin) {
             return eventMapper.toEventDetailInfo(event, isBookmarked);
         }
 
@@ -349,7 +370,7 @@ public class EventService {
         }
 
         List<Event> rows = eventRepository.findClosingSoonForHome(
-                roleName ,now, due, PageRequest.of(0, size)
+                roleName, now, due, PageRequest.of(0, size)
         );
 
         List<Long> eventIds = rows.stream().map(Event::getId).toList();
@@ -377,7 +398,8 @@ public class EventService {
         if (category == EventCategory.BOOTCAMP_CLUB) {
             String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
             // 부트캠프/동아리: 모집중만 노출
-            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName, pageable);
+            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName,
+                    pageable);
         } else {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
@@ -398,6 +420,7 @@ public class EventService {
                 .toList();
         return eventMapper.toCategoryEventResponseList(items, category);
     }
+
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition,
@@ -462,13 +485,14 @@ public class EventService {
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
-        List<HashTag> Top6HashTags = hashTagRepository.findUserTopHashTagEntitiesTop6(actorId.toString() , actorId , since);
+        List<HashTag> Top6HashTags = hashTagRepository.findUserTopHashTagEntitiesTop6(actorId.toString(), actorId,
+                since);
 
         //현재는 중복으로 조회를 하는데 해당 중복 구간을 나누기가 어려워서 납뒀습니다.
         //중복으로 하지 않으려면 이벤트 정렬 순서만 없으면 상관없지만 tag_score 점수를 활용해서 이벤트도 점수에따라 순차적으로 내리려면 이렇게 하는 현재로선 방법이 최선인 거 같아요
         //추후에 더 좋은 방법 있으면 리팩토링 해보는것도 좋을 거 같아요
 
-        return eventMapper.toEventHashTagResponse(events , bookmarkedEventIds , Top6HashTags);
+        return eventMapper.toEventHashTagResponse(events, bookmarkedEventIds, Top6HashTags);
     }
 
     @Transactional(readOnly = true)
