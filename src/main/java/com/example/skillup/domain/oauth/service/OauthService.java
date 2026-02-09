@@ -2,10 +2,10 @@ package com.example.skillup.domain.oauth.service;
 
 
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.oauth.component.AccessTokenExtractor;
 import com.example.skillup.domain.oauth.component.OauthClientFactory;
 import com.example.skillup.domain.oauth.dto.OauthRequest;
-import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.oauth.dto.OauthResponse;
 import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
@@ -16,11 +16,11 @@ import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.oauth.component.SocialOauth;
 import com.example.skillup.global.auth.service.AuthService;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 
 @Service
@@ -63,6 +63,7 @@ public class OauthService {
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
+            user.updateLastLoginAt(LocalDateTime.now());
             isNewUser = false;
         } else {
             user = userMapper.fromOauthInfo(
