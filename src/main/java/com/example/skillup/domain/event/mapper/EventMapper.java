@@ -343,7 +343,7 @@ public class EventMapper {
                             .id(event.getId())
                             .no(no)
                             .title(event.getTitle())
-                            .eventRecruitEnd(event.getRecruitEnd().toLocalDate())
+                            .eventRecruitEnd(event.getRecruitEnd() != null ? event.getRecruitEnd().toLocalDate() : null)
                             .eventPeriodText(formatRange(event.getEventStart(), event.getEventEnd(), DATE_FMT))
                             .createdAt(event.getCreatedAt())
                             .build();
