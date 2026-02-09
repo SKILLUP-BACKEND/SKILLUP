@@ -10,11 +10,6 @@ public class EventPublishValidator {
 
     public void validateForPublish(Event event) {
 
-        if (event.getRecruitStart() == null || event.getRecruitEnd() == null
-                || event.getEventStart() == null || event.getEventEnd() == null) {
-            throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "행사/모집 기간 값이 누락되었습니다.");
-        }
-
         if (event.getRecruitStart().isAfter(event.getRecruitEnd())) {
             throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "모집 시작일은 모집 마감일보다 이후일 수 없습니다.");
         }

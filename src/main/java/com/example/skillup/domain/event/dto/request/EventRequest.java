@@ -38,9 +38,7 @@ public class EventRequest {
         @NotNull(message = "행사 마감일을 입력해주세요.")
         private LocalDateTime eventEnd;
 
-        @NotNull(message = "모집 시작일을 입력해주세요.")
         private LocalDateTime recruitStart;
-        @NotNull(message = "모집 마감일을 입력해주세요.")
         private LocalDateTime recruitEnd;
 
         @NotNull(message = "참가비 정보를 입력해주세요.")
@@ -117,9 +115,7 @@ public class EventRequest {
         @NotNull(message = "행사 마감일을 입력해주세요.")
         private LocalDateTime eventEnd;
 
-        @NotNull(message = "모집 시작일을 입력해주세요.")
         private LocalDateTime recruitStart;
-        @NotNull(message = "모집 마감일을 입력해주세요.")
         private LocalDateTime recruitEnd;
 
 
