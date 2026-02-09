@@ -1,14 +1,19 @@
 package com.example.skillup.domain.admin.entity;
 
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.example.skillup.domain.admin.enums.AdminRole;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-
-import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter
@@ -19,7 +24,7 @@ public class Admin
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 52)
     private String email;
 
     @Column(nullable = false, length = 15)
@@ -40,7 +45,4 @@ public class Admin
     public boolean isPasswordMatch(String inputPassword) {
         return inputPassword.equals(this.password);
     }
-
-
-
 }

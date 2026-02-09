@@ -1,5 +1,6 @@
 package com.example.skillup.global.auth.jwt;
 
+import com.example.skillup.domain.admin.enums.AdminRole;
 import com.example.skillup.global.auth.RefreshToken.RefreshToken;
 import com.example.skillup.global.auth.RefreshToken.RefreshTokenRepository;
 import com.example.skillup.global.auth.service.AuthService;
@@ -49,6 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             CommonErrorCode.REFRESH_TOKEN_EXPIRED.getMessage());
                     return;
                 }
+
 
                 String newAccessToken = jwtProvider.generateToken(email, "users", Duration.ofHours(1));
                 response.setHeader("Authorization", "Bearer " + newAccessToken);
