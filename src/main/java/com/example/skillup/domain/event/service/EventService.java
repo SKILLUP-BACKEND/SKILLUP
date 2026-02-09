@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.request.EventRequest.AdminEventPageRequest;
+import com.example.skillup.domain.event.dto.request.EventRequest.UpdateEvent;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminDraftEventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
@@ -25,6 +26,7 @@ import com.example.skillup.domain.event.repository.EventRepository.AdminCategory
 import com.example.skillup.domain.event.repository.EventRepository.AdminEventSummaryProjection;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.validation.EventPublishValidator;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
@@ -77,6 +79,7 @@ public class EventService {
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
     private final HashTagRepository hashTagRepository;
+    private final EventPublishValidator eventPublishValidator;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -140,6 +143,8 @@ public class EventService {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
+        eventPublishValidator.validateForPublish(event);
+
         Event savedEvent = eventRepository.save(event);
 
         eventIndexerService.index(savedEvent);
@@ -166,6 +171,49 @@ public class EventService {
         }
 
         return eventRepository.save(event);
+    }
+
+    @Transactional
+    public Event publishDraftEvent(Long eventId , UpdateEvent request, MultipartFile thumbnailImage) {
+        Event event = eventRepository.getEvent(eventId);
+
+        if(event.getStatus() != EventStatus.DRAFT) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED);
+        }
+
+        String thumbnailUrl = event.getThumbnailUrl();
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+        }
+
+        event.update(request, thumbnailUrl);
+
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            event.getTargetRoles().clear();
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
+        }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            event.getHashTags().clear();
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
+        }
+
+        eventPublishValidator.validateForPublish(event);
+
+
+        if (Boolean.FALSE.equals(event.getIsOnline())) {
+            GeoPoint geoPoint = geocodingService.geocode(event.getLocationText());
+            event.updateCoordinates(geoPoint.lat(), geoPoint.lng());
+            log.info("publish geocode. lat={}, lng={}, roadAddress={}",
+                    geoPoint.lat(), geoPoint.lng(), geoPoint.roadAddress());
+        }
+
+        event.setStatus(EventStatus.PUBLISHED);
+        Event savedEvent = eventRepository.save(event);
+
+        eventIndexerService.index(savedEvent);
+
+        return savedEvent;
     }
 
 
@@ -225,6 +273,8 @@ public class EventService {
             event.getHashTags().clear();
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
+
+        eventPublishValidator.validateForPublish(event);
 
         eventIndexerService.index(event);
 

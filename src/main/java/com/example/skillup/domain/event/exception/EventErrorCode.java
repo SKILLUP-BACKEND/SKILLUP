@@ -19,7 +19,10 @@ public enum EventErrorCode implements ResultCode {
     BANNER_ENTITY_NOT_FOUND("BANNER_ENTITY_NOT_FOUND", "배너가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     INVALID_BANNER_ID("INVALID_BANNER_ID" , "잘못된 배너 아이디입니다." , HttpStatus.BAD_REQUEST),
     INVALID_LOCATION_TEXT("INVALID_LOCATION_TEXT","오프라인 행사에는 주소가 필수입니다.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SORT_TYPE("INVALID_EVENT_SORT_TYPE", "해당 페이지에서 지원하지 않는 정렬 방식입니다.", HttpStatus.BAD_REQUEST),;
+    INVALID_EVENT_SORT_TYPE("INVALID_EVENT_SORT_TYPE", "해당 페이지에서 지원하지 않는 정렬 방식입니다.", HttpStatus.BAD_REQUEST),
+
+    EVENT_NOT_DRAFT("EVENT_NOT_DRAFT", "임시저장(DRAFT) 상태의 행사만 등록할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    EVENT_PUBLISH_VALIDATION_FAILED("EVENT_PUBLISH_VALIDATION_FAILED", "행사 등록에 필요한 값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),;
 
     private final String code;
     private final String message;

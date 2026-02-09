@@ -156,7 +156,6 @@ public class Event extends BaseEntity {
         this.locationText = request.getLocationText();
         this.locationLink = request.getLocationLink();
         this.applyLink = request.getApplyLink();
-        this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
     }

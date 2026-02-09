@@ -80,6 +80,18 @@ public class EventController {
         return BaseResponse.success("행사가 임시저장 되었습니다.", new EventResponse.CommonEventResponse(event.getId()));
     }
 
+    @PostMapping(value = "/drafts/{eventId}/publish", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "임시저장 행사 등록하기 API(관리자용)",
+            description = "임시저장(DRAFT) 행사를 폼의 최종 값으로 검증 후 등록(PUBLISHED) 상태로 전환합니다.")
+    public BaseResponse<EventResponse.CommonEventResponse> publishDraftEvent(
+            @PathVariable Long eventId,
+            @RequestPart("request") @Valid EventRequest.UpdateEvent request,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+    ) {
+        Event event = eventService.publishDraftEvent(eventId, request, thumbnailImage);
+        return BaseResponse.success("임시저장 행사가 등록되었습니다.", new EventResponse.CommonEventResponse(event.getId()));
+    }
 
 
     @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
