@@ -250,7 +250,6 @@ public class EventService {
                                                             String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        ActorInfo actor = resolveAndSaveActor(user, guestId);
 
         boolean isAdmin = (user != null) && user.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
@@ -260,10 +259,16 @@ public class EventService {
         }
 
         boolean isBookmarked = false;
-        if (user != null && !isAdmin) {
+
+        if(isAdmin) {
+            return eventMapper.toEventDetailInfo(event, isBookmarked);
+        }
+
+        if (user != null) {
             isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
         }
 
+        ActorInfo actor = resolveAndSaveActor(user, guestId);
         readEvent(actor.actorId, event, actor.actorType);
 
         event = eventRepository.getEvent(eventId);
