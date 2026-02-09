@@ -2,12 +2,11 @@ package com.example.skillup.domain.user.entity;
 
 
 import com.example.skillup.domain.admin.entity.Admin;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
 
 public class UsersDetails implements UserDetails {
 
@@ -27,6 +26,14 @@ public class UsersDetails implements UserDetails {
 
     public Users getUser() {
         return user;
+    }
+
+    public boolean isAdmin() {
+        return admin != null;
+    }
+
+    public boolean isUser() {
+        return user != null;
     }
 
     public Admin getAdmin() {
