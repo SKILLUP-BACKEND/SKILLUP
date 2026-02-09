@@ -36,7 +36,7 @@ public class AdminController {
     ) {
         Admin admin = adminService.login(request);
 
-        TokenResponse tokenResponse = authService.login(admin.getRole().toString(), admin.getRole().toString());
+        TokenResponse tokenResponse = authService.login(admin.getEmail(), admin.getRole().toString());
 
         return BaseResponse.success("관리자 로그인에 성공했습니다.", tokenResponse);
     }
