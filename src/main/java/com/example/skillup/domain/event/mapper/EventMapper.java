@@ -415,9 +415,14 @@ public class EventMapper {
         LocalDateTime recruitEnd = e.getRecruitEnd();
         LocalDateTime eventEnd = e.getEventEnd();
 
-        if (eventEnd.isBefore(now)) {
+        if (eventEnd != null && eventEnd.isBefore(now)) {
             return AdminEventListStatus.ENDED;
         }
+
+        if (recruitStart == null || recruitEnd == null) {
+            return AdminEventListStatus.RECRUIT_CLOSED;
+        }
+
         if (now.isBefore(recruitStart)) {
             return AdminEventListStatus.RECRUIT_SCHEDULED;
         }
@@ -429,7 +434,7 @@ public class EventMapper {
             return AdminEventListStatus.RECRUIT_CLOSED;
         }
 
-        return AdminEventListStatus.RECRUITING; //예외 상황
+        return AdminEventListStatus.ENDED; //예외 상황
     }
 
 
