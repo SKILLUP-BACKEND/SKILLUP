@@ -10,14 +10,19 @@ public class EventPublishValidator {
 
     public void validateForPublish(Event event) {
 
-        if (event.getRecruitStart().isAfter(event.getRecruitEnd())) {
-            throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "모집 시작일은 모집 마감일보다 이후일 수 없습니다.");
-        }
-        if (event.getEventStart().isAfter(event.getEventEnd())) {
-            throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "행사 시작일은 행사 마감일보다 이후일 수 없습니다.");
-        }
-        if (event.getRecruitEnd().isAfter(event.getEventEnd())) {
-            throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "모집 마감일은 행사 마감일보다 늦을 수 없습니다.");
+        if (event.getRecruitStart() != null && event.getRecruitEnd() != null) {
+
+            if (event.getRecruitStart().isAfter(event.getRecruitEnd())) {
+                throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED,
+                        "모집 시작일은 모집 마감일보다 이후일 수 없습니다.");
+            }
+            if (event.getEventStart().isAfter(event.getEventEnd())) {
+                throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED,
+                        "행사 시작일은 행사 마감일보다 이후일 수 없습니다.");
+            }
+            if (event.getRecruitEnd().isAfter(event.getEventEnd())) {
+                throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "모집 마감일은 행사 마감일보다 늦을 수 없습니다.");
+            }
         }
 
         if (event.getIsFree() == null) {
@@ -34,7 +39,8 @@ public class EventPublishValidator {
         }
         if (Boolean.FALSE.equals(event.getIsOnline())) {
             if (event.getLocationText() == null || event.getLocationText().isBlank()) {
-                throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED, "오프라인 행사는 장소(locationText)가 필수입니다.");
+                throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED,
+                        "오프라인 행사는 장소(locationText)가 필수입니다.");
             }
         }
     }
