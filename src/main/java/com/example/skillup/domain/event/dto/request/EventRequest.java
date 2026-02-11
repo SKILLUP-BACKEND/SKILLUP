@@ -30,24 +30,16 @@ public class EventRequest {
         @NotNull(message = "제목을 입력해주세요.")
         private String title;
 
-        //@NotNull(message = "썸네일 URL을 입력해주세요.")
-        //private String thumbnailUrl;
-
         @NotNull(message = "카테고리를 선택해주세요.")
         private EventCategory category;
-
 
         @NotNull(message = "행사 시작일을 입력해주세요.")
         private LocalDateTime eventStart;
         @NotNull(message = "행사 마감일을 입력해주세요.")
         private LocalDateTime eventEnd;
 
-
-        @NotNull(message = "모집 시작일을 입력해주세요.")
         private LocalDateTime recruitStart;
-        @NotNull(message = "모집 마감일을 입력해주세요.")
         private LocalDateTime recruitEnd;
-
 
         @NotNull(message = "참가비 정보를 입력해주세요.")
         private Boolean isFree;
@@ -57,8 +49,40 @@ public class EventRequest {
         @Size(min = 1, message = "최소 1개의 추천 대상이 필요합니다.")
         private List<String> targetRoles;
 
-        @NotNull(message = "임시저장인지 등록인지 값을 보내주세요")
-        private boolean draft; // true 임시저장, false 최종등록
+        @NotNull(message = "온라인/오프라인 여부를 입력해주세요.")
+        private Boolean isOnline;
+
+        private String locationText;
+        private String locationLink;
+
+        private String applyLink;
+
+        private String contact;
+
+        private String description;
+
+        @Size(max = 5, message = "해시태그는 5개 이하로 선택해주세요.")
+        private List<String> hashTags;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class CreateDraftEvent {
+
+        private String title;
+
+        private EventCategory category;
+
+        private LocalDateTime eventStart;
+        private LocalDateTime eventEnd;
+
+        private LocalDateTime recruitStart;
+        private LocalDateTime recruitEnd;
+
+        private Boolean isFree;
+        private Integer price;
+
+        private List<String> targetRoles;
 
         private Boolean isOnline;
 
@@ -81,8 +105,6 @@ public class EventRequest {
         @NotNull(message = "제목을 입력해주세요.")
         private String title;
 
-        //@NotNull(message = "썸네일 URL을 입력해주세요.")
-        //private String thumbnailUrl;
 
         @NotNull(message = "카테고리를 선택해주세요.")
         private EventCategory category;
@@ -90,10 +112,9 @@ public class EventRequest {
 
         @NotNull(message = "행사 시작일을 입력해주세요.")
         private LocalDateTime eventStart;
+        @NotNull(message = "행사 마감일을 입력해주세요.")
         private LocalDateTime eventEnd;
 
-
-        @NotNull(message = "모집 시작일을 입력해주세요.")
         private LocalDateTime recruitStart;
         private LocalDateTime recruitEnd;
 
@@ -119,7 +140,7 @@ public class EventRequest {
         private String contact;
 
         private String description;
-        @Size(min = 1, max = 5, message = "해시태그는 1개 이상 5개 이하로 선택해주세요.")
+        @Size(max = 5, message = "해시태그는 5개 이하로 선택해주세요.")
         private List<String> hashTags;
     }
 

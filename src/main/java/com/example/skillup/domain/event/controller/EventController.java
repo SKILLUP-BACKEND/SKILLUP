@@ -67,6 +67,33 @@ public class EventController {
         return BaseResponse.success(message, new EventResponse.CommonEventResponse(event.getId()));
     }
 
+    @PostMapping(value = "/drafts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "행사 임시저장 API(관리자용)", description = "관리자가 크롤링/수집한 행사를 임시저장(DRAFT)합니다. 주요 값들이 null 이여도 상관없습니다.")
+    @ApiResponse(responseCode = "200", description = "임시저장 성공",
+            content = @Content(mediaType = "application/json"))
+    public BaseResponse<EventResponse.CommonEventResponse> createDraftEvent(
+            @RequestPart("request") @Valid EventRequest.CreateDraftEvent request,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+    ) {
+        Event event = eventService.createDraftEvent(request, thumbnailImage);
+        return BaseResponse.success("행사가 임시저장 되었습니다.", new EventResponse.CommonEventResponse(event.getId()));
+    }
+
+    @PostMapping(value = "/drafts/{eventId}/publish", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "임시저장 행사 등록하기 API(관리자용)",
+            description = "임시저장(DRAFT) 행사를 폼의 최종 값으로 검증 후 등록(PUBLISHED) 상태로 전환합니다.")
+    public BaseResponse<EventResponse.CommonEventResponse> publishDraftEvent(
+            @PathVariable Long eventId,
+            @RequestPart("request") @Valid EventRequest.UpdateEvent request,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+    ) {
+        Event event = eventService.publishDraftEvent(eventId, request, thumbnailImage);
+        return BaseResponse.success("임시저장 행사가 등록되었습니다.", new EventResponse.CommonEventResponse(event.getId()));
+    }
+
+
     @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "행사 수정 API(관리자용)", description = "관리자가 특정 행사를 수정합니다.")

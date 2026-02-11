@@ -59,9 +59,30 @@ public class EventMapper {
                 .applyLink(request.getApplyLink())
                 .contact(request.getContact())
                 .description(request.getDescription())
-                .status(request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED)
+                .status(EventStatus.PUBLISHED)
                 .latitude(lat)
                 .longitude(lng)
+                .build();
+    }
+
+    public Event toDraftEntity(EventRequest.CreateDraftEvent request, String thumbnailUrl) {
+        return Event.builder()
+                .title(request.getTitle())
+                .thumbnailUrl(thumbnailUrl)
+                .category(request.getCategory())
+                .eventStart(request.getEventStart())
+                .eventEnd(request.getEventEnd())
+                .recruitStart(request.getRecruitStart())
+                .recruitEnd(request.getRecruitEnd())
+                .isFree(request.getIsFree())
+                .price(request.getPrice())
+                .isOnline(request.getIsOnline())
+                .locationText(request.getLocationText())
+                .locationLink(request.getLocationLink())
+                .applyLink(request.getApplyLink())
+                .contact(request.getContact())
+                .description(request.getDescription())
+                .status(EventStatus.DRAFT)
                 .build();
     }
 
@@ -322,7 +343,7 @@ public class EventMapper {
                             .id(event.getId())
                             .no(no)
                             .title(event.getTitle())
-                            .eventRecruitEnd(event.getRecruitEnd().toLocalDate())
+                            .eventRecruitEnd(event.getRecruitEnd() != null ? event.getRecruitEnd().toLocalDate() : null)
                             .eventPeriodText(formatRange(event.getEventStart(), event.getEventEnd(), DATE_FMT))
                             .createdAt(event.getCreatedAt())
                             .build();
@@ -433,7 +454,7 @@ public class EventMapper {
         long days = java.time.Duration.between(now.toLocalDate().atStartOfDay(),
                 recruitEnd.toLocalDate().atStartOfDay()).toDays();
         if (days <= 0) {
-            return "오늘 마감";
+            return "마감 D-0";
         }
         return "마감 D-" + days;
     }

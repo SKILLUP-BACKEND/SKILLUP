@@ -41,31 +41,28 @@ public class Event extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String title;
 
     @Column(length = 512)
     private String thumbnailUrl;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private EventCategory category;
 
     // 행사기간
 
-    @Column(nullable = false)
     private LocalDateTime eventStart;
     private LocalDateTime eventEnd;
 
     // 모집기간
 
-    @Column(nullable = false)
     private LocalDateTime recruitStart;
     private LocalDateTime recruitEnd;
 
     // 참가비
 
-    @Column(nullable = false)
     private Boolean isFree;
     private Integer price;
 
@@ -92,6 +89,7 @@ public class Event extends BaseEntity {
     private String applyLink;
 
     // 임시저장 or 등록
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
@@ -158,7 +156,6 @@ public class Event extends BaseEntity {
         this.locationText = request.getLocationText();
         this.locationLink = request.getLocationLink();
         this.applyLink = request.getApplyLink();
-        this.status = request.isDraft() ? EventStatus.DRAFT : EventStatus.PUBLISHED;
         this.contact = request.getContact();
         this.description = request.getDescription();
     }

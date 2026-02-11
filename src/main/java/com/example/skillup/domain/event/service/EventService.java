@@ -2,6 +2,7 @@ package com.example.skillup.domain.event.service;
 
 import com.example.skillup.domain.event.dto.request.EventRequest;
 import com.example.skillup.domain.event.dto.request.EventRequest.AdminEventPageRequest;
+import com.example.skillup.domain.event.dto.request.EventRequest.UpdateEvent;
 import com.example.skillup.domain.event.dto.response.EventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminDraftEventResponse;
 import com.example.skillup.domain.event.dto.response.EventResponse.AdminEventPageResponse;
@@ -25,6 +26,7 @@ import com.example.skillup.domain.event.repository.EventRepository.AdminCategory
 import com.example.skillup.domain.event.repository.EventRepository.AdminEventSummaryProjection;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
 import com.example.skillup.domain.event.repository.HashTagRepository;
+import com.example.skillup.domain.event.validation.EventPublishValidator;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
 import com.example.skillup.domain.map.service.GeocodingService;
 import com.example.skillup.domain.user.entity.Guest;
@@ -77,6 +79,7 @@ public class EventService {
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
     private final HashTagRepository hashTagRepository;
+    private final EventPublishValidator eventPublishValidator;
 
     LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
     LocalDateTime now = LocalDateTime.now();
@@ -140,12 +143,79 @@ public class EventService {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
+        eventPublishValidator.validateForPublish(event);
+
         Event savedEvent = eventRepository.save(event);
 
         eventIndexerService.index(savedEvent);
 
         return savedEvent;
     }
+
+    @Transactional
+    public Event createDraftEvent(EventRequest.CreateDraftEvent request, MultipartFile thumbnailImage) {
+
+        String thumbnailUrl = null;
+        if (thumbnailImage != null) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+        }
+
+        Event event = eventMapper.toDraftEntity(request, thumbnailUrl);
+
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
+        }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
+        }
+
+        return eventRepository.save(event);
+    }
+
+    @Transactional
+    public Event publishDraftEvent(Long eventId , UpdateEvent request, MultipartFile thumbnailImage) {
+        Event event = eventRepository.getEvent(eventId);
+
+        if(event.getStatus() != EventStatus.DRAFT) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED);
+        }
+
+        String thumbnailUrl = event.getThumbnailUrl();
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+        }
+
+        event.update(request, thumbnailUrl);
+
+        if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
+            event.getTargetRoles().clear();
+            associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
+        }
+
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            event.getHashTags().clear();
+            associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
+        }
+
+        eventPublishValidator.validateForPublish(event);
+
+
+        if (Boolean.FALSE.equals(event.getIsOnline())) {
+            GeoPoint geoPoint = geocodingService.geocode(event.getLocationText());
+            event.updateCoordinates(geoPoint.lat(), geoPoint.lng());
+            log.info("publish geocode. lat={}, lng={}, roadAddress={}",
+                    geoPoint.lat(), geoPoint.lng(), geoPoint.roadAddress());
+        }
+
+        event.setStatus(EventStatus.PUBLISHED);
+        Event savedEvent = eventRepository.save(event);
+
+        eventIndexerService.index(savedEvent);
+
+        return savedEvent;
+    }
+
 
     @Transactional
     public EventResponse.CommonEventResponse deleteEvent(Long eventId) {
@@ -204,6 +274,8 @@ public class EventService {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
+        eventPublishValidator.validateForPublish(event);
+
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
@@ -250,8 +322,6 @@ public class EventService {
                                                             String guestId) {
         Event event = eventRepository.getEvent(eventId);
 
-        ActorInfo actor = resolveAndSaveActor(user, guestId);
-
         boolean isAdmin = (user != null) && user.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
 
@@ -260,10 +330,16 @@ public class EventService {
         }
 
         boolean isBookmarked = false;
-        if (user != null && !isAdmin) {
+
+        if (isAdmin) {
+            return eventMapper.toEventDetailInfo(event, isBookmarked);
+        }
+
+        if (user != null) {
             isBookmarked = eventBookmarkService.isBookmarked(user.getUser(), event);
         }
 
+        ActorInfo actor = resolveAndSaveActor(user, guestId);
         readEvent(actor.actorId, event, actor.actorType);
 
         event = eventRepository.getEvent(eventId);
@@ -344,7 +420,7 @@ public class EventService {
         }
 
         List<Event> rows = eventRepository.findClosingSoonForHome(
-                roleName ,now, due, PageRequest.of(0, size)
+                roleName, now, due, PageRequest.of(0, size)
         );
 
         List<Long> eventIds = rows.stream().map(Event::getId).toList();
@@ -372,7 +448,8 @@ public class EventService {
         if (category == EventCategory.BOOTCAMP_CLUB) {
             String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
             // 부트캠프/동아리: 모집중만 노출
-            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName, pageable);
+            rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName,
+                    pageable);
         } else {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
@@ -393,6 +470,7 @@ public class EventService {
                 .toList();
         return eventMapper.toCategoryEventResponseList(items, category);
     }
+
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition,
@@ -457,13 +535,14 @@ public class EventService {
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
         Set<Long> bookmarkedEventIds = getBookmarkedEventId(user, eventIds);
-        List<HashTag> Top6HashTags = hashTagRepository.findUserTopHashTagEntitiesTop6(actorId.toString() , actorId , since);
+        List<HashTag> Top6HashTags = hashTagRepository.findUserTopHashTagEntitiesTop6(actorId.toString(), actorId,
+                since);
 
         //현재는 중복으로 조회를 하는데 해당 중복 구간을 나누기가 어려워서 납뒀습니다.
         //중복으로 하지 않으려면 이벤트 정렬 순서만 없으면 상관없지만 tag_score 점수를 활용해서 이벤트도 점수에따라 순차적으로 내리려면 이렇게 하는 현재로선 방법이 최선인 거 같아요
         //추후에 더 좋은 방법 있으면 리팩토링 해보는것도 좋을 거 같아요
 
-        return eventMapper.toEventHashTagResponse(events , bookmarkedEventIds , Top6HashTags);
+        return eventMapper.toEventHashTagResponse(events, bookmarkedEventIds, Top6HashTags);
     }
 
     @Transactional(readOnly = true)
