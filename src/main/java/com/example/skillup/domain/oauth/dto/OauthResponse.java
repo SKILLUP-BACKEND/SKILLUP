@@ -11,6 +11,6 @@ public class OauthResponse {
     @Builder
     public static class OAuthLoginResponse {
         private TokenResponse accessToken;
-        private boolean isNewUser;
+        private String userLoginStatus;
     }
 }

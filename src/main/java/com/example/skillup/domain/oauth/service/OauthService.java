@@ -11,6 +11,8 @@ import com.example.skillup.domain.oauth.exception.OauthErrorCode;
 import com.example.skillup.domain.oauth.exception.OauthException;
 import com.example.skillup.domain.oauth.mapper.OauthMapper;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.enums.UserLoginStatus;
+import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
@@ -59,24 +61,31 @@ public class OauthService {
         Optional<Users> existingUser = userRepository.findBySocialId(oauthInfoRequest.socialId());
 
         Users user;
-        boolean isNewUser;
+        UserLoginStatus status;
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
             user.updateLastLoginAt(LocalDateTime.now());
-            isNewUser = false;
-        } else {
+            status=UserLoginStatus.EXISTING_USER;
+            if(!user.getSocialLoginType().equals(socialLoginType))
+                status=UserLoginStatus.OTHER_OAUTH_USER;
+            if(user.getStatus().equals(UserStatus.WITHDRAWN))
+                status=UserLoginStatus.WITHDRAW_PENDING_USER;
+        }
+        else {
             user = userMapper.fromOauthInfo(
                     oauthInfoRequest,
                     targetRoleRepository.findByName("기획자").orElseThrow()
             );
-            userRepository.save(user);
-            isNewUser = true;
+
+            status = UserLoginStatus.NEW_USER;
         }
+
+        userRepository.save(user);
         TokenResponse tokenResponse =authService.login(user.getEmail(),"users");
 
 
-        return oauthMapper.toOauthLoginResponse(tokenResponse,isNewUser);
+        return oauthMapper.toOauthLoginResponse(tokenResponse,status.toString());
     }
 
 }
