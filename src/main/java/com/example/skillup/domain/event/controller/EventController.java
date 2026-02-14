@@ -16,6 +16,7 @@ import com.example.skillup.global.common.BaseResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.interceptor.GuestIdInterceptor;
 import com.example.skillup.global.search.service.EventSearchService;
+import com.example.skillup.global.service.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,6 +53,7 @@ public class EventController {
     private final EventSearchService eventSearchService;
     private final EventBookmarkService eventBookmarkService;
     private final EventBannerService eventBannerService;
+    private final S3Service s3Service;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('OWNER')")
@@ -384,6 +386,16 @@ public class EventController {
             cookieGuestId = request.getAttribute(GuestIdInterceptor.GUEST_ATTRIBUTE_NAME).toString();
         }
         return BaseResponse.success("지원 성공", eventService.applyEvent(eventId, user, cookieGuestId));
+    }
+
+    @PostMapping(value = "/description-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(summary = "이미지 업로드 API(관리자용)" , description = "행사 설명란에 이미지 업로드를 위한 API 입니다.")
+    public BaseResponse<String> uploadImage(
+            @RequestPart MultipartFile file
+    ){
+        String url = s3Service.uploadFile(file , "event/description-images");
+        return BaseResponse.success("이미지 업로드에 성공했습니다." , url);
     }
 
 }
