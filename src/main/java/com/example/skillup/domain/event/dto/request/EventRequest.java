@@ -6,7 +6,6 @@ import com.example.skillup.domain.event.enums.EventSortType;
 import com.example.skillup.global.enums.JobGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -242,7 +241,6 @@ public class EventRequest {
         private String bannerLink;
 
         @NotNull(message = "배너 노출 시작일을 입력해주세요")
-        @FutureOrPresent(message = "배너 노출 시작일은 오늘 이전일 수 없습니다.")
         LocalDate bannerStart;
 
         @NotNull(message = "배너 노출 마감일을 입력해주세요")
@@ -275,7 +273,6 @@ public class EventRequest {
         private String bannerLink;
 
         @NotNull(message = "배너 노출 시작일은 필수입니다.")
-        @FutureOrPresent
         private LocalDate bannerStart;
 
         private LocalDate bannerEnd;
