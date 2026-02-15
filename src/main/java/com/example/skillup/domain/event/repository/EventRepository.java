@@ -97,9 +97,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             from Event e
             join e.targetRoles tr
             where e.status = com.example.skillup.domain.event.enums.EventStatus.PUBLISHED
-              and e.eventEnd >= :now
-              and e.eventEnd <= :due
-              and (:roleName is null or tr.name = :roleName)
+            and (e.eventEnd is null or e.eventEnd >= :now)
+            and e.recruitEnd is not null
+            and e.recruitEnd between :now and :due
+            and (:roleName is null or tr.name = :roleName)
             order by e.recruitEnd asc, e.createdAt desc
             """)
     List<Event> findClosingSoonForHome(
