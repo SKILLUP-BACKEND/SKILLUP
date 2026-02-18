@@ -85,7 +85,7 @@ public class OauthService {
         TokenResponse tokenResponse =authService.login(user.getEmail(),"users");
 
 
-        return oauthMapper.toOauthLoginResponse(tokenResponse,status.toString());
+        return oauthMapper.toOauthLoginResponse(tokenResponse.accessToken(),status.toString());
     }
 
 }
