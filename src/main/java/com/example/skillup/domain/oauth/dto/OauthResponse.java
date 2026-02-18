@@ -10,7 +10,7 @@ public class OauthResponse {
     @AllArgsConstructor
     @Builder
     public static class OAuthLoginResponse {
-        private TokenResponse accessToken;
+        private String accessToken;
         private String userLoginStatus;
     }
 }

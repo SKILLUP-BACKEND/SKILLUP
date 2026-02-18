@@ -185,7 +185,6 @@ public class EventServiceTest {
                 null,
                 List.of("디자이너"),
                 false,
-                false,
                 "서울특별시 강남구 영동대로 513",
                 "http://maps.example.com",
                 "http://apply.example.com",
@@ -226,7 +225,6 @@ public class EventServiceTest {
                 null,
                 List.of("디자이너"),
                 true,   // 임시 저장
-                false,
                 "서울특별시 강남구 영동대로 513",
                 "http://maps.example.com",
                 "http://apply.example.com",
@@ -279,7 +277,6 @@ public class EventServiceTest {
                 null,
                 List.of("디자이너"),
                 false,
-                true,
                 "서울 올림픽공원",
                 "http://maps.example.com",
                 "http://apply.example.com",

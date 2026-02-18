@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class OauthMapper
 {
     public OauthResponse.OAuthLoginResponse toOauthLoginResponse(
-            TokenResponse accessToken,
+            String accessToken,
             String userLoginStatus
     ){
         return OauthResponse.OAuthLoginResponse.builder().accessToken(accessToken).userLoginStatus(userLoginStatus).build();
