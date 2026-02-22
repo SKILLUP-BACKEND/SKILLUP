@@ -81,10 +81,6 @@ public class EventService {
     private final HashTagRepository hashTagRepository;
     private final EventPublishValidator eventPublishValidator;
 
-    LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
-    LocalDateTime now = LocalDateTime.now();
-    LocalDateTime twoMonthAgo = now.minusMonths(2);
-
 
     private record ActorInfo(String actorId, ActorType actorType) {
     }
@@ -383,6 +379,8 @@ public class EventService {
         String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
         String roleFilter = null;
 
+        LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
+
         if (roleName != null) {
             roleFilter = notFoundGuardService.getRole(roleName).getName();
         }
@@ -412,6 +410,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getClosingSoonEvents(int size, UsersDetails user) {
+        LocalDateTime now = LocalDateTime.now();
         LocalDateTime due = now.plusDays(14);
 
         String roleName = null;
@@ -442,6 +441,9 @@ public class EventService {
                                                                               int page,
                                                                               int size, JobGroup tab,
                                                                               UsersDetails user) {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime twoMonthAgo = now.minusMonths(2);
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
@@ -475,6 +477,8 @@ public class EventService {
     @HandleDataAccessException
     public EventResponse.SearchEventResponseList getEventBySearch(EventRequest.EventSearchCondition condition,
                                                                   UsersDetails user) {
+
+        LocalDateTime now = LocalDateTime.now();
         Pageable pageable = PageRequest.of(condition.getPage(), 12);
         List<EventRepositoryImpl.EventWithPopularity> events = findByCategoryWithSearch(condition, pageable);
 
@@ -531,6 +535,8 @@ public class EventService {
     @Transactional(readOnly = true)
     @HandleDataAccessException
     public EventHashTagResponse getRecommendedEvents(Long actorId, UsersDetails user) {
+
+        LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
         List<Event> events = eventRepository.findRecommendedEventForHome(actorId.toString(), actorId, since);
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
@@ -598,6 +604,8 @@ public class EventService {
 
     private List<EventRepositoryImpl.EventWithPopularity> findByCategoryWithSearch
             (EventRequest.EventSearchCondition condition, Pageable pageable) {
+        LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now();
         return eventRepository.findByCategoryWithSearch
                 (condition, pageable, since, now);
     }
@@ -615,6 +623,7 @@ public class EventService {
     @Transactional(readOnly = true)
     public AdminEventPageResponse getAdminEventPage(AdminEventPageRequest request) {
 
+        LocalDateTime now = LocalDateTime.now();
         String keyword = request.getKeyword();
         if (keyword != null) {
             keyword = keyword.trim();
