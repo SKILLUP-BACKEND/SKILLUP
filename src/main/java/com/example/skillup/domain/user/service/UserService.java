@@ -9,11 +9,13 @@ import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.RecentSearch;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.exception.UserErrorCode;
 import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
@@ -23,12 +25,15 @@ import com.example.skillup.domain.user.repository.RecentSearchRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.domain.user.repository.WithdrawReasonCategoryRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.auth.dto.response.TokenResponse;
+import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -56,6 +61,7 @@ public class UserService {
     private final S3Service s3Service;
     private final NotFoundGuardService notFoundGuardService;
     private final RecentSearchRepository recentSearchRepository;
+    private final AuthService authService;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user) {
         return userMapper.toMyPageHomeResponse(user);
@@ -208,5 +214,19 @@ public class UserService {
     @Transactional
     public void deleteAll(Long userId) {
         recentSearchRepository.deleteAllByUserId(userId);
+    }
+
+    @Transactional
+    public UserResponse.ContinueLoginResponse continueLogin(UserRequest.ContinueLoginRequest request)
+    {
+        Users user=userRepository.findBySocialLoginTypeAndSocialId
+                (SocialLoginType.valueOf(request.getSocialLoginType()),request.getSocialId()).orElse(null);
+
+        if(user.getStatus()== UserStatus.WITHDRAWN)
+            user.rejoin();
+
+        TokenResponse tokenResponse =authService.login(user.getEmail(),"users");
+
+        return UserResponse.ContinueLoginResponse.builder().accessToken(tokenResponse.accessToken()).build();
     }
 }

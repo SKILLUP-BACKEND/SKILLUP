@@ -58,7 +58,8 @@ public class OauthService {
 
         OauthRequest oauthInfoRequest= client.parse(userInfo,accessToken);
 
-        Optional<Users> existingUser = userRepository.findBySocialId(oauthInfoRequest.socialId());
+        Optional<Users> existingUser = userRepository.findBySocialLoginTypeAndSocialId
+                (socialLoginType, oauthInfoRequest.socialId());
 
         Users user;
         UserLoginStatus status;

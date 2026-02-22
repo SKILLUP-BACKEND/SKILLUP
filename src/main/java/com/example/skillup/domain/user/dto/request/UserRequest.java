@@ -46,4 +46,12 @@ public class UserRequest {
         @Size(max = 200, message = "keyword는 200자를 초과할 수 없습니다.")
         private String keyword;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class ContinueLoginRequest {
+        private String socialLoginType;
+        private String socialId;
+    }
 }

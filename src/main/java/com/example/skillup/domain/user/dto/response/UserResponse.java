@@ -125,4 +125,11 @@ public class UserResponse {
     public static class RecentSearchListResponse {
         private List<RecentSearchItem> items;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class ContinueLoginResponse {
+        private String accessToken;
+    }
 }
