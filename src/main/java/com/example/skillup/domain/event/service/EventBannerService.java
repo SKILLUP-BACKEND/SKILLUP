@@ -17,12 +17,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventBannerService {
@@ -31,7 +33,6 @@ public class EventBannerService {
     private final BannerMapper bannerMapper;
     private final S3Service s3Service;
 
-    LocalDate now = LocalDate.now();
 
     @Transactional
     public EventResponse.EventBannerResponse createBanner(MultipartFile Banner,
@@ -52,6 +53,7 @@ public class EventBannerService {
     @Transactional(readOnly = true)
     public EventResponse.EventBannerAdminResponse getEventBanners(int page) {
 
+        LocalDate now = LocalDate.now();
 
         List<EventBanner> mainBanners = eventBannerRepository.findCurrentAndWaitingEventBannersByType(
                 BannerType.MAIN_BANNER, now);
@@ -68,6 +70,9 @@ public class EventBannerService {
     //실제 화면에 띄울 배너들 모음
     @Transactional(readOnly = true)
     public EventResponse.EventBannersResponseList getActiveEventBanners() {
+
+        LocalDate now = LocalDate.now();
+
         List<EventBanner> mainBanners = eventBannerRepository.findActiveEventBannersByType(BannerType.MAIN_BANNER, now);
 
         List<EventResponse.EventBannerResponse> activeEventBanners = bannerMapper.toEventBannerResponse(mainBanners);
@@ -105,6 +110,9 @@ public class EventBannerService {
 
     @Transactional
     public void updateBannerOrder(List<Long> bannerIds) {
+
+        LocalDate now = LocalDate.now();
+
         List<EventBanner> banners = eventBannerRepository.findByIdIn((bannerIds));
 
         if (banners.size() != bannerIds.size()) {
