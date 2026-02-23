@@ -41,7 +41,7 @@ public class Event extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(unique = true)
     private String title;
 
     @Column(length = 512)

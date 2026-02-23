@@ -155,4 +155,15 @@ public class UserController {
         userService.deleteAll(user.getUser().getId());
         return BaseResponse.success("검색 기록 전체 삭제 성공" , null);
     }
+
+    @PostMapping("/continue-login")
+    @Operation(summary = "탈퇴 대기 사용자 재로그인 및 다른 소셜 계정 로그인 처리 API",
+            description = "탈퇴 대기 사용자 재로그인과 다른 소셜 계정 로그인 처리를 이 API가 다 처리하므로 만약 다른 소셜 계정 로그인이 탈퇴" +
+                    "대기 상태라면 재가입으로 처리합니다")
+    public BaseResponse<UserResponse.ContinueLoginResponse> continueLogin(@RequestBody UserRequest.ContinueLoginRequest request) {
+        return BaseResponse.success("재 로그인 성공" , userService.continueLogin(request));
+    }
+
+
+
 }

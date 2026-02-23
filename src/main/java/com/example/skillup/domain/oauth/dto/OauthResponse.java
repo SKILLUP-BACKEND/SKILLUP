@@ -12,5 +12,25 @@ public class OauthResponse {
     public static class OAuthLoginResponse {
         private String accessToken;
         private String userLoginStatus;
+        private OtherOauthUserInfo otherOauthUserInfo;
+        private WithdrawPendingUserInfo withdrawPendingUserInfo;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class OtherOauthUserInfo {
+        private String socialLoginType;
+        private String email;
+        private String socialId;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class WithdrawPendingUserInfo {
+        private String socialLoginType;
+        private String socialId;
     }
 }

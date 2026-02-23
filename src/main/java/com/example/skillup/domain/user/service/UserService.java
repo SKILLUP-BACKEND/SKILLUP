@@ -9,11 +9,13 @@ import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
 import com.example.skillup.domain.user.entity.RecentSearch;
 import com.example.skillup.domain.user.entity.Users;
+import com.example.skillup.domain.user.enums.UserStatus;
 import com.example.skillup.domain.user.exception.UserErrorCode;
 import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
@@ -23,6 +25,8 @@ import com.example.skillup.domain.user.repository.RecentSearchRepository;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.domain.user.repository.WithdrawReasonCategoryRepository;
 import com.example.skillup.global.aop.ConvertNotFound;
+import com.example.skillup.global.auth.dto.response.TokenResponse;
+import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
@@ -56,6 +60,7 @@ public class UserService {
     private final S3Service s3Service;
     private final NotFoundGuardService notFoundGuardService;
     private final RecentSearchRepository recentSearchRepository;
+    private final AuthService authService;
 
     public UserResponse.MyPageHomeResponse getMyPageHome(Users user) {
         return userMapper.toMyPageHomeResponse(user);
@@ -94,7 +99,8 @@ public class UserService {
                 recruitingEvents.add(event);
             }
         }
-        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse ,eventBookmarks.getTotalElements() );
+        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse,
+                eventBookmarks.getTotalElements());
     }
 
     @Transactional(readOnly = true)
@@ -105,9 +111,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse.WithDrawReasonCategoryResponse> getWithDrawReasonCategory()
-    {
-        return withDrawReasonCategoryRepository.findAll().stream().map(userMapper::toWithDrawReasonCategoryResponse).toList();
+    public List<UserResponse.WithDrawReasonCategoryResponse> getWithDrawReasonCategory() {
+        return withDrawReasonCategoryRepository.findAll().stream().map(userMapper::toWithDrawReasonCategoryResponse)
+                .toList();
     }
 
     @ConvertNotFound(
@@ -121,9 +127,10 @@ public class UserService {
         user = notFoundGuardService.getUsersNative(user.getId());
         TargetRole role = notFoundGuardService.getRole(request.getRole());
         Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
-        String userProfileImageUrl=null;
-        if(profileImage!=null && !profileImage.isEmpty())
+        String userProfileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
             userProfileImageUrl = s3Service.uploadFile(profileImage, "user/profile");
+        }
         user.update(request, role, interests, userProfileImageUrl);
         return userMapper.toUserProfileResponse(user);
     }
@@ -139,20 +146,18 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(UserRequest.UserWithdrawRequest request,Users user) {
+    public void deleteUser(UserRequest.UserWithdrawRequest request, Users user) {
         user = notFoundGuardService.getUsersNative(user.getId());
         user.withdraw(request.getDetail());
     }
 
     @Transactional
-    public void completeSignup(Users user, UserRequest.UserOAuthSignupRequest request)
-    {
+    public void completeSignup(Users user, UserRequest.UserOAuthSignupRequest request) {
         user = notFoundGuardService.getUsersNative(user.getId());
         TargetRole role = notFoundGuardService.getRole(request.getRole());
         Set<Interest> interests = notFoundGuardService.getInterestFindByNameIn(request.getInterests());
-        user.update(null,role,interests,null);
+        user.update(null, role, interests, null);
     }
-
 
 
     @Transactional
@@ -160,7 +165,7 @@ public class UserService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime since = now.minusDays(RETENTION_DAYS);
 
-        recentSearchRepository.deleteExpiredByUserId(userId , since);
+        recentSearchRepository.deleteExpiredByUserId(userId, since);
 
         List<RecentSearch> recentKeywords =
                 recentSearchRepository.findTopByUserIdSinceOrderByUpdatedAtDesc(
@@ -171,22 +176,21 @@ public class UserService {
     }
 
 
-
     @Transactional
     public void saveRecentSearchKeyword(Long userId, String keyword) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime since = now.minusDays(RETENTION_DAYS);
 
-        recentSearchRepository.deleteExpiredByUserId(userId , since); // 만료된 데이터 정리
+        recentSearchRepository.deleteExpiredByUserId(userId, since); // 만료된 데이터 정리
 
         String trimmedKeyword = keyword.trim();
 
         RecentSearch recent = recentSearchRepository.findByUserIdAndKeyword(userId, trimmedKeyword)
-                .map(existing ->{
+                .map(existing -> {
                     existing.setUpdatedAt();
                     return existing;
                 })
-                .orElseGet(()-> RecentSearch.builder()
+                .orElseGet(() -> RecentSearch.builder()
                         .userId(userId)
                         .keyword(trimmedKeyword)
                         .build());
@@ -208,5 +212,20 @@ public class UserService {
     @Transactional
     public void deleteAll(Long userId) {
         recentSearchRepository.deleteAllByUserId(userId);
+    }
+
+    @Transactional
+    public UserResponse.ContinueLoginResponse continueLogin(UserRequest.ContinueLoginRequest request) {
+        Users user = userRepository.findBySocialLoginTypeAndSocialId
+                        (SocialLoginType.valueOf(request.getSocialLoginType()), request.getSocialId())
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_ENTITY_NOT_FOUND, "해당 사용자가 존재하지 않습니다."));
+
+        if (user.getStatus() == UserStatus.WITHDRAWN) {
+            user.rejoin();
+        }
+
+        TokenResponse tokenResponse = authService.login(user.getEmail(), "users");
+
+        return UserResponse.ContinueLoginResponse.builder().accessToken(tokenResponse.accessToken()).build();
     }
 }

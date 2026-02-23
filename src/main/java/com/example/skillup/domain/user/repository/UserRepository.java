@@ -1,5 +1,6 @@
 package com.example.skillup.domain.user.repository;
 
+import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.entity.Users;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,7 +15,10 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     Optional<Users> findByEmail(String email);
 
-    Optional<Users> findBySocialId(String socialId);
+    Optional<Users> findBySocialLoginTypeAndSocialId(
+            SocialLoginType socialLoginType,
+            String socialId
+    );
 
     @Query(
             value = """
