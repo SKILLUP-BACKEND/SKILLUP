@@ -39,13 +39,20 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     @Query(value = """
             SELECT
-                COALESCE(SUM(ea.action_type = 'VIEW') AS viewCnt,0),
-                COALESCE(SUM(ea.action_type = 'APPLY') AS applyCnt,0),
-                COALESCE(SUM(ea.action_type = 'SAVE') AS saveCnt,0)
+                COALESCE(SUM(ea.action_type = 'VIEW') ,0) AS viewCnt,
+                COALESCE(SUM(ea.action_type = 'APPLY') ,0) AS applyCnt,
+                (
+                    SELECT COUNT(*)
+                    FROM event_bookmark eb
+                    WHERE eb.user_id = :userId
+                      AND eb.is_bookmarked = true
+                      AND eb.deleted_at IS NULL
+                ) AS saveCnt
             FROM event_action ea
-            WHERE ea.actorId = :actorId
+            WHERE ea.actor_id = :actorId
+            AND ea.deleted_at IS NULL
             """, nativeQuery = true)
-    EventActionCountProjection getUserActionCounts(@Param("actorId") String actorId);
+    EventActionCountProjection getUserActionCounts(@Param("actorId") String actorId , @Param("userId") Long userId);
 
     @Query(
             value = """

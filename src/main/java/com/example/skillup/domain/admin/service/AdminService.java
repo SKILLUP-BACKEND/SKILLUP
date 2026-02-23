@@ -163,7 +163,8 @@ public class AdminService {
     }
 
     public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId) {
-        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId);
+        Long userId = Long.parseLong(actorId);
+        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId , userId);
         return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
                 , usersActionCounts.getSaveCnt(), usersActionCounts.getApplyCnt());
     }
