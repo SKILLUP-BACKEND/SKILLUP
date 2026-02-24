@@ -272,22 +272,6 @@ public class EventService {
         return new EventResponse.CommonEventResponse(event.getId());
     }
 
-    private void applyGeocode(Event event) {
-        if (event.getIsOnline()) {
-            event.updateCoordinates(null, null);
-            return;
-        }
-
-        String address = event.getLocationText();
-        if (address == null || address.isBlank()) {
-            throw new EventException(EventErrorCode.INVALID_LOCATION_TEXT);
-        }
-
-        GeoPoint point = geocodingService.geocode(address);
-        log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", point.lat(), point.lng(), point.roadAddress());
-        event.updateCoordinates(point.lat(), point.lng());
-    }
-
 
     @Transactional
     public EventResponse.CommonEventResponse visibilityEvent(Long eventId, boolean isVisible) {

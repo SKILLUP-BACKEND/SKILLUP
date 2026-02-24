@@ -101,7 +101,7 @@ public class EventMapper {
                 .isFree(event.getIsFree())
                 .price(event.getPrice())
                 .isOnline(event.getIsOnline())
-                .locationText(event.getLocationText())
+                .locationText(event.getLocationText() +" "+event.getLocationTextDetail())
                 .locationLink(event.getLocationLink())
                 .applyLink(event.getApplyLink())
                 .status(event.getStatus())
