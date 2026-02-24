@@ -52,6 +52,11 @@ public class EventRequest {
         private Boolean isOnline;
 
         private String locationText;
+        private String locationTextDetail;
+
+        private Double latitude;
+        private Double longitude;
+
         private String locationLink;
 
         private String applyLink;
@@ -86,6 +91,8 @@ public class EventRequest {
         private Boolean isOnline;
 
         private String locationText;
+        private String locationTextDetail;
+
         private String locationLink;
 
         private String applyLink;
@@ -132,6 +139,11 @@ public class EventRequest {
         private Boolean isOnline;
 
         private String locationText;
+        private String locationTextDetail;
+
+        private Double latitude;
+        private Double longitude;
+
         private String locationLink;
 
         private String applyLink;

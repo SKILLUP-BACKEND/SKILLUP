@@ -77,6 +77,7 @@ public class Event extends BaseEntity {
     // 장소
     private Boolean isOnline;
     private String locationText;
+    private String locationTextDetail;
     private String locationLink;
 
     @Column(precision = 10, scale = 7)

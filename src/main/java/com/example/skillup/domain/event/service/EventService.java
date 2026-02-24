@@ -124,9 +124,7 @@ public class EventService {
 
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline()) {
-            eventGeoPoint = geocodingService.geocode(request.getLocationText());
-            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(),
-                    eventGeoPoint.roadAddress());
+            eventGeoPoint = new GeoPoint(request.getLatitude() , request.getLongitude() , request.getLocationText());
         }
 
         Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
@@ -198,10 +196,7 @@ public class EventService {
 
 
         if (Boolean.FALSE.equals(event.getIsOnline())) {
-            GeoPoint geoPoint = geocodingService.geocode(event.getLocationText());
-            event.updateCoordinates(geoPoint.lat(), geoPoint.lng());
-            log.info("publish geocode. lat={}, lng={}, roadAddress={}",
-                    geoPoint.lat(), geoPoint.lng(), geoPoint.roadAddress());
+            event.updateCoordinates(request.getLatitude(), request.getLongitude());
         }
 
         event.setStatus(EventStatus.PUBLISHED);
