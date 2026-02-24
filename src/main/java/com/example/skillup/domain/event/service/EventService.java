@@ -124,9 +124,7 @@ public class EventService {
 
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline()) {
-            eventGeoPoint = geocodingService.geocode(request.getLocationText());
-            log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", eventGeoPoint.lat(), eventGeoPoint.lng(),
-                    eventGeoPoint.roadAddress());
+            eventGeoPoint = new GeoPoint(request.getLatitude() , request.getLongitude() , request.getLocationText());
         }
 
         Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
@@ -198,10 +196,7 @@ public class EventService {
 
 
         if (Boolean.FALSE.equals(event.getIsOnline())) {
-            GeoPoint geoPoint = geocodingService.geocode(event.getLocationText());
-            event.updateCoordinates(geoPoint.lat(), geoPoint.lng());
-            log.info("publish geocode. lat={}, lng={}, roadAddress={}",
-                    geoPoint.lat(), geoPoint.lng(), geoPoint.roadAddress());
+            event.updateCoordinates(request.getLatitude(), request.getLongitude());
         }
 
         event.setStatus(EventStatus.PUBLISHED);
@@ -257,7 +252,7 @@ public class EventService {
         boolean onlineChanged = request.getIsOnline() != null && !request.getIsOnline().equals(oldIsOnline);
 
         if (locationChanged || onlineChanged) {
-            applyGeocode(event);
+            event.updateCoordinates(request.getLatitude(), request.getLongitude());
         }
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
@@ -275,22 +270,6 @@ public class EventService {
         eventIndexerService.index(event);
 
         return new EventResponse.CommonEventResponse(event.getId());
-    }
-
-    private void applyGeocode(Event event) {
-        if (event.getIsOnline()) {
-            event.updateCoordinates(null, null);
-            return;
-        }
-
-        String address = event.getLocationText();
-        if (address == null || address.isBlank()) {
-            throw new EventException(EventErrorCode.INVALID_LOCATION_TEXT);
-        }
-
-        GeoPoint point = geocodingService.geocode(address);
-        log.info("위도 : {} , 경도 : {} , 도로명 주소 : {} ", point.lat(), point.lng(), point.roadAddress());
-        event.updateCoordinates(point.lat(), point.lng());
     }
 
 

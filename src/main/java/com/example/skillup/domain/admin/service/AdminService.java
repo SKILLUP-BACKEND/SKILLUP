@@ -10,6 +10,7 @@ import com.example.skillup.domain.admin.mapper.AdminMapper;
 import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
 import com.example.skillup.domain.event.repository.EventActionRepository;
+import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.mappers.UserMapper;
@@ -60,6 +61,7 @@ public class AdminService {
     private final UserMapper userMapper;
     private final EventActionRepository eventActionRepository;
     private final NotFoundGuardService notFoundGuardService;
+    private final EventBookmarkRepository eventBookmarkRepository;
 
     public Admin login(AdminLoginRequest request) {
 
@@ -163,7 +165,8 @@ public class AdminService {
     }
 
     public UserResponse.AdminUserEventActionCountsResponse getUserActionCounts(String actorId) {
-        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId);
+        Long userId = Long.parseLong(actorId);
+        UserRepository.EventActionCountProjection usersActionCounts = userRepository.getUserActionCounts(actorId , userId);
         return userMapper.toAdminUserEventActionResponse(usersActionCounts.getViewCnt()
                 , usersActionCounts.getSaveCnt(), usersActionCounts.getApplyCnt());
     }
@@ -175,8 +178,10 @@ public class AdminService {
                 .minusMonths(5)
                 .atStartOfDay();
 
-        List<EventActionRepository.EventActionAnalyticsProjection> eventActionAnalytics
-                = eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
+        List<EventActionRepository.EventActionAnalyticsProjection> eventActionAnalytics =
+                "SAVE".equalsIgnoreCase(actionType)
+                        ? eventBookmarkRepository.findBookmarkAnalyticsSince(since)
+                        : eventActionRepository.findEventActionsBySinceAndActionType(since, actionType);
 
         List<EventActionRepository.EventActionAnalyticsProjection> usersEventActionAnalytics =
                 eventActionAnalytics.stream()
