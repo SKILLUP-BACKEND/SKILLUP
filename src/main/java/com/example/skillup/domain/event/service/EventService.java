@@ -252,7 +252,7 @@ public class EventService {
         boolean onlineChanged = request.getIsOnline() != null && !request.getIsOnline().equals(oldIsOnline);
 
         if (locationChanged || onlineChanged) {
-            applyGeocode(event);
+            event.updateCoordinates(request.getLatitude(), request.getLongitude());
         }
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
