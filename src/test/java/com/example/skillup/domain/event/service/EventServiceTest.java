@@ -186,11 +186,15 @@ public class EventServiceTest {
                 List.of("디자이너"),
                 false,
                 "서울특별시 강남구 영동대로 513",
+                "3충",
+                13.0,
+                15.0,
                 "http://maps.example.com",
                 "http://apply.example.com",
                 "010-1234-5678",
                 "이벤트 설명입니다",
                 List.of("#스포츠", "#러닝")
+
         );
 
         MockMultipartFile thumbnail = createThumbnailImage("thumb.jpg");
@@ -226,6 +230,9 @@ public class EventServiceTest {
                 List.of("디자이너"),
                 true,   // 임시 저장
                 "서울특별시 강남구 영동대로 513",
+                "3충",
+                13.0,
+                15.0,
                 "http://maps.example.com",
                 "http://apply.example.com",
                 "010-1234-5678",
@@ -278,6 +285,9 @@ public class EventServiceTest {
                 List.of("디자이너"),
                 false,
                 "서울 올림픽공원",
+                "3충",
+                13.0,
+                15.0,
                 "http://maps.example.com",
                 "http://apply.example.com",
                 "010-1234-5678",
@@ -314,6 +324,9 @@ public class EventServiceTest {
                 true,
                 false,
                 "서울특별시 강남구 영동대로 513",
+                "3충",
+                13.0,
+                15.0,
                 "http://maps.example.com/new",
                 "http://apply.example.com/new",
                 "010-9876-5432",

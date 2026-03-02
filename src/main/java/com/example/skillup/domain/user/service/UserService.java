@@ -216,8 +216,8 @@ public class UserService {
 
     @Transactional
     public UserResponse.ContinueLoginResponse continueLogin(UserRequest.ContinueLoginRequest request) {
-        Users user = userRepository.findBySocialLoginTypeAndSocialId
-                        (SocialLoginType.valueOf(request.getSocialLoginType()), request.getSocialId())
+        Users user = userRepository.findBySocialLoginTypeAndSocialIdWithDeleted
+                        (request.getSocialLoginType(), request.getSocialId())
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ENTITY_NOT_FOUND, "해당 사용자가 존재하지 않습니다."));
 
         if (user.getStatus() == UserStatus.WITHDRAWN) {

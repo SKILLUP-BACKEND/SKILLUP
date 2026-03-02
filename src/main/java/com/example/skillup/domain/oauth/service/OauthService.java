@@ -13,6 +13,8 @@ import com.example.skillup.domain.oauth.mapper.OauthMapper;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.enums.UserLoginStatus;
 import com.example.skillup.domain.user.enums.UserStatus;
+import com.example.skillup.domain.user.exception.UserErrorCode;
+import com.example.skillup.domain.user.exception.UserException;
 import com.example.skillup.domain.user.mappers.UserMapper;
 import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
@@ -58,14 +60,16 @@ public class OauthService {
 
         OauthRequest oauthInfoRequest= client.parse(userInfo,accessToken);
 
-        Optional<Users> existingUser = userRepository.findBySocialLoginTypeAndSocialId
-                (socialLoginType, oauthInfoRequest.socialId());
+        Optional<Users> existingUser = userRepository.findBySocialLoginTypeAndSocialIdWithDeleted
+                (socialLoginType.name(), oauthInfoRequest.socialId());
+        ;
 
         Users user;
         UserLoginStatus status;
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
+
 
             if(user.getStatus().equals(UserStatus.WITHDRAWN))
             {
