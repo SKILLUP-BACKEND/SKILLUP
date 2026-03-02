@@ -15,9 +15,10 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     Optional<Users> findByEmail(String email);
 
-    Optional<Users> findBySocialLoginTypeAndSocialId(
-            SocialLoginType socialLoginType,
-            String socialId
+    @Query(value = "SELECT * FROM users u WHERE u.social_login_type = :socialLoginType AND u.social_id = :socialId", nativeQuery = true)
+    Optional<Users> findBySocialLoginTypeAndSocialIdWithDeleted(
+            @Param("socialLoginType") String socialLoginType,
+            @Param("socialId") String socialId
     );
 
     @Query(
