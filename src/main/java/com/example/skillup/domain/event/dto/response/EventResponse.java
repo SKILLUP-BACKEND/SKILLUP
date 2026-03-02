@@ -54,8 +54,9 @@ public class EventResponse {
         private Integer price;
 
         private Boolean isOnline;
-        private String locationText; //TODO : 위치 자표를 받는 거 고민
-        private String locationLink; //TODO : 필요한지 고민
+        private String locationText;
+        private String locationTextDetail;
+        private String locationLink;
 
         private Double latitude;
         private Double longitude;
