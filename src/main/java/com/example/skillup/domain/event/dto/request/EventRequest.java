@@ -238,12 +238,11 @@ public class EventRequest {
     @AllArgsConstructor
     public static class CreateEventBannerRequest {
 
-        @NotBlank
-        @Size(max = 20, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
+        @Size(max = 30, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
         private String subTitle;
 
         @NotBlank
-        @Size(max = 30, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
+        @Size(max = 50, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
         private String mainTitle;
 
         @Size(max = 50, message = "설명은 최대 50자까지 입력할 수 있어요.")
@@ -270,12 +269,11 @@ public class EventRequest {
     @AllArgsConstructor
     public static class UpdateEventBannerRequest {
 
-        @NotBlank
-        @Size(max = 20, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
+        @Size(max = 30, message = "서브 타이틀은 최대 20자까지 입력할 수 있어요.")
         private String subTitle;
 
         @NotBlank
-        @Size(max = 30, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
+        @Size(max = 50, message = "메인 타이틀은 최대 30자까지 입력할 수 있어요.")
         private String mainTitle;
 
         @Size(max = 50, message = "설명은 최대 50자까지 입력할 수 있어요.")
