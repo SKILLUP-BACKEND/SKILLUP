@@ -7,6 +7,7 @@ import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.global.search.document.EventDocument;
 import com.example.skillup.global.search.exception.SearchErrorCode;
@@ -67,7 +68,7 @@ public class EventIndexerService {
 
             while (true) {
 
-                Page<Event> slice = eventRepository.findAll(PageRequest.of(page, pageSize));
+                Page<Event> slice = eventRepository.findByStatus(EventStatus.PUBLISHED,(PageRequest.of(page, pageSize)));
                 if (slice.isEmpty()) {
                     break;
                 }

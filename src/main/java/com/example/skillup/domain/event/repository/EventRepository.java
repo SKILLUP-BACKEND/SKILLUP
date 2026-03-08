@@ -211,6 +211,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("due") LocalDateTime due,
             Pageable pageable);
 
+    Page<Event> findByStatus(EventStatus status, Pageable pageable);
+
     public interface PopularEventProjection {
         Event getEvent();
         Long getViews14();
