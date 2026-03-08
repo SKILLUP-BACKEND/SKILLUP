@@ -3,7 +3,7 @@ package com.example.skillup.global.search.mapper;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.global.search.document.EventDocument;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,16 +19,16 @@ public class EventDocumentMapper {
                 .price(event.getPrice())
                 .isOnline(event.getIsOnline())
                 .locationText(event.getLocationText())
-                .recruitStart(toUtc(event.getRecruitStart()))
-                .recruitEnd(toUtc(event.getRecruitEnd()))
-                .eventStart(toUtc(event.getEventStart()))
-                .eventEnd(toUtc(event.getEventEnd()))
-                .createdAt(toUtc(event.getCreatedAt()))
+                .recruitStart(toKst(event.getRecruitStart()))
+                .recruitEnd(toKst(event.getRecruitEnd()))
+                .eventStart(toKst(event.getEventStart()))
+                .eventEnd(toKst(event.getEventEnd()))
+                .createdAt(toKst(event.getCreatedAt()))
                 .category(event.getCategory().toString())
                 .build();
     }
 
-    private static java.time.Instant toUtc(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : localDateTime.toInstant(ZoneOffset.UTC);
+    private static java.time.Instant toKst(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : localDateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant();
     }
 }
