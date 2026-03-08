@@ -1,6 +1,7 @@
 package com.example.skillup.global.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Conflicts;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -16,12 +17,14 @@ import com.example.skillup.global.search.mapper.EventDocumentMapper;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventIndexerService {
@@ -63,6 +66,14 @@ public class EventIndexerService {
     public long bulkIndexAll() {
         long total = 0;
         try {
+
+            elasticsearchClient.deleteByQuery(d -> d.index(index)
+                    .conflicts(Conflicts.Proceed)
+                    .query(q -> q.matchAll(m->m))
+            );
+
+            log.info("기존 존재하던 문서 삭제 완료");
+
             int pageSize = 500;
             int page = 0;
 
