@@ -40,5 +40,8 @@ public class EventDocument {
     @JsonProperty("popularity_score") private Double popularityScore;
     @JsonProperty("recommended_manual") private Boolean recommendedManual;
 
+    @JsonProperty("created_at")
+    private Instant createdAt;
+
     private Boolean ad;
 }

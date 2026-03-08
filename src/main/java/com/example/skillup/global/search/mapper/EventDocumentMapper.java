@@ -23,6 +23,7 @@ public class EventDocumentMapper {
                 .recruitEnd(toUtc(event.getRecruitEnd()))
                 .eventStart(toUtc(event.getEventStart()))
                 .eventEnd(toUtc(event.getEventEnd()))
+                .createdAt(toUtc(event.getCreatedAt()))
                 .category(event.getCategory().toString())
                 .build();
     }
