@@ -8,5 +8,6 @@ public enum HashTagCategory {
     EVENT_TYPE,
     TECHNOLOGY_TOOL,
     WORK_TOPIC,
-    CAREER_GOAL
+    CAREER_GOAL,
+    PLACE
 }
