@@ -50,9 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             CommonErrorCode.REFRESH_TOKEN_EXPIRED.getMessage());
                     return;
                 }
+                Claims claims = jwtProvider.getClaims(token);
+                String role = claims.get("roles", String.class);
+                String newAccessToken = jwtProvider.generateToken(email, role, Duration.ofHours(1));
 
-
-                String newAccessToken = jwtProvider.generateToken(email, "users", Duration.ofHours(1));
                 response.setHeader("Authorization", "Bearer " + newAccessToken);
 
                 Authentication auth = jwtProvider.getAuthentication(newAccessToken);
