@@ -1,4 +1,4 @@
-name: CI-CD Deploy (DEV)
+name: CI-CD Deploy
 
 on:
   push:
@@ -57,14 +57,5 @@ jobs:
             
             echo "🚀 서비스 재시작"
             sudo docker compose up -d
-
-            echo "⏳ MySQL 부팅 대기중..."
-            until docker exec skillup-mysql mysqladmin ping -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} --silent; do
-              sleep 1
-            done
-
-            
-            docker exec -i skillup-mysql sh -c "mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} skillup" < seed.sql
-            echo "🎉 Seed 데이터 삽입 성공"
       
             echo "🎉 DEV 배포 완료!"
