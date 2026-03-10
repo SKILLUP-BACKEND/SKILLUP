@@ -98,7 +98,7 @@ public class Event extends BaseEntity {
     private String contact;
 
     // 행사 설명
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
     @Builder.Default
