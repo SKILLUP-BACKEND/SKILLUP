@@ -42,7 +42,10 @@ public class SecurityConstant {
             // ========== Admin ==========
             "/admin/login",
             // ========== Test ==========
-            "/api/test/**"
+            "/api/test/**",
+            // ========== monitoring =======
+            "/actuator/prometheus",
+            "/actuator/health",
     };
 
     // Swagger UI 관련 공개 경로
