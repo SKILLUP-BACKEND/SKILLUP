@@ -11,6 +11,7 @@ import com.example.skillup.domain.admin.mapper.SynonymMapper;
 import com.example.skillup.domain.admin.repository.AdminRepository;
 import com.example.skillup.domain.event.repository.EventActionRepository;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
+import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Users;
 import com.example.skillup.domain.user.mappers.UserMapper;
@@ -62,6 +63,7 @@ public class AdminService {
     private final EventActionRepository eventActionRepository;
     private final NotFoundGuardService notFoundGuardService;
     private final EventBookmarkRepository eventBookmarkRepository;
+    private final HashTagRepository hashTagRepository;
 
     public Admin login(AdminLoginRequest request) {
 
@@ -232,5 +234,13 @@ public class AdminService {
         return adminMapper.toEventActionAnalyticsResponse(rolePercentageMap, userMonthlyCountMap, othersMonthlyCountMap,
                 since);
 
+    }
+
+    @Transactional(readOnly = true)
+    public AdminResponse.hashtagsResponse getHashtags(String keyword) {
+        String trimmedKeyword = (keyword == null || keyword.trim().isEmpty()) ? "" : keyword.trim();
+        List<String> hashTagList = hashTagRepository.getHashTagByName(trimmedKeyword);
+
+        return new AdminResponse.hashtagsResponse(hashTagList);
     }
 }

@@ -105,4 +105,10 @@ public class AdminController {
     public BaseResponse<AdminResponse.eventActionAnalyticsResponse> getUserEventActionAnalytics(@PathVariable String userId, @PathVariable String actionType) {
         return BaseResponse.success("유저 아이디로 유저의 활동 내역 분석 조회 성공", adminService.getUserEventActionAnalytics(userId,actionType));
     }
+
+    @GetMapping("/search/hashtags")
+    @Operation(summary = "해시태그 검색 API 입니다." , description = "빈값을 넣을경우 전체 조회입니다.")
+    public BaseResponse<AdminResponse.hashtagsResponse> getHashtagsForKeyword(@RequestParam(required = false) String keyword) {
+        return BaseResponse.success((keyword == null ? "전체" : keyword + "가 들어간") + " 해시태그 조회 성공" , adminService.getHashtags(keyword));
+    }
 }
