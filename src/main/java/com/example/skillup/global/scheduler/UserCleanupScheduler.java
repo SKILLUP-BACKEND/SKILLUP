@@ -19,8 +19,8 @@ public class UserCleanupScheduler
     @Scheduled(cron = "0 0 4 * * *")
     @Transactional
     public void cleanupExpiredUsers() {
-        log.info("만료된 Guest 데이터 삭제 시작");
+        log.info("만료된 User 데이터 삭제 시작");
         userRepository.deleteExpiredUsers(LocalDateTime.now().minusWeeks(2));
-        log.info("만료된 Guest 데이터 삭제 완료");
+        log.info("만료된 User 데이터 삭제 완료");
     }
 }

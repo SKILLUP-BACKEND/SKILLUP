@@ -29,9 +29,11 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class EventMapper {
 
@@ -198,7 +200,8 @@ public class EventMapper {
         if (eventDocument.getCategory() != null) {
             try {
                 category = EventCategory.valueOf(eventDocument.getCategory());
-            } catch (IllegalArgumentException ignore) {
+            } catch (IllegalArgumentException e) {
+                log.warn("지원하지 않는 카테고리 '{}' 발견 (eventId={})", eventDocument.getCategory(), eventDocument.getId());
             }
         }
 

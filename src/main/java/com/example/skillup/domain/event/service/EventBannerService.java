@@ -135,6 +135,10 @@ public class EventBannerService {
         int order = 1;
         for (Long id : bannerIds) {
             EventBanner banner = bannerMap.get(id);
+            if (banner == null) {
+                throw new EventException(EventErrorCode.INVALID_BANNER_ID,
+                        "배너 ID " + id + "에 해당하는 배너를 찾을 수 없습니다.");
+            }
             banner.updateBannerOrder(order++);
         }
 
