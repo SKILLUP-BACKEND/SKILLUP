@@ -40,4 +40,8 @@ public interface EventViewDailyRepository extends JpaRepository<EventViewDaily, 
     long sumLast14Days(@Param("eventId") Long eventId);
 
     Optional<EventViewDaily> findByEventAndViewDate(Event event, LocalDate viewDate);
+
+    @Modifying
+    @Query("DELETE FROM EventViewDaily v WHERE v.event.id = :eventId")
+    void deleteAllByEventId(@Param("eventId") Long eventId);
 }

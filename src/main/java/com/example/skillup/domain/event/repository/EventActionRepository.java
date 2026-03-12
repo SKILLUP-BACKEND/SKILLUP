@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,6 +29,9 @@ public interface EventActionRepository extends JpaRepository<EventAction, Long> 
 
     Optional<EventAction> findByEventAndActorIdAndActionType(Event event, String actorId , ActionType actionType);
 
+    @Modifying
+    @Query("DELETE FROM EventAction ea WHERE ea.event.id = :eventId")
+    void deleteAllByEventId(@Param("eventId") Long eventId);
 
     @Query(value = """
     SELECT
