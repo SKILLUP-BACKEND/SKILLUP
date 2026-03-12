@@ -2,11 +2,10 @@ package com.example.skillup.domain.admin.dto;
 
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.global.common.CommonResponse;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 public class AdminResponse {
     @Getter
@@ -56,5 +55,10 @@ public class AdminResponse {
         List<rolePercentageResponse> rolePercentageResponses;
     }
 
-
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class hashtagsResponse {
+        List<String> hashtags;
+    }
 }

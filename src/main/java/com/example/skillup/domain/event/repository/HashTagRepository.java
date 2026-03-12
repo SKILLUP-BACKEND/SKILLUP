@@ -60,4 +60,10 @@ public interface HashTagRepository extends JpaRepository<HashTag,Long> {
             @Param("since") LocalDateTime since
     );
 
+    @Query("""
+    select h.name
+    from HashTag h
+    where h.name like concat('%', :name, '%')
+""")
+    List<String> getHashTagByName(@Param("name") String name);
 }

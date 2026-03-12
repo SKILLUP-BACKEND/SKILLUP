@@ -48,7 +48,6 @@ public class EventSearchService {
     private final EventRepository eventRepository;
     private final EventService eventService;
 
-    LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
 
     public EventResponse.SearchEventResponseList search(EventRequest.EventSearchRequest request, UsersDetails user) {
 
@@ -147,6 +146,8 @@ public class EventSearchService {
         // 3) 결과 매핑
         int total =
                 documentSearchResponse.hits().total() == null ? 0 : (int) documentSearchResponse.hits().total().value();
+
+        LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
 
         if (total == 0) {
             log.info("검색 결과가 0개입니다.");
