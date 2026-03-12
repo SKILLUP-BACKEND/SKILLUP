@@ -293,6 +293,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
                     LEFT JOIN event_target_role etr ON etr.event_id = e.id
                     LEFT JOIN target_role tr ON tr.id = etr.role_id
                     WHERE (:category IS NULL OR e.category = :category)
+                      AND (e.deleted_at IS NULL)
                       AND (e.event_end IS NULL OR e.event_end >= :now)
                       AND (e.status = 'PUBLISHED')
                       AND (:isOnline IS NULL OR e.is_online = :isOnline)
