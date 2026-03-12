@@ -107,7 +107,7 @@ public class SampleDataLoader implements CommandLineRunner {
 // B. 해커톤(30일 이내)
         Event hackathon = Event.builder()
                 .title("🚀 AI 해커톤 2025")
-                .category(EventCategory.COMPETITION_HACKATHON)
+                .category(EventCategory.CONFERENCE_SEMINAR)
                 .status(EventStatus.PUBLISHED)
                 .recruitStart(now.minusDays(3))
                 .recruitEnd(now.plusDays(7))
