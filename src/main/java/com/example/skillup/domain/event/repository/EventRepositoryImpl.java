@@ -102,8 +102,10 @@ public class EventRepositoryImpl implements EventRepositoryNative {
             default -> " ORDER BY popularity DESC";
         };
 
+        String categoryParam = cond.getCategory() == EventCategory.ALL ? null : cond.getCategory().name();
+
         Query query = entityManager.createNativeQuery(baseQuery + orderBy)
-                .setParameter("category", cond.getCategory().name())
+                .setParameter("category", categoryParam)
                 .setParameter("isOnline", cond.getIsOnline())
                 .setParameter("isFree", cond.getIsFree())
                 .setParameter("startDate", cond.getStartDate())

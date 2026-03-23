@@ -25,6 +25,7 @@ import com.example.skillup.domain.event.repository.EventRepository;
 import com.example.skillup.domain.event.repository.EventRepository.AdminCategoryCountProjection;
 import com.example.skillup.domain.event.repository.EventRepository.AdminEventSummaryProjection;
 import com.example.skillup.domain.event.repository.EventRepositoryImpl;
+import com.example.skillup.domain.event.repository.EventViewDailyRepository;
 import com.example.skillup.domain.event.repository.HashTagRepository;
 import com.example.skillup.domain.event.validation.EventPublishValidator;
 import com.example.skillup.domain.map.provider.GeocodingProvider.GeoPoint;
@@ -38,6 +39,7 @@ import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.search.exception.SearchException;
 import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.AssociationBinder;
 import com.example.skillup.global.service.NotFoundGuardService;
@@ -76,6 +78,7 @@ public class EventService {
     private final AssociationBinder associationBinder;
     private final NotFoundGuardService notFoundGuardService;
     private final EventBookmarkRepository eventBookmarkRepository;
+    private final EventViewDailyRepository eventViewDailyRepository;
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
     private final HashTagRepository hashTagRepository;
@@ -88,21 +91,13 @@ public class EventService {
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
                     EventCategory.NETWORKING_MENTORING,
-                    EventCategory.COMPETITION_HACKATHON,
                     EventCategory.BOOTCAMP_CLUB
             ),
             EventCategory.NETWORKING_MENTORING, List.of(
                     EventCategory.CONFERENCE_SEMINAR,
-                    EventCategory.COMPETITION_HACKATHON,
                     EventCategory.BOOTCAMP_CLUB
             ),
-            EventCategory.COMPETITION_HACKATHON, List.of(
-                    EventCategory.BOOTCAMP_CLUB,
-                    EventCategory.NETWORKING_MENTORING,
-                    EventCategory.CONFERENCE_SEMINAR
-            ),
             EventCategory.BOOTCAMP_CLUB, List.of(
-                    EventCategory.COMPETITION_HACKATHON,
                     EventCategory.NETWORKING_MENTORING,
                     EventCategory.CONFERENCE_SEMINAR
             )
@@ -218,10 +213,24 @@ public class EventService {
         if (event.getDeletedAt() != null) {
             throw new EventException(EventErrorCode.EVENT_ALREADY_DELETED, "EventID가 " + eventId + "는");
         }
-        //TODO eventbookmarked 및 eventaction 도 연동해서 지워야할듯
+
+        // 연관 테이블 정리
+        eventBookmarkRepository.softDeleteAllByEventId(eventId);
+        eventActionRepository.deleteAllByEventId(eventId);
+        eventViewDailyRepository.deleteAllByEventId(eventId);
+        eventLikeRepository.deleteAllByEventId(eventId);
+
+        // ManyToMany 중간 테이블 정리
+        event.getTargetRoles().clear();
+        event.getHashTags().clear();
+
         event.delete();
 
-        eventIndexerService.delete(event.getId());
+        try {
+            eventIndexerService.delete(event.getId());
+        } catch (SearchException e) {
+            log.error("행사(id={}) Elasticsearch 인덱스 삭제 실패: {}", event.getId(), e.getMessage());
+        }
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
@@ -281,10 +290,14 @@ public class EventService {
 
         event.setStatus(status);
 
-        if (isVisible) {
-            eventIndexerService.index(event);
-        } else {
-            eventIndexerService.delete(event.getId());
+        try {
+            if (isVisible) {
+                eventIndexerService.index(event);
+            } else {
+                eventIndexerService.delete(event.getId());
+            }
+        } catch (Exception e) {
+            log.error("행사(id={}) 공개/숨김 처리 중 Elasticsearch 동기화 실패: {}", event.getId(), e.getMessage());
         }
 
         return new EventResponse.CommonEventResponse(event.getId());
@@ -468,7 +481,9 @@ public class EventService {
         String targetRoleKr = (targetRole == null || targetRole.equals(JobGroup.ALL)) ? null : targetRole.getToKorean();
         boolean targetRolesIsEmpty = (targetRoleKr == null || targetRoleKr.isEmpty());
 
-        int count = eventRepository.countByCategoryWithSearch(condition.getCategory().name(), condition.getIsOnline()
+        String categoryParam = condition.getCategory() == EventCategory.ALL ? null : condition.getCategory().name();
+
+        int count = eventRepository.countByCategoryWithSearch(categoryParam, condition.getIsOnline()
                 , condition.getIsFree(), condition.getStartDate(), condition.getEndDate(), targetRoleKr,
                 now,
                 targetRolesIsEmpty);

@@ -313,7 +313,7 @@ public class EventServiceTest {
 
         EventRequest.UpdateEvent newRequest = new EventRequest.UpdateEvent(
                 "수정된 제목",
-                EventCategory.COMPETITION_HACKATHON,
+                EventCategory.CONFERENCE_SEMINAR,
                 LocalDateTime.of(2025, 10, 1, 14, 0),
                 LocalDateTime.of(2025, 10, 1, 16, 0),
                 LocalDateTime.of(2025, 9, 15, 0, 0),
@@ -357,7 +357,7 @@ public class EventServiceTest {
         Event updatedEvent = eventRepository.getEvent(eventId);
         assertThat(updatedEvent.getTitle()).isEqualTo("수정된 제목");
         assertThat(updatedEvent.getThumbnailUrl()).endsWith("new.jpg");
-        assertThat(updatedEvent.getCategory()).isEqualTo(EventCategory.COMPETITION_HACKATHON);
+        assertThat(updatedEvent.getCategory()).isEqualTo(EventCategory.CONFERENCE_SEMINAR);
         assertThat(updatedEvent.getEventStart()).isEqualTo(LocalDateTime.of(2025, 10, 1, 14, 0));
         assertThat(updatedEvent.getEventEnd()).isEqualTo(LocalDateTime.of(2025, 10, 1, 16, 0));
         assertThat(updatedEvent.getRecruitStart()).isEqualTo(LocalDateTime.of(2025, 9, 15, 0, 0));
@@ -605,7 +605,7 @@ public class EventServiceTest {
     @Test
     @DisplayName("행사 추천 기존 카테고리가 2개 이하여서 다른 카테고리로 보충 성공 테스트")
     public void getSupplementaryEvents_Success() {
-        Event savedEvent1 = eventRepository.save(createEvent("저장", EventCategory.COMPETITION_HACKATHON));
+        Event savedEvent1 = eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent2 = eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent3 = eventRepository.save(createEvent("저장", EventCategory.NETWORKING_MENTORING));
 

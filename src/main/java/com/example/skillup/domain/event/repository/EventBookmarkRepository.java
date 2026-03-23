@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,6 +47,10 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     """)
     List<Long> findBookmarkedEventIds(@Param("userId") Long userId,
                                       @Param("eventIds") List<Long> eventIds);
+
+    @Modifying
+    @Query("UPDATE EventBookmark eb SET eb.deletedAt = CURRENT_TIMESTAMP WHERE eb.event.id = :eventId AND eb.deletedAt IS NULL")
+    void softDeleteAllByEventId(@Param("eventId") Long eventId);
 
     @Query(value = """
     SELECT

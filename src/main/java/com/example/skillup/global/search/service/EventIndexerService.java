@@ -47,8 +47,8 @@ public class EventIndexerService {
                     .refresh(Refresh.True)
             ));
         } catch (IOException e) {
-            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR,
-                    e.getMessage() + "elasticsearch 생성/업데이트 시 에러 발생");
+            throw new SearchException(SearchErrorCode.SEARCH_INDEX_CREATE_ERROR,
+                    "행사(id=" + event.getId() + ") 인덱싱 실패: " + e.getMessage());
         }
     }
 
@@ -57,7 +57,8 @@ public class EventIndexerService {
         try {
             elasticsearchClient.delete(d -> d.index(index).id(String.valueOf(eventId)).refresh(Refresh.True));
         } catch (IOException e) {
-            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR, "elasticsearch 인덱싱 삭제시 에러 발생");
+            throw new SearchException(SearchErrorCode.SEARCH_INDEX_DELETE_ERROR,
+                    "행사(id=" + eventId + ") 인덱스 삭제 실패: " + e.getMessage());
         }
     }
 
@@ -96,16 +97,19 @@ public class EventIndexerService {
                 var bulkResp = elasticsearchClient.bulk(
                         BulkRequest.of(b -> b.index(index).operations(ops).refresh(Refresh.True)));
                 if (Boolean.TRUE.equals(bulkResp.errors())) {
-                    throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR, "일부 문서 인덱싱 실패");
+                    throw new SearchException(SearchErrorCode.SEARCH_INDEX_BULK_ERROR,
+                            "벌크 인덱싱 중 일부 문서 실패 (page=" + page + ")");
                 }
                 total += ops.size();
                 page++;
             }
             return total;
         } catch (IOException e) {
-            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR, "ES 통신 오류");
+            throw new SearchException(SearchErrorCode.SEARCH_INDEX_BULK_ERROR,
+                    "벌크 인덱싱 중 ES 통신 오류: " + e.getMessage());
         } catch (ElasticsearchException e) {
-            throw new SearchException(SearchErrorCode.SEARCH_INDEXING_ERROR, e.getMessage());
+            throw new SearchException(SearchErrorCode.SEARCH_INDEX_BULK_ERROR,
+                    "벌크 인덱싱 중 ES 오류: " + e.getMessage());
         }
     }
 }
