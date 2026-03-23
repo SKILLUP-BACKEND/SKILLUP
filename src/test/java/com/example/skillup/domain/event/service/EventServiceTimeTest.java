@@ -124,7 +124,7 @@ public class EventServiceTimeTest
 
         eventService.getRecommendedEvents(3L , null);
         eventService.getSupplementaryEvents(
-                EventCategory.NETWORKING_MENTORING , null);
+                EventCategory.COMPETITION_HACKATHON , null);
         eventService.getEventBySearch(condPopularity , null);
         eventService.getEventDetail(3L,null,"3L");
         eventService.getClosingSoonEvents(8 , null);
