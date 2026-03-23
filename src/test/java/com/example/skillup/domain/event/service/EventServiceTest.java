@@ -607,10 +607,10 @@ public class EventServiceTest {
     public void getSupplementaryEvents_Success() {
         Event savedEvent1 = eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
         Event savedEvent2 = eventRepository.save(createEvent("저장", EventCategory.CONFERENCE_SEMINAR));
-        Event savedEvent3 = eventRepository.save(createEvent("저장", EventCategory.NETWORKING_MENTORING));
+        Event savedEvent3 = eventRepository.save(createEvent("저장", EventCategory.COMPETITION_HACKATHON));
 
         List<EventResponse.HomeEventResponse> result = eventService.getSupplementaryEvents(
-                EventCategory.NETWORKING_MENTORING , null);
+                EventCategory.COMPETITION_HACKATHON , null);
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(savedEvent3.getId());

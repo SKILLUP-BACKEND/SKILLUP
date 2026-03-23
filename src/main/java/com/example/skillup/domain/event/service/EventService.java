@@ -90,15 +90,15 @@ public class EventService {
 
     private static final Map<EventCategory, List<EventCategory>> CATEGORY_PRIORITY = Map.of(
             EventCategory.CONFERENCE_SEMINAR, List.of(
-                    EventCategory.NETWORKING_MENTORING,
+                    EventCategory.COMPETITION_HACKATHON,
                     EventCategory.BOOTCAMP_CLUB
             ),
-            EventCategory.NETWORKING_MENTORING, List.of(
+            EventCategory.COMPETITION_HACKATHON, List.of(
                     EventCategory.CONFERENCE_SEMINAR,
                     EventCategory.BOOTCAMP_CLUB
             ),
             EventCategory.BOOTCAMP_CLUB, List.of(
-                    EventCategory.NETWORKING_MENTORING,
+                    EventCategory.COMPETITION_HACKATHON,
                     EventCategory.CONFERENCE_SEMINAR
             )
     );
