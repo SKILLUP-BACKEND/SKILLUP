@@ -132,6 +132,10 @@ public class Event extends BaseEntity {
     @Column(name = "ad_flag", nullable = false)
     private boolean ad = false;                // 광고/제휴 노출 여부
 
+    // 실제 등록 시각
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
 
     public void addTargetRole(TargetRole role) {
         targetRoles.add(role);
