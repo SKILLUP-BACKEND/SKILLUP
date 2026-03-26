@@ -3,10 +3,15 @@ package com.example.skillup.domain.event.validation;
 import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
+import com.example.skillup.domain.event.repository.EventRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class EventPublishValidator {
+
+    private final EventRepository eventRepository;
 
     public void validateForPublish(Event event) {
 
@@ -42,6 +47,18 @@ public class EventPublishValidator {
                 throw new EventException(EventErrorCode.EVENT_PUBLISH_VALIDATION_FAILED,
                         "오프라인 행사는 장소(locationText)가 필수입니다.");
             }
+        }
+    }
+
+    public void validateDuplicateTitleForCreate(String title) {
+        if (eventRepository.existsByTitle(title)) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED , title + "인 행사가 이미 존재합니다.");
+        }
+    }
+
+    public void validateDuplicateTitleForUpdate(Long eventId, String title) {
+        if (eventRepository.existsByTitleAndIdNot(title, eventId)) {
+            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED , title + "인 행사가  이미 존재합니다.");
         }
     }
 }

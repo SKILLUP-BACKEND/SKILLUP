@@ -65,6 +65,7 @@ public class EventMapper {
                 .status(EventStatus.PUBLISHED)
                 .latitude(lat)
                 .longitude(lng)
+                .publishedAt(LocalDateTime.now().withNano(0))
                 .build();
     }
 
@@ -330,7 +331,7 @@ public class EventMapper {
                             .viewsCount(event.getViewsCount())
                             .bookmarksCount(event.getBookmarkedCount())
                             .status(status.getToKorean())
-                            .createdAt(event.getCreatedAt())
+                            .createdAt(event.getPublishedAt())
                             .build();
                 }
         ).toList();
