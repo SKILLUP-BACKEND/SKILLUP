@@ -20,6 +20,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         return findById(eventId).orElseThrow(
                 () -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND, "EventID 가 " + eventId + "인"));
     }
+    boolean existsByTitle(String title);
+    boolean existsByTitleAndIdNot(String title, Long eventId);
 
     Page<Event> findAllByCategoryIn(Set<EventCategory> categories, Pageable pageable);
 
@@ -212,6 +214,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             Pageable pageable);
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
+
+
 
     public interface PopularEventProjection {
         Event getEvent();

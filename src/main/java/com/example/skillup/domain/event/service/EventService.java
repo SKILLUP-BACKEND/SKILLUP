@@ -111,6 +111,8 @@ public class EventService {
     @Transactional
     public Event createEvent(EventRequest.CreateEvent request, MultipartFile thumbnailImage) {
 
+        eventPublishValidator.validateDuplicateTitleForCreate(request.getTitle());
+
         String thumbnailUrl = null;
 
         if (thumbnailImage != null) {
@@ -144,6 +146,8 @@ public class EventService {
     @Transactional
     public Event createDraftEvent(EventRequest.CreateDraftEvent request, MultipartFile thumbnailImage) {
 
+        eventPublishValidator.validateDuplicateTitleForCreate(request.getTitle());
+
         String thumbnailUrl = null;
         if (thumbnailImage != null) {
             thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
@@ -166,9 +170,7 @@ public class EventService {
     public Event publishDraftEvent(Long eventId , UpdateEvent request, MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
-        if(event.getStatus() != EventStatus.DRAFT) {
-            throw new EventException(EventErrorCode.EVENT_ALREADY_PUBLISHED);
-        }
+        eventPublishValidator.validateDuplicateTitleForUpdate(eventId , request.getTitle());
 
         String thumbnailUrl = event.getThumbnailUrl();
         if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
