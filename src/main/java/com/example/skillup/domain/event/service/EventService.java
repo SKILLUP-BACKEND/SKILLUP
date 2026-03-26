@@ -197,6 +197,8 @@ public class EventService {
         }
 
         event.setStatus(EventStatus.PUBLISHED);
+        event.setPublishedAt(LocalDateTime.now().withNano(0));
+
         Event savedEvent = eventRepository.save(event);
 
         eventIndexerService.index(savedEvent);
@@ -663,7 +665,7 @@ public class EventService {
             case EVENT_START -> Sort.by(Sort.Direction.ASC, "eventStart");
             case VIEWS -> Sort.by(Sort.Direction.DESC, "viewsCount");
             case BOOKMARKS -> Sort.by(Sort.Direction.DESC, "bookmarkedCount");
-            case CREATED_AT -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case CREATED_AT -> Sort.by(Sort.Direction.DESC, "publishedAt");
 
             default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE, sortType.name() + "은 ");
         };
