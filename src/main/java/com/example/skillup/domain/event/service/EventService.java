@@ -243,8 +243,14 @@ public class EventService {
         Event event = eventRepository.getEvent(eventId);
 
         String oldLocationText = event.getLocationText();
+        String oldTitle = event.getTitle();
         Boolean oldIsOnline = event.getIsOnline();
         String imageUrl = event.getThumbnailUrl();
+
+
+        if (request.getTitle() != null && !request.getTitle().equals(oldTitle)) {
+            eventPublishValidator.validateDuplicateTitleForUpdate(event.getId(), request.getTitle());
+        }
 
         if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 
