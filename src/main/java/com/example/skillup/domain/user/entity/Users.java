@@ -114,9 +114,10 @@ public class Users extends BaseEntity
         this.lastLoginAt = lastLoginAt;
     }
 
-    public void rejoin()
-    {
-        this.status= UserStatus.ACTIVE;
+    public void rejoin() {
+        this.status = UserStatus.ACTIVE;
+        this.withDrawReason = null;
+        this.restore();
     }
 
 

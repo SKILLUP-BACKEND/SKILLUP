@@ -25,13 +25,18 @@ public abstract class BaseEntity {
         deletedAt = LocalDateTime.now();
     }
 
+    public void restore() {
+        deletedAt = null;
+    }
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now().withNano(0);
         }
     }
-    public void setUpdatedAt(){
+
+    public void setUpdatedAt() {
         updatedAt = LocalDateTime.now();
     }
 }
