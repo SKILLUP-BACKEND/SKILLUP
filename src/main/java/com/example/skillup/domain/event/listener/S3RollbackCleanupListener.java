@@ -1,5 +1,6 @@
 package com.example.skillup.domain.event.listener;
 
+import com.example.skillup.domain.event.events.ThumbnailReplacedEvent;
 import com.example.skillup.domain.event.events.ThumbnailUploadedEvent;
 import com.example.skillup.global.service.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,13 @@ public class S3RollbackCleanupListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void deleteThumbnailOnRollback(ThumbnailUploadedEvent event) {
-        log.info("AFTER_ROLLBACK 실행 - thumbnailUrl={}", event.thumbnailUrl());
+        log.info("S3 AFTER_ROLLBACK 실행 - thumbnailUrl={}", event.thumbnailUrl());
         s3Service.deleteFileFromUrl(event.thumbnailUrl());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void deleteThumbnailOnCommit(ThumbnailReplacedEvent event) {
+        log.info("S3 AFTER_COMMIT 실행 - thumbnailUrl={}", event.oldThumbnailUrl());
+        s3Service.deleteFileFromUrl(event.oldThumbnailUrl());
     }
 }

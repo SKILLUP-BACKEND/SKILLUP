@@ -20,7 +20,7 @@ public class EventIndexingListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void indexEventAfterCommit(EventCreatedEvent event) {
 
-        log.info("AFTER_COMMIT 실행 - eventId={}", event.eventId());
+        log.info("ES AFTER_COMMIT 실행 - eventId={}", event.eventId());
 
         Event savedEvent = eventRepository.getEvent(event.eventId());
 
