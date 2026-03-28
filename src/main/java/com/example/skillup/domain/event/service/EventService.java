@@ -15,6 +15,8 @@ import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventSortType;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.events.EventCreatedEvent;
+import com.example.skillup.domain.event.events.ThumbnailUploadedEvent;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -54,6 +56,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -83,6 +86,7 @@ public class EventService {
     private final GeocodingService geocodingService;
     private final HashTagRepository hashTagRepository;
     private final EventPublishValidator eventPublishValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     private record ActorInfo(String actorId, ActorType actorType) {
@@ -113,18 +117,12 @@ public class EventService {
 
         eventPublishValidator.validateDuplicateTitleForCreate(request.getTitle());
 
-        String thumbnailUrl = null;
-
-        if (thumbnailImage != null) {
-            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
-        }
-
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline()) {
-            eventGeoPoint = new GeoPoint(request.getLatitude() , request.getLongitude() , request.getLocationText());
+            eventGeoPoint = new GeoPoint(request.getLatitude(), request.getLongitude(), request.getLocationText());
         }
 
-        Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
+        Event event = eventMapper.toEntity(request, null, eventGeoPoint);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
@@ -136,9 +134,19 @@ public class EventService {
 
         eventPublishValidator.validateForPublish(event);
 
+        if (thumbnailImage != null) {
+            String thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+
+            event.setThumbnailUrl(thumbnailUrl);
+
+            // 롤백되면 S3 올라간 데이터 삭제
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(thumbnailUrl));
+        }
+
         Event savedEvent = eventRepository.save(event);
 
-        eventIndexerService.index(savedEvent);
+        //DB 에 저장된게 확인되면 elastic search 에 올라가도록 수정
+        eventPublisher.publishEvent(new EventCreatedEvent(savedEvent.getId()));
 
         return savedEvent;
     }
@@ -167,10 +175,10 @@ public class EventService {
     }
 
     @Transactional
-    public Event publishDraftEvent(Long eventId , UpdateEvent request, MultipartFile thumbnailImage) {
+    public Event publishDraftEvent(Long eventId, UpdateEvent request, MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
-        eventPublishValidator.validateDuplicateTitleForUpdate(eventId , request.getTitle());
+        eventPublishValidator.validateDuplicateTitleForUpdate(eventId, request.getTitle());
 
         String thumbnailUrl = event.getThumbnailUrl();
         if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
@@ -190,7 +198,6 @@ public class EventService {
         }
 
         eventPublishValidator.validateForPublish(event);
-
 
         if (Boolean.FALSE.equals(event.getIsOnline())) {
             event.updateCoordinates(request.getLatitude(), request.getLongitude());
@@ -248,7 +255,6 @@ public class EventService {
         String oldTitle = event.getTitle();
         Boolean oldIsOnline = event.getIsOnline();
         String imageUrl = event.getThumbnailUrl();
-
 
         if (request.getTitle() != null && !request.getTitle().equals(oldTitle)) {
             eventPublishValidator.validateDuplicateTitleForUpdate(event.getId(), request.getTitle());
