@@ -9,7 +9,6 @@ import com.example.skillup.domain.event.exception.TargetRoleErrorCode;
 import com.example.skillup.domain.event.mapper.EventMapper;
 import com.example.skillup.domain.event.repository.EventBookmarkRepository;
 import com.example.skillup.domain.event.repository.TargetRoleRepository;
-import com.example.skillup.domain.oauth.Entity.SocialLoginType;
 import com.example.skillup.domain.user.dto.request.UserRequest;
 import com.example.skillup.domain.user.dto.response.UserResponse;
 import com.example.skillup.domain.user.entity.Interest;
@@ -78,9 +77,7 @@ public class UserService {
             case "latest" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
             case "deadline" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
         }
-        List<EventResponse.HomeEventResponse> eventBookmarksDto = eventBookmarks.getContent().stream()
-                .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
-                .toList();
+        LocalDateTime now = LocalDateTime.now();
 
         CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
                 .builder()
@@ -92,11 +89,14 @@ public class UserService {
         List<EventResponse.HomeEventResponse> recruitingEvents = new ArrayList<>();
         List<EventResponse.HomeEventResponse> closedEvents = new ArrayList<>();
 
-        for (EventResponse.HomeEventResponse event : eventBookmarksDto) {
-            if (event.getD_dayLabel().equals("마감")) {
-                closedEvents.add(event);
+        for (Event event : eventBookmarks.getContent()) {
+            EventResponse.HomeEventResponse dto =
+                    eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null);
+
+            if (event.getEventEnd() != null && event.getEventEnd().isBefore(now)) {
+                closedEvents.add(dto);
             } else {
-                recruitingEvents.add(event);
+                recruitingEvents.add(dto);
             }
         }
         return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse,
