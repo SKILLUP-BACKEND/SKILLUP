@@ -32,7 +32,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
         select eb.event
         from EventBookmark eb
         where eb.user = :user and eb.isBookmarked = true
-        order by eb.event.recruitEnd asc
+        order by eb.event.eventEnd asc
        """)
     Page<Event> findEventsByUserWithDeadLine(@Param("user") Users user,
                               Pageable pageable);
