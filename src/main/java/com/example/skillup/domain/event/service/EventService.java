@@ -42,6 +42,7 @@ import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.recovery.enums.ResourceType;
 import com.example.skillup.global.search.exception.SearchException;
 import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.AssociationBinder;
@@ -141,7 +142,7 @@ public class EventService {
             event.setThumbnailUrl(thumbnailUrl);
 
             // 롤백되면 S3 올라간 데이터 삭제
-            eventPublisher.publishEvent(new ThumbnailUploadedEvent(thumbnailUrl));
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, thumbnailUrl));
         }
 
         Event savedEvent = eventRepository.save(event);
@@ -172,7 +173,7 @@ public class EventService {
 
             event.setThumbnailUrl(thumbnailUrl);
 
-            eventPublisher.publishEvent(new ThumbnailUploadedEvent(thumbnailUrl));
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, thumbnailUrl));
         }
 
         return eventRepository.save(event);
@@ -209,11 +210,12 @@ public class EventService {
 
             event.setThumbnailUrl(newThumbnailUrl);
 
-            eventPublisher.publishEvent(new ThumbnailUploadedEvent(newThumbnailUrl));
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, newThumbnailUrl));
 
             //제대로 저장되는 경우 기존 썸네일 삭제
             if (oldThumbnailUrl != null && !oldThumbnailUrl.isBlank()) {
-                eventPublisher.publishEvent(new ThumbnailReplacedEvent(oldThumbnailUrl));
+                eventPublisher.publishEvent(
+                        new ThumbnailReplacedEvent(ResourceType.EVENT, event.getId(), oldThumbnailUrl));
             }
         }
 
@@ -302,10 +304,11 @@ public class EventService {
 
             event.setThumbnailUrl(newThumbnailUrl);
 
-            eventPublisher.publishEvent(new ThumbnailUploadedEvent(newThumbnailUrl));
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, newThumbnailUrl));
 
             if (oldThumbnailUrl != null && !oldThumbnailUrl.isBlank()) {
-                eventPublisher.publishEvent(new ThumbnailReplacedEvent(oldThumbnailUrl));
+                eventPublisher.publishEvent(
+                        new ThumbnailReplacedEvent(ResourceType.EVENT, event.getId(), oldThumbnailUrl));
             }
         }
 
