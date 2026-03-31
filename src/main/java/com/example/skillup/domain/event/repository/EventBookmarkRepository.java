@@ -17,34 +17,13 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     Optional<EventBookmark> findByUserAndEvent(Users user, Event event);
 
 
-
     @Query("""
-        select eb.event
-        from EventBookmark eb
-        where eb.user = :user and eb.isBookmarked = true
-        order by eb.createdAt desc
-       """)
-    Page<Event> findEventsByUserWithLatest(@Param("user") Users user,
-                                           Pageable pageable);
-
-
-    @Query("""
-        select eb.event
-        from EventBookmark eb
-        where eb.user = :user and eb.isBookmarked = true
-        order by eb.event.eventEnd asc
-       """)
-    Page<Event> findEventsByUserWithDeadLine(@Param("user") Users user,
-                              Pageable pageable);
-
-
-    @Query("""
-        select eb.event.id
-        from EventBookmark eb
-        where eb.user.id = :userId
-          and eb.event.id in :eventIds
-          and eb.isBookmarked = true
-    """)
+                select eb.event.id
+                from EventBookmark eb
+                where eb.user.id = :userId
+                  and eb.event.id in :eventIds
+                  and eb.isBookmarked = true
+            """)
     List<Long> findBookmarkedEventIds(@Param("userId") Long userId,
                                       @Param("eventIds") List<Long> eventIds);
 
@@ -53,23 +32,69 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
     void softDeleteAllByEventId(@Param("eventId") Long eventId);
 
     @Query(value = """
-    SELECT
-        CAST(eb.user_id AS CHAR) AS actorId,
-        eb.created_at            AS createdAt,
-        GROUP_CONCAT(tr.name ORDER BY tr.name SEPARATOR ',') AS targetRoles
-    FROM event_bookmark eb
-    JOIN event e
-        ON eb.event_id = e.id AND e.deleted_at IS NULL
-    JOIN event_target_role etr
-        ON e.id = etr.event_id
-    JOIN target_role tr
-        ON tr.id = etr.role_id
-    WHERE eb.created_at >= :since
-      AND eb.deleted_at IS NULL
-      AND eb.is_bookmarked = true
-    GROUP BY eb.id, eb.user_id, eb.created_at
-""", nativeQuery = true)
+                SELECT
+                    CAST(eb.user_id AS CHAR) AS actorId,
+                    eb.created_at            AS createdAt,
+                    GROUP_CONCAT(tr.name ORDER BY tr.name SEPARATOR ',') AS targetRoles
+                FROM event_bookmark eb
+                JOIN event e
+                    ON eb.event_id = e.id AND e.deleted_at IS NULL
+                JOIN event_target_role etr
+                    ON e.id = etr.event_id
+                JOIN target_role tr
+                    ON tr.id = etr.role_id
+                WHERE eb.created_at >= :since
+                  AND eb.deleted_at IS NULL
+                  AND eb.is_bookmarked = true
+                GROUP BY eb.id, eb.user_id, eb.created_at
+            """, nativeQuery = true)
     List<EventActionRepository.EventActionAnalyticsProjection> findBookmarkAnalyticsSince(
             @Param("since") LocalDateTime since
     );
+
+    @Query(value = """
+            select e
+            from EventBookmark eb
+            join eb.event e
+            where eb.user = :user
+              and eb.isBookmarked = true
+              and e.deletedAt is null
+              and e.eventEnd >= :now
+            """)
+    Page<Event> findRecruitingEventsByUser(Users user, LocalDateTime now, Pageable pageable);
+
+    @Query(value = """
+            select e
+            from EventBookmark eb
+            join eb.event e
+            where eb.user = :user
+              and eb.isBookmarked = true
+              and e.deletedAt is null
+              and e.eventEnd < :now
+            """)
+    Page<Event> findClosedEventsByUser(Users user, LocalDateTime now, Pageable pageable);
+
+    @Query("""
+            select count(e)
+            from EventBookmark eb
+            join eb.event e
+            where eb.user = :user
+              and eb.isBookmarked = true
+              and e.deletedAt is null
+              and e.eventEnd >= :now
+            """)
+    long countRecruitingEventsByUser(@Param("user") Users user,
+                                     @Param("now") LocalDateTime now);
+
+    @Query("""
+            select count(e)
+            from EventBookmark eb
+            join eb.event e
+            where eb.user = :user
+              and eb.isBookmarked = true
+              and e.deletedAt is null
+              and e.eventEnd < :now
+            """)
+    long countClosedEventsByUser(@Param("user") Users user,
+                                 @Param("now") LocalDateTime now);
 }

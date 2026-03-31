@@ -21,7 +21,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public static Users of(String email, String name, String socialId, SocialLoginType socialLoginType, String gender, String age, TargetRole role) {
+    public static Users of(String email, String name, String socialId, SocialLoginType socialLoginType, String gender,
+                           String age, TargetRole role) {
         return Users.builder()
                 .email(email)
                 .name(name)
@@ -48,8 +49,8 @@ public class UserMapper {
                                 ? oauthInfo.name()
                                 : "OAuthUser"
                 )
-                .age(oauthInfo.age()!=null ? oauthInfo.age() : "0")
-                .gender(oauthInfo.gender()!=null ? oauthInfo.gender() : "0")
+                .age(oauthInfo.age() != null ? oauthInfo.age() : "0")
+                .gender(oauthInfo.gender() != null ? oauthInfo.gender() : "0")
                 .socialId(oauthInfo.socialId())
                 .socialLoginType(oauthInfo.socialLoginType())
                 .status(UserStatus.ACTIVE)
@@ -69,15 +70,17 @@ public class UserMapper {
                 .build();
     }
 
-    public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user, List<EventResponse.HomeEventResponse> recruitingEvents,
-                                                                        List<EventResponse.HomeEventResponse> closedEvents, CommonResponse.PageInfoResponse pageInfoResponse, long totalElements)
-    {
+    public UserResponse.MyPageBookMarkResponse toMyPageBookMarkResponse(Users user,
+                                                                        List<EventResponse.HomeEventResponse> eventResponseList,
+                                                                        CommonResponse.PageInfoResponse pageInfoResponse,
+                                                                        long recruitingCount, long closedCount) {
         return UserResponse.MyPageBookMarkResponse.builder()
-                .bookmarkCount((int) totalElements)
-                .recruitingEvents(recruitingEvents)
-                .closedEvents(closedEvents)
+                .events(eventResponseList)
                 .email(user.getEmail())
                 .name(user.getName())
+                .recruitingCount(recruitingCount)
+                .closedCount(closedCount)
+                .bookmarkCount(recruitingCount + closedCount)
                 .pageInfo(pageInfoResponse)
                 .role(user.getRole().getName())
                 .build();
@@ -110,8 +113,7 @@ public class UserMapper {
     }
 
     public UserResponse.WithDrawReasonCategoryResponse toWithDrawReasonCategoryResponse
-            (WithdrawReasonCategory withDrawReasonCategory)
-    {
+            (WithdrawReasonCategory withDrawReasonCategory) {
         return UserResponse.WithDrawReasonCategoryResponse.builder()
                 .description(withDrawReasonCategory.getDescription())
                 .build();
@@ -125,7 +127,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .socialLoginType(user.getSocialLoginType().getToKorean())
                 .role(CommonMapper.convertRole(user.getRole().getName()))
-                .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
+                .status(user.getDeletedAt() != null ? "탈퇴" : "활성").build();
     }
 
     public UserResponse.AdminUserDetailPageResponse toAdminUserDetailPageResponse(Users user) {
@@ -134,13 +136,14 @@ public class UserMapper {
                 .name(user.getName())
                 .createdAt(CommonMapper.toDatePattern(user.getCreatedAt()))
                 .email(user.getEmail())
-                .socialLoginType(user.getSocialLoginType().getToKorean()+" 로그인")
+                .socialLoginType(user.getSocialLoginType().getToKorean() + " 로그인")
                 .role(CommonMapper.convertRole(user.getRole().getName()))
                 .lastLoginAt(CommonMapper.toDatePattern(user.getLastLoginAt()))
-                .status(user.getDeletedAt() != null? "탈퇴" : "활성").build();
+                .status(user.getDeletedAt() != null ? "탈퇴" : "활성").build();
     }
 
-    public UserResponse.AdminUserEventActionCountsResponse toAdminUserEventActionResponse(int viewCount, int saveCount, int applyCount) {
+    public UserResponse.AdminUserEventActionCountsResponse toAdminUserEventActionResponse(int viewCount, int saveCount,
+                                                                                          int applyCount) {
         return UserResponse.AdminUserEventActionCountsResponse.builder()
                 .viewCount(viewCount)
                 .saveCount(saveCount)

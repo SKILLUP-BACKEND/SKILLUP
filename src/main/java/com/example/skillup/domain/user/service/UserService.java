@@ -27,16 +27,17 @@ import com.example.skillup.global.aop.ConvertNotFound;
 import com.example.skillup.global.auth.dto.response.TokenResponse;
 import com.example.skillup.global.auth.service.AuthService;
 import com.example.skillup.global.common.CommonResponse;
+import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,41 +67,59 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, String sort, int page) {
-        Pageable pageable = PageRequest.of(page, 9);
-        Page<Event> eventBookmarks = Page.empty(pageable);
+    public UserResponse.MyPageBookMarkResponse getMyPageBookMark(Users user, String sort, int page, String status) {
+
+        Pageable pageable = createBookmarkPageable(page, status, sort);
+        LocalDateTime now = LocalDateTime.now();
 
         //user를 영속성 컨텍스트로 만들기 위해서
         user = notFoundGuardService.getUsersNative(user.getId());
 
-        switch (sort) {
-            case "latest" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithLatest(user, pageable);
-            case "deadline" -> eventBookmarks = eventBookmarkRepository.findEventsByUserWithDeadLine(user, pageable);
-        }
-        LocalDateTime now = LocalDateTime.now();
+        Page<Event> eventBookmarks = switch (status) {
+            case "recruiting" -> eventBookmarkRepository.findRecruitingEventsByUser(user, now, pageable);
+            case "closed" -> eventBookmarkRepository.findClosedEventsByUser(user, now, pageable);
+            default -> throw new UserException(CommonErrorCode.INVALID_INPUT_VALUE, "유효하지 않은 status 값입니다.");
+        };
 
-        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse
-                .builder()
-                .currentPage(page + 1)
+        List<EventResponse.HomeEventResponse> events = eventBookmarks.getContent().stream()
+                .map(event -> eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null))
+                .toList();
+
+        long recruitingCount;
+        long closedCount;
+
+        if ("recruiting".equals(status)) {
+            recruitingCount = eventBookmarks.getTotalElements();
+            closedCount = eventBookmarkRepository.countClosedEventsByUser(user, now);
+        } else {
+            closedCount = eventBookmarks.getTotalElements();
+            recruitingCount = eventBookmarkRepository.countRecruitingEventsByUser(user, now);
+        }
+
+        CommonResponse.PageInfoResponse pageInfoResponse = CommonResponse.PageInfoResponse.builder()
+                .currentPage(eventBookmarks.getNumber() + 1)
                 .pageSize(eventBookmarks.getSize())
                 .totalPages(eventBookmarks.getTotalPages())
                 .build();
 
-        List<EventResponse.HomeEventResponse> recruitingEvents = new ArrayList<>();
-        List<EventResponse.HomeEventResponse> closedEvents = new ArrayList<>();
+        return userMapper.toMyPageBookMarkResponse(user, events, pageInfoResponse, recruitingCount, closedCount);
+    }
 
-        for (Event event : eventBookmarks.getContent()) {
-            EventResponse.HomeEventResponse dto =
-                    eventMapper.toFeaturedEvent(event, true, event.isRecommendedManual(), event.isAd(), null);
+    private Pageable createBookmarkPageable(int page, String status, String sort) {
+        if ("latest".equals(sort)) {
+            return PageRequest.of(page, 9, Sort.by(Sort.Direction.DESC, "createdAt"));
+        }
 
-            if (event.getEventEnd() != null && event.getEventEnd().isBefore(now)) {
-                closedEvents.add(dto);
-            } else {
-                recruitingEvents.add(dto);
+        if ("deadline".equals(sort)) {
+            if ("recruiting".equals(status)) {
+                return PageRequest.of(page, 9, Sort.by(Sort.Direction.ASC, "event.eventEnd"));
+            }
+            if ("closed".equals(status)) {
+                return PageRequest.of(page, 9, Sort.by(Sort.Direction.DESC, "event.eventEnd"));
             }
         }
-        return userMapper.toMyPageBookMarkResponse(user, recruitingEvents, closedEvents, pageInfoResponse,
-                eventBookmarks.getTotalElements());
+
+        throw new UserException(CommonErrorCode.INVALID_INPUT_VALUE, "유효하지 않은 sort 값입니다.");
     }
 
     @Transactional(readOnly = true)
