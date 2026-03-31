@@ -25,11 +25,13 @@ public class UserResponse {
     public static class MyPageBookMarkResponse {
         private String name;
         private String email;
-        List<EventResponse.HomeEventResponse> recruitingEvents;
-        List<EventResponse.HomeEventResponse> closedEvents;
         String role;
-        int bookmarkCount;
+        List<EventResponse.HomeEventResponse> events;
+        long closedCount;
+        long recruitingCount;
+        long bookmarkCount;
         CommonResponse.PageInfoResponse pageInfo;
+
     }
 
     @Getter

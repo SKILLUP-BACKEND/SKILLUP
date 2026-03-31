@@ -63,10 +63,12 @@ public class UserController {
                     description = "정렬 기준 (latest, deadline)"
             )
             @RequestParam String sort,
+            @Parameter(description = "조회 기준 (recruiting , closed)")
+            @RequestParam String status,
             @RequestParam int page
     ) {
         return BaseResponse.success("마이페이지 북마크된 이벤트 조회 성공",
-                userService.getMyPageBookMark(user.getUser(), sort, page));
+                userService.getMyPageBookMark(user.getUser(), sort, page , status));
     }
 
     @GetMapping("/my-page/profile/interest")

@@ -1,7 +1,7 @@
 package com.example.skillup.domain.user.service;
 
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -26,7 +26,6 @@ import com.example.skillup.domain.user.repository.UserRepository;
 import com.example.skillup.global.common.BaseEntity;
 import com.example.skillup.global.service.S3Service;
 import java.lang.reflect.Field;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +67,10 @@ public class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        targetRoleRepository.deleteAll();
+        eventBookmarkRepository.deleteAll();
         userRepository.deleteAll();
+        targetRoleRepository.deleteAll();
+        eventRepository.deleteAll();
         role = targetRoleRepository.save(TargetRole.builder().name("PLANNER").build());
         targetRoleRepository.save(TargetRole.builder().name("DESIGNER").build());
         targetRoleRepository.save(TargetRole.builder().name("AI_DEVELOPER").build());
@@ -103,6 +104,7 @@ public class UserServiceTest {
 
         Field createdField = BaseEntity.class.getDeclaredField("createdAt");
         createdField.setAccessible(true);
+        LocalDateTime now = LocalDateTime.now();
 
         Event event1 = Event.builder()
                 .title("테스트 이벤트1")
@@ -125,7 +127,7 @@ public class UserServiceTest {
                 .recruitStart(LocalDateTime.now().minusDays(20))
                 .recruitEnd(LocalDateTime.now().plusDays(100))
                 .eventStart(LocalDateTime.now().minusDays(20))
-                .eventEnd(LocalDateTime.now().plusDays(20))
+                .eventEnd(LocalDateTime.now().plusDays(15))
                 .build();
 
         Event event3 = Event.builder()
@@ -149,35 +151,69 @@ public class UserServiceTest {
                 .recruitStart(LocalDateTime.now().minusDays(20))
                 .recruitEnd(LocalDateTime.now().plusDays(10))
                 .eventStart(LocalDateTime.now().minusDays(20))
-                .eventEnd(LocalDateTime.now().plusDays(200))
+                .eventEnd(LocalDateTime.now().plusDays(205))
                 .build();
 
         eventRepository.saveAll(List.of(event1, event2, event3, event4));
 
-        EventBookmark oldEventBookmark = EventBookmark.builder().event(event2).user(u1).build();
-        createdField.set(oldEventBookmark, LocalDate.now().minusMonths(5).atStartOfDay());
+        EventBookmark bookmark1 = EventBookmark.builder().event(event1).isBookmarked(true).user(u1).build();
+        EventBookmark bookmark2 = EventBookmark.builder().event(event2).isBookmarked(true).user(u1).build();
+        EventBookmark bookmark3 = EventBookmark.builder().event(event3).isBookmarked(true).user(u1).build();
+        EventBookmark bookmark4 = EventBookmark.builder().event(event4).isBookmarked(true).user(u1).build();
 
-        eventBookmarkRepository.save(oldEventBookmark);
+        createdField.set(bookmark1, now.minusDays(3));
+        createdField.set(bookmark2, now.minusMonths(5));
+        createdField.set(bookmark3, now.minusDays(2));
+        createdField.set(bookmark4, now.minusDays(1));
 
-        eventBookmarkRepository.save(EventBookmark.builder().event(event1).user(u1).build());
-        eventBookmarkRepository.save(EventBookmark.builder().event(event3).user(u1).build());
-        eventBookmarkRepository.save(EventBookmark.builder().event(event4).user(u1).build());
+        eventBookmarkRepository.saveAll(List.of(bookmark1, bookmark2, bookmark3, bookmark4));
 
-        UserResponse.MyPageBookMarkResponse response= userService.getMyPageBookMark(u1,"deadline",0);
+        // 1. closed + deadline
+        UserResponse.MyPageBookMarkResponse closedResponse =
+                userService.getMyPageBookMark(u1, "deadline", 0, "closed");
 
-        assertThat(u1.getEmail()).isEqualTo(response.getEmail());
-        assertThat(response.getPageInfo().getCurrentPage()).isEqualTo(1);
-        assertThat(response.getPageInfo().getTotalPages()).isEqualTo(1);
-        assertThat(response.getPageInfo().getPageSize()).isEqualTo(9);
-        assertThat(u1.getName()).isEqualTo(response.getName());
-        assertThat(event1.getId()).isEqualTo(response.getClosedEvents().get(0).getId());
-        assertThat(event4.getId()).isEqualTo(response.getRecruitingEvents().get(0).getId());
-        assertThat(1).isEqualTo(response.getClosedEvents().size());
-        assertThat(3).isEqualTo(response.getRecruitingEvents().size());
+        assertThat(closedResponse.getEmail()).isEqualTo(u1.getEmail());
+        assertThat(closedResponse.getName()).isEqualTo(u1.getName());
+        assertThat(closedResponse.getPageInfo().getCurrentPage()).isEqualTo(1);
+        assertThat(closedResponse.getPageInfo().getTotalPages()).isEqualTo(1);
+        assertThat(closedResponse.getPageInfo().getPageSize()).isEqualTo(9);
 
-        UserResponse.MyPageBookMarkResponse response2= userService.getMyPageBookMark(u1,"latest",0);
+        assertThat(closedResponse.getClosedCount()).isEqualTo(1);
+        assertThat(closedResponse.getRecruitingCount()).isEqualTo(3);
+        assertThat(closedResponse.getBookmarkCount()).isEqualTo(4);
 
-        assertThat(event2.getId()).isEqualTo(response2.getRecruitingEvents().get(2).getId());
+        assertThat(closedResponse.getEvents()).hasSize(1);
+        assertThat(closedResponse.getEvents().get(0).getId()).isEqualTo(event1.getId());
+
+        // 2. recruiting + deadline
+        UserResponse.MyPageBookMarkResponse recruitingDeadlineResponse =
+                userService.getMyPageBookMark(u1, "deadline", 0, "recruiting");
+
+        assertThat(recruitingDeadlineResponse.getClosedCount()).isEqualTo(1);
+        assertThat(recruitingDeadlineResponse.getRecruitingCount()).isEqualTo(3);
+        assertThat(recruitingDeadlineResponse.getBookmarkCount()).isEqualTo(4);
+
+        assertThat(recruitingDeadlineResponse.getPageInfo().getCurrentPage()).isEqualTo(1);
+        assertThat(recruitingDeadlineResponse.getPageInfo().getTotalPages()).isEqualTo(1);
+        assertThat(recruitingDeadlineResponse.getPageInfo().getPageSize()).isEqualTo(9);
+
+        assertThat(recruitingDeadlineResponse.getEvents()).hasSize(3);
+        assertThat(recruitingDeadlineResponse.getEvents().get(0).getId()).isEqualTo(event2.getId());
+        assertThat(recruitingDeadlineResponse.getEvents().get(1).getId()).isEqualTo(event3.getId());
+        assertThat(recruitingDeadlineResponse.getEvents().get(2).getId()).isEqualTo(event4.getId());
+
+        // 3. recruiting + latest
+        UserResponse.MyPageBookMarkResponse recruitingLatestResponse =
+                userService.getMyPageBookMark(u1, "latest", 0, "recruiting");
+
+        assertThat(recruitingLatestResponse.getClosedCount()).isEqualTo(1);
+        assertThat(recruitingLatestResponse.getRecruitingCount()).isEqualTo(3);
+        assertThat(recruitingLatestResponse.getBookmarkCount()).isEqualTo(4);
+
+        assertThat(recruitingLatestResponse.getEvents()).hasSize(3);
+        assertThat(recruitingLatestResponse.getEvents().get(0).getId()).isEqualTo(event4.getId());
+        assertThat(recruitingLatestResponse.getEvents().get(1).getId()).isEqualTo(event3.getId());
+        assertThat(recruitingLatestResponse.getEvents().get(2).getId()).isEqualTo(event2.getId());
 
 
     }
