@@ -15,6 +15,9 @@ import com.example.skillup.domain.event.enums.ActorType;
 import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventSortType;
 import com.example.skillup.domain.event.enums.EventStatus;
+import com.example.skillup.domain.event.events.EventCreatedEvent;
+import com.example.skillup.domain.event.events.ThumbnailReplacedEvent;
+import com.example.skillup.domain.event.events.ThumbnailUploadedEvent;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import com.example.skillup.domain.event.mapper.EventMapper;
@@ -39,6 +42,7 @@ import com.example.skillup.global.common.CommonMapper;
 import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
+import com.example.skillup.global.recovery.enums.ResourceType;
 import com.example.skillup.global.search.exception.SearchException;
 import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.AssociationBinder;
@@ -54,6 +58,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -83,6 +88,7 @@ public class EventService {
     private final GeocodingService geocodingService;
     private final HashTagRepository hashTagRepository;
     private final EventPublishValidator eventPublishValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     private record ActorInfo(String actorId, ActorType actorType) {
@@ -113,18 +119,12 @@ public class EventService {
 
         eventPublishValidator.validateDuplicateTitleForCreate(request.getTitle());
 
-        String thumbnailUrl = null;
-
-        if (thumbnailImage != null) {
-            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
-        }
-
         GeoPoint eventGeoPoint = null;
         if (!request.getIsOnline()) {
-            eventGeoPoint = new GeoPoint(request.getLatitude() , request.getLongitude() , request.getLocationText());
+            eventGeoPoint = new GeoPoint(request.getLatitude(), request.getLongitude(), request.getLocationText());
         }
 
-        Event event = eventMapper.toEntity(request, thumbnailUrl, eventGeoPoint);
+        Event event = eventMapper.toEntity(request, null, eventGeoPoint);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
@@ -136,9 +136,19 @@ public class EventService {
 
         eventPublishValidator.validateForPublish(event);
 
+        if (thumbnailImage != null) {
+            String thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+
+            event.setThumbnailUrl(thumbnailUrl);
+
+            // 롤백되면 S3 올라간 데이터 삭제
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, thumbnailUrl));
+        }
+
         Event savedEvent = eventRepository.save(event);
 
-        eventIndexerService.index(savedEvent);
+        //DB 에 저장된게 확인되면 elastic search 에 올라가도록 수정
+        eventPublisher.publishEvent(new EventCreatedEvent(savedEvent.getId()));
 
         return savedEvent;
     }
@@ -148,12 +158,7 @@ public class EventService {
 
         eventPublishValidator.validateDuplicateTitleForCreate(request.getTitle());
 
-        String thumbnailUrl = null;
-        if (thumbnailImage != null) {
-            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
-        }
-
-        Event event = eventMapper.toDraftEntity(request, thumbnailUrl);
+        Event event = eventMapper.toDraftEntity(request, null);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             associationBinder.bindRoles(request.getTargetRoles(), event::addTargetRole);
@@ -163,21 +168,26 @@ public class EventService {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
+        if (thumbnailImage != null) {
+            String thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+
+            event.setThumbnailUrl(thumbnailUrl);
+
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, thumbnailUrl));
+        }
+
         return eventRepository.save(event);
     }
 
     @Transactional
-    public Event publishDraftEvent(Long eventId , UpdateEvent request, MultipartFile thumbnailImage) {
+    public Event publishDraftEvent(Long eventId, UpdateEvent request, MultipartFile thumbnailImage) {
         Event event = eventRepository.getEvent(eventId);
 
-        eventPublishValidator.validateDuplicateTitleForUpdate(eventId , request.getTitle());
+        eventPublishValidator.validateDuplicateTitleForUpdate(eventId, request.getTitle());
 
-        String thumbnailUrl = event.getThumbnailUrl();
-        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
-            thumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
-        }
+        String oldThumbnailUrl = event.getThumbnailUrl();
 
-        event.update(request, thumbnailUrl);
+        event.update(request, oldThumbnailUrl);
 
         if (request.getTargetRoles() != null && !request.getTargetRoles().isEmpty()) {
             event.getTargetRoles().clear();
@@ -189,11 +199,24 @@ public class EventService {
             associationBinder.bindHashTags(request.getHashTags(), event::addHashTag);
         }
 
-        eventPublishValidator.validateForPublish(event);
-
-
         if (Boolean.FALSE.equals(event.getIsOnline())) {
             event.updateCoordinates(request.getLatitude(), request.getLongitude());
+        }
+
+        eventPublishValidator.validateForPublish(event);
+
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+            String newThumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+
+            event.setThumbnailUrl(newThumbnailUrl);
+
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, newThumbnailUrl));
+
+            //제대로 저장되는 경우 기존 썸네일 삭제
+            if (oldThumbnailUrl != null && !oldThumbnailUrl.isBlank()) {
+                eventPublisher.publishEvent(
+                        new ThumbnailReplacedEvent(ResourceType.EVENT, event.getId(), oldThumbnailUrl));
+            }
         }
 
         event.setStatus(EventStatus.PUBLISHED);
@@ -201,7 +224,7 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(event);
 
-        eventIndexerService.index(savedEvent);
+        eventPublisher.publishEvent(new EventCreatedEvent(savedEvent.getId()));
 
         return savedEvent;
     }
@@ -247,23 +270,13 @@ public class EventService {
         String oldLocationText = event.getLocationText();
         String oldTitle = event.getTitle();
         Boolean oldIsOnline = event.getIsOnline();
-        String imageUrl = event.getThumbnailUrl();
-
+        String oldThumbnailUrl = event.getThumbnailUrl();
 
         if (request.getTitle() != null && !request.getTitle().equals(oldTitle)) {
             eventPublishValidator.validateDuplicateTitleForUpdate(event.getId(), request.getTitle());
         }
 
-        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
-
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                s3Service.deleteFileFromUrl(imageUrl);
-            }
-
-            imageUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
-        }
-
-        event.update(request, imageUrl);
+        event.update(request, oldThumbnailUrl);
 
         boolean locationChanged =
                 request.getLocationText() != null && !request.getLocationText().equals(oldLocationText);
@@ -286,7 +299,20 @@ public class EventService {
 
         eventPublishValidator.validateForPublish(event);
 
-        eventIndexerService.index(event);
+        if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+            String newThumbnailUrl = s3Service.uploadFile(thumbnailImage, "event/thumbnail");
+
+            event.setThumbnailUrl(newThumbnailUrl);
+
+            eventPublisher.publishEvent(new ThumbnailUploadedEvent(ResourceType.EVENT, newThumbnailUrl));
+
+            if (oldThumbnailUrl != null && !oldThumbnailUrl.isBlank()) {
+                eventPublisher.publishEvent(
+                        new ThumbnailReplacedEvent(ResourceType.EVENT, event.getId(), oldThumbnailUrl));
+            }
+        }
+
+        eventPublisher.publishEvent(new EventCreatedEvent(event.getId()));
 
         return new EventResponse.CommonEventResponse(event.getId());
     }

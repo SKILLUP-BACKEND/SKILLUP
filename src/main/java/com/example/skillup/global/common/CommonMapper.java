@@ -7,6 +7,9 @@ import java.time.format.DateTimeFormatter;
 import org.springframework.data.domain.Pageable;
 
 public class CommonMapper {
+
+    private static final int MAX_REASON_LENGTH = 1000;
+
     public static String toDatePattern(LocalDateTime dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
         return dateTime.format(formatter);
@@ -31,7 +34,26 @@ public class CommonMapper {
     }
 
     public static BigDecimal toBigDecimal(Double value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         return BigDecimal.valueOf(value).setScale(7, RoundingMode.HALF_UP);
+    }
+
+    public static String normalizeReason(Exception e, String prefixMessage) {
+
+        String result;
+
+        if (e == null || e.getMessage() == null || e.getMessage().isBlank()) {
+            result = prefixMessage + ": 알 수 없는 오류";
+        } else if (prefixMessage == null || prefixMessage.isBlank()) {
+            result = e.getMessage();
+        } else {
+            result = prefixMessage + ": " + e.getMessage();
+        }
+
+        return result.length() > MAX_REASON_LENGTH
+                ? result.substring(0, MAX_REASON_LENGTH)
+                : result;
     }
 }
