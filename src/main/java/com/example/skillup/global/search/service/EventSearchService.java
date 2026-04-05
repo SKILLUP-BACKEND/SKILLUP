@@ -124,6 +124,7 @@ public class EventSearchService {
                 sorts.add(SortOptions.of(s -> s.field(f -> f.field("created_at").order(SortOrder.Desc))));
             }
             default -> { // POPULARITY
+                sorts.add(SortOptions.of(s -> s.score(sc -> sc.order(SortOrder.Desc))));
                 sorts.add(SortOptions.of(s -> s.field(f -> f.field("popularity_score").order(SortOrder.Desc))));
                 sorts.add(SortOptions.of(s -> s.field(f -> f.field("created_at").order(SortOrder.Desc))));
             }
