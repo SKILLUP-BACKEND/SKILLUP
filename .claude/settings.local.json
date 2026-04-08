@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(find C:\\\\Users\\\\aa200\\\\IdeaProjects\\\\SkillUp\\\\src\\\\main\\\\java:*)",
+      "Bash(find C:\\\\Users\\\\aa200\\\\IdeaProjects\\\\SkillUp\\\\src:*)"
+    ]
+  }
+}

@@ -112,10 +112,10 @@ public class UserService {
 
         if ("deadline".equals(sort)) {
             if ("recruiting".equals(status)) {
-                return PageRequest.of(page, 9, Sort.by(Sort.Direction.ASC, "event.eventEnd"));
+                return PageRequest.of(page, 9, Sort.by(Sort.Direction.ASC, "eventEnd"));
             }
             if ("closed".equals(status)) {
-                return PageRequest.of(page, 9, Sort.by(Sort.Direction.DESC, "event.eventEnd"));
+                return PageRequest.of(page, 9, Sort.by(Sort.Direction.DESC, "eventEnd"));
             }
         }
 

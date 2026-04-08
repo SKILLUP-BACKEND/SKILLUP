@@ -59,7 +59,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
             where eb.user = :user
               and eb.isBookmarked = true
               and e.deletedAt is null
-              and e.eventEnd >= :now
+              and (e.eventEnd is null or e.eventEnd >= :now)
             """)
     Page<Event> findRecruitingEventsByUser(Users user, LocalDateTime now, Pageable pageable);
 
@@ -70,6 +70,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
             where eb.user = :user
               and eb.isBookmarked = true
               and e.deletedAt is null
+              and e.eventEnd is not null
               and e.eventEnd < :now
             """)
     Page<Event> findClosedEventsByUser(Users user, LocalDateTime now, Pageable pageable);
@@ -81,7 +82,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
             where eb.user = :user
               and eb.isBookmarked = true
               and e.deletedAt is null
-              and e.eventEnd >= :now
+              and (e.eventEnd is null or e.eventEnd >= :now)
             """)
     long countRecruitingEventsByUser(@Param("user") Users user,
                                      @Param("now") LocalDateTime now);
@@ -93,6 +94,7 @@ public interface EventBookmarkRepository extends JpaRepository<EventBookmark, Lo
             where eb.user = :user
               and eb.isBookmarked = true
               and e.deletedAt is null
+              and e.eventEnd is not null
               and e.eventEnd < :now
             """)
     long countClosedEventsByUser(@Param("user") Users user,
