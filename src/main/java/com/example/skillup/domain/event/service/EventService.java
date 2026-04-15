@@ -405,16 +405,11 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse.featuredEventResponseList getFeaturedEvents(JobGroup tab, int size, UsersDetails user) {
         String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
-        String roleFilter = null;
 
         LocalDateTime since = LocalDate.now().minusMonths(3).atStartOfDay();
 
-        if (roleName != null) {
-            roleFilter = notFoundGuardService.getRole(roleName).getName();
-        }
-
         List<EventRepository.PopularEventProjection> rows = eventRepository.findPopularForHomeWithPopularity(
-                roleFilter,
+                roleName,
                 since,
                 LocalDateTime.now(),
                 PageRequest.of(0, Math.max(1, size))
