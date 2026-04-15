@@ -475,8 +475,8 @@ public class EventService {
         Pageable pageable = PageRequest.of(page, size);
 
         List<EventRepository.PopularEventProjection> rows;
+        String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
         if (category == EventCategory.BOOTCAMP_CLUB) {
-            String roleName = (tab == JobGroup.ALL) ? null : tab.getToKorean();
             // 부트캠프/동아리: 모집중만 노출
             rows = eventRepository.findBootcampsOpenOrderByPopularityWithPopularity(twoMonthAgo, now, roleName,
                     pageable);
@@ -484,7 +484,7 @@ public class EventService {
             // 그 외 카테고리: 마감 30일 이내
             LocalDateTime due = now.plusDays(30);
             rows = eventRepository.findByCategoryWithin30DaysOrderByPopularityWithPopularity(
-                    category, twoMonthAgo, now, due, pageable);
+                    category, twoMonthAgo, now, due, roleName, pageable);
         }
 
         List<Long> eventIds = rows.stream().map(r -> r.getEvent().getId()).toList();
@@ -700,7 +700,7 @@ public class EventService {
     public AdminDraftEventResponse getAdminDraftEvents(EventSortType sortType) {
 
         List<Event> events = switch (sortType) {
-            case DEADLINE -> eventRepository.findTop200ByStatusOrderByRecruitEndAsc(EventStatus.DRAFT);
+            case DEADLINE -> eventRepository.findTop200ByStatusOrderByDeadline(EventStatus.DRAFT, Pageable.ofSize(200));
             case CREATED_AT -> eventRepository.findTop200ByStatusOrderByCreatedAtDesc(EventStatus.DRAFT);
 
             default -> throw new EventException(EventErrorCode.INVALID_EVENT_SORT_TYPE, sortType.name() + "은 ");
