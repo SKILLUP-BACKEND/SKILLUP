@@ -98,7 +98,14 @@ public class EventRepositoryImpl implements EventRepositoryNative {
 
         String orderBy = switch (cond.getSort().name()) {
             case "LATEST" -> " ORDER BY e.published_at DESC";
-            case "DEADLINE" -> " ORDER BY e.recruit_end ASC";
+            case "DEADLINE" -> """
+                 ORDER BY \
+                CASE \
+                    WHEN e.recruit_end IS NOT NULL AND e.recruit_end >= NOW() THEN 0 \
+                    WHEN e.recruit_end IS NULL THEN 1 \
+                    ELSE 2 \
+                END, \
+                e.recruit_end ASC""";
             default -> " ORDER BY popularity DESC";
         };
 

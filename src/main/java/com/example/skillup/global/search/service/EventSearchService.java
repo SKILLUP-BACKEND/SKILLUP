@@ -2,6 +2,7 @@ package com.example.skillup.global.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.ScriptSortType;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
@@ -116,8 +117,16 @@ public class EventSearchService {
         List<SortOptions> sorts = new ArrayList<>();
         switch (sortKey) {
             case "DEADLINE" -> {
-                // 마감 임박 오름차순 + 같은 날이면 최신 등록 우선
-                sorts.add(SortOptions.of(s -> s.field(f -> f.field("recruit_end").order(SortOrder.Asc))));
+                // 모집중(0) → 모집일 없음(1) → 신청 마감(2) + 마감 임박 오름차순
+                sorts.add(SortOptions.of(s -> s.script(sc -> sc
+                        .type(ScriptSortType.Number)
+                        .order(SortOrder.Asc)
+                        .script(scr -> scr.inline(i -> i
+                                .source("if (doc['recruit_end'].size() == 0) { return 1; } else if (doc['recruit_end'].value.toInstant().toEpochMilli() >= params.now) { return 0; } else { return 2; }")
+                                .params("now", JsonData.of(System.currentTimeMillis()))
+                        ))
+                )));
+                sorts.add(SortOptions.of(s -> s.field(f -> f.field("recruit_end").order(SortOrder.Asc).missing("_last"))));
                 sorts.add(SortOptions.of(s -> s.field(f -> f.field("created_at").order(SortOrder.Desc))));
             }
             case "LATEST" -> {

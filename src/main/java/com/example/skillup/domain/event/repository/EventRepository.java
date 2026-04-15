@@ -193,6 +193,14 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
               and (e.eventEnd is null or e.eventEnd >= :now)
               and e.recruitEnd is not null
               and e.recruitEnd between :now and :due
+              and (
+                    :roleName is null
+                    or exists (
+                        select 1
+                        from Event e2 join e2.targetRoles tr2
+                        where e2 = e and tr2.name = :roleName
+                    )
+              )
             group by e
             order by
                    (
@@ -211,6 +219,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("since") LocalDateTime since,
             @Param("now") LocalDateTime now,
             @Param("due") LocalDateTime due,
+            @Param("roleName") String roleName,
             Pageable pageable);
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
@@ -376,7 +385,16 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("now") LocalDateTime now
     );
 
-    List<Event> findTop200ByStatusOrderByRecruitEndAsc(EventStatus eventStatus);
+    @Query("""
+            select e from Event e
+            where e.status = :status
+            order by case
+                when e.recruitEnd is not null and e.recruitEnd >= current_timestamp then 0
+                when e.recruitEnd is null then 1
+                else 2 end,
+            e.recruitEnd asc
+            """)
+    List<Event> findTop200ByStatusOrderByDeadline(@Param("status") EventStatus status, Pageable pageable);
 
     List<Event> findTop200ByStatusOrderByCreatedAtDesc(EventStatus eventStatus);
 
