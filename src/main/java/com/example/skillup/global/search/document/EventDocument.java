@@ -23,6 +23,9 @@ public class EventDocument {
 
     @JsonProperty("thumbnail_url") private String thumbnailUrl;
 
+    @JsonProperty("description")
+    private String description; // 행사 내용
+
     private String category;
 
     @JsonProperty("is_free") private Boolean isFree;//가격 여부
