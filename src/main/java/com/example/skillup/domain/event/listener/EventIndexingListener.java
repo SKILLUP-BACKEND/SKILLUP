@@ -27,7 +27,8 @@ public class EventIndexingListener {
         try {
             log.info("ES AFTER_COMMIT 실행 - eventId={}", event.eventId());
 
-            Event savedEvent = eventRepository.getEvent(event.eventId());
+            Event savedEvent = eventRepository.findByIdWithHashTags(event.eventId())
+                    .orElseThrow(() -> new RuntimeException("Event not found: " + event.eventId()));
 
             eventIndexerService.index(savedEvent);
         } catch (Exception e) {

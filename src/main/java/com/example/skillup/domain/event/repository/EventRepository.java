@@ -7,6 +7,7 @@ import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,13 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
         return findById(eventId).orElseThrow(
                 () -> new EventException(EventErrorCode.EVENT_ENTITY_NOT_FOUND, "EventID 가 " + eventId + "인"));
     }
+
+    @Query("SELECT e FROM Event e LEFT JOIN FETCH e.hashTags WHERE e.id = :id")
+    Optional<Event> findByIdWithHashTags(@Param("id") Long id);
+
+    @Query(value = "SELECT DISTINCT e FROM Event e LEFT JOIN FETCH e.hashTags WHERE e.status = :status",
+           countQuery = "SELECT COUNT(e) FROM Event e WHERE e.status = :status")
+    Page<Event> findByStatusWithHashTags(@Param("status") EventStatus status, Pageable pageable);
     boolean existsByTitle(String title);
     boolean existsByTitleAndIdNot(String title, Long eventId);
 
@@ -221,10 +229,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
             @Param("due") LocalDateTime due,
             @Param("roleName") String roleName,
             Pageable pageable);
-
-    Page<Event> findByStatus(EventStatus status, Pageable pageable);
-
-
 
     public interface PopularEventProjection {
         Event getEvent();

@@ -80,7 +80,7 @@ public class EventIndexerService {
 
             while (true) {
 
-                Page<Event> slice = eventRepository.findByStatus(EventStatus.PUBLISHED,(PageRequest.of(page, pageSize)));
+                Page<Event> slice = eventRepository.findByStatusWithHashTags(EventStatus.PUBLISHED, PageRequest.of(page, pageSize));
                 if (slice.isEmpty()) {
                     break;
                 }

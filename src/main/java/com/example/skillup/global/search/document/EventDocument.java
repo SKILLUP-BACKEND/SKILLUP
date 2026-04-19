@@ -3,6 +3,7 @@ package com.example.skillup.global.search.document;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,12 @@ public class EventDocument {
     private String title; // 제목
 
     @JsonProperty("thumbnail_url") private String thumbnailUrl;
+
+    @JsonProperty("description")
+    private String description; // 행사 내용
+
+    @JsonProperty("hashtags")
+    private List<String> hashtags; // 해시태그 이름 목록
 
     private String category;
 
