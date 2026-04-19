@@ -90,6 +90,11 @@ public class EventSearchService {
                                         .operator(Operator.Or)
                                         .boost(0.8f)
                                 ))
+                                .should(s -> s.term(t -> t
+                                        .field("hashtags")
+                                        .value(searchStringNoSpace)
+                                        .boost(1.5f)
+                                ))
                                 .minimumShouldMatch("1")
                                 .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
                                 .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))

@@ -1,6 +1,7 @@
 package com.example.skillup.global.search.mapper;
 
 import com.example.skillup.domain.event.entity.Event;
+import com.example.skillup.domain.event.entity.HashTag;
 import com.example.skillup.global.search.document.EventDocument;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -15,6 +16,7 @@ public class EventDocumentMapper {
                 .id(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
+                .hashtags(event.getHashTags().stream().map(HashTag::getName).toList())
                 .thumbnailUrl(event.getThumbnailUrl())
                 .isFree(event.getIsFree())
                 .price(event.getPrice())
