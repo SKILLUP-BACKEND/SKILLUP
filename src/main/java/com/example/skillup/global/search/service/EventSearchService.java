@@ -83,6 +83,13 @@ public class EventSearchService {
                                         .query(searchStringNoSpace)
                                         .boost(1.5f)
                                 ))
+                                .should(s -> s.match(mm -> mm
+                                        .field("description")
+                                        .query(searchString)
+                                        .analyzer("ko_query_syn")
+                                        .operator(Operator.Or)
+                                        .boost(0.8f)
+                                ))
                                 .minimumShouldMatch("1")
                                 .should(sh -> sh.term(t -> t.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))
                                 .should(sh -> sh.prefix(p -> p.field("title.nospace").value(searchStringNoSpace).boost(3.0f)))

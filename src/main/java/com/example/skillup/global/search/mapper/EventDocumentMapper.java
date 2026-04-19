@@ -14,6 +14,7 @@ public class EventDocumentMapper {
         return EventDocument.builder()
                 .id(event.getId())
                 .title(event.getTitle())
+                .description(event.getDescription())
                 .thumbnailUrl(event.getThumbnailUrl())
                 .isFree(event.getIsFree())
                 .price(event.getPrice())
