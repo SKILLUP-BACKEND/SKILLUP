@@ -1,15 +1,12 @@
 package com.example.skillup.domain.event.listener;
 
-import static com.example.skillup.global.common.CommonMapper.normalizeReason;
-
-import com.example.skillup.domain.event.entity.Event;
 import com.example.skillup.domain.event.events.EventCreatedEvent;
-import com.example.skillup.domain.event.repository.EventRepository;
-import com.example.skillup.global.recovery.enums.ResourceType;
-import com.example.skillup.global.recovery.service.SearchIndexFailureSaveService;
-import com.example.skillup.global.search.service.EventIndexerService;
+import com.example.skillup.global.recovery.entity.SearchIndexFailure;
+import com.example.skillup.global.recovery.repository.SearchIndexFailureRepository;
+import com.example.skillup.global.recovery.service.SearchIndexRetryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -18,28 +15,24 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 @Slf4j
 public class EventIndexingListener {
-    private final EventIndexerService eventIndexerService;
-    private final EventRepository eventRepository;
-    private final SearchIndexFailureSaveService searchIndexFailureSaveService;
+    private final SearchIndexFailureRepository searchIndexFailureRepository;
+    private final SearchIndexRetryService searchIndexRetryService;
+
+    @Value("${skillup.search.index-name}")
+    private String indexName;
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void recordIndexingBeforeCommit(EventCreatedEvent event) {
+        searchIndexFailureRepository.save(SearchIndexFailure.pending(event.eventId(), indexName));
+    }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void indexEventAfterCommit(EventCreatedEvent event) {
         try {
-            log.info("ES AFTER_COMMIT 실행 - eventId={}", event.eventId());
-
-            Event savedEvent = eventRepository.findByIdWithHashTags(event.eventId())
-                    .orElseThrow(() -> new RuntimeException("Event not found: " + event.eventId()));
-
-            eventIndexerService.index(savedEvent);
+            searchIndexRetryService.processPendingEvent(event.eventId());
         } catch (Exception e) {
-            log.error("이벤트 인덱싱 실패 - eventId={}", event.eventId(), e);
-            searchIndexFailureSaveService.saveFailure(
-                    ResourceType.EVENT,
-                    event.eventId(),
-                    "events_v3",
-                    String.valueOf(event.eventId()),
-                    normalizeReason(e, "Elastic Search 인덱싱 실패")
-            );
+            // 커밋된 PENDING 작업은 스케줄러가 회수한다.
+            log.error("커밋 후 검색 작업 실행 실패 - eventId={}", event.eventId(), e);
         }
     }
 }
