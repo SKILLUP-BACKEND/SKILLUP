@@ -58,4 +58,11 @@ public class SearchIndexFailure extends RetryFailureBase {
                 failureReason
         );
     }
+
+    // 기존 테이블을 재사용하며, 실패 전 작업도 PENDING으로 기록한다.
+    public static SearchIndexFailure pending(Long eventId, String indexName) {
+        SearchIndexFailure task = of(ResourceType.EVENT, eventId, indexName, eventId.toString(), "");
+        task.initPending();
+        return task;
+    }
 }

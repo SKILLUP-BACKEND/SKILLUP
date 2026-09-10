@@ -5,6 +5,7 @@ import com.example.skillup.domain.event.enums.EventCategory;
 import com.example.skillup.domain.event.enums.EventStatus;
 import com.example.skillup.domain.event.exception.EventErrorCode;
 import com.example.skillup.domain.event.exception.EventException;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +26,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
 
     @Query("SELECT e FROM Event e LEFT JOIN FETCH e.hashTags WHERE e.id = :id")
     Optional<Event> findByIdWithHashTags(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Event e where e.id = :id")
+    Optional<Event> findByIdForIndexing(@Param("id") Long id);
 
     @Query(value = "SELECT DISTINCT e FROM Event e LEFT JOIN FETCH e.hashTags WHERE e.status = :status",
            countQuery = "SELECT COUNT(e) FROM Event e WHERE e.status = :status")

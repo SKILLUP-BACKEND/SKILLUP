@@ -52,6 +52,13 @@ public abstract class RetryFailureBase {
         this.lastTriedAt = LocalDateTime.now();
     }
 
+    protected void initPending() {
+        this.status = RetryStatus.PENDING;
+        this.retryCount = 0;
+        this.failureReason = "";
+        this.lastTriedAt = null;
+    }
+
     public void markSuccess() {
         this.status = RetryStatus.SUCCEEDED;
         this.processedAt = LocalDateTime.now();

@@ -43,8 +43,6 @@ import com.example.skillup.global.common.CommonResponse;
 import com.example.skillup.global.enums.JobGroup;
 import com.example.skillup.global.exception.CommonErrorCode;
 import com.example.skillup.global.recovery.enums.ResourceType;
-import com.example.skillup.global.search.exception.SearchException;
-import com.example.skillup.global.search.service.EventIndexerService;
 import com.example.skillup.global.service.AssociationBinder;
 import com.example.skillup.global.service.NotFoundGuardService;
 import com.example.skillup.global.service.S3Service;
@@ -77,7 +75,6 @@ public class EventService {
     private final EventBookmarkService eventBookmarkService;
     private final GuestRepository guestRepository;
     private final EventActionRepository eventActionRepository;
-    private final EventIndexerService eventIndexerService;
     private final EventViewService eventViewService;
     private final S3Service s3Service;
     private final AssociationBinder associationBinder;
@@ -253,11 +250,7 @@ public class EventService {
 
         event.delete();
 
-        try {
-            eventIndexerService.delete(event.getId());
-        } catch (SearchException e) {
-            log.error("행사(id={}) Elasticsearch 인덱스 삭제 실패: {}", event.getId(), e.getMessage());
-        }
+        eventPublisher.publishEvent(new EventCreatedEvent(event.getId()));
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
@@ -326,15 +319,7 @@ public class EventService {
 
         event.setStatus(status);
 
-        try {
-            if (isVisible) {
-                eventIndexerService.index(event);
-            } else {
-                eventIndexerService.delete(event.getId());
-            }
-        } catch (Exception e) {
-            log.error("행사(id={}) 공개/숨김 처리 중 Elasticsearch 동기화 실패: {}", event.getId(), e.getMessage());
-        }
+        eventPublisher.publishEvent(new EventCreatedEvent(event.getId()));
 
         return new EventResponse.CommonEventResponse(event.getId());
     }
